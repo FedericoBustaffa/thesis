@@ -1,0 +1,43 @@
+import multiprocessing as mp
+import numpy as np
+import time
+
+
+def matrix_mult(a, b):
+    return a @ b
+
+
+if __name__ == "__main__":
+    n = 1024
+    shape = (n, n)
+    a = np.random.randint(1, 4, shape)
+    b = np.random.randint(1, 4, shape)
+
+    k = 4
+    start = time.perf_counter()
+    for _ in range(k):
+        c = matrix_mult(a, b)
+    end = time.perf_counter()
+
+    print(f"{k} matrix multiplications of {n} x {n} matrix takes: {end - start} s")
+
+    workers = [
+        mp.Process(
+            target=matrix_mult,
+            args=(
+                a,
+                b,
+            ),
+        )
+        for _ in range(k)
+    ]
+
+    start = time.perf_counter()
+    for w in workers:
+        w.start()
+
+    for w in workers:
+        w.join()
+    end = time.perf_counter()
+
+    print(f"{k} matrix multiplications of {n} x {n} matrix takes: {end - start} s")

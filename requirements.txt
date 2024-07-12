@@ -1,4 +1,6 @@
 numpy
 matplotlib
 pandas
+setuptools
+numba
 interpreters-3-12
