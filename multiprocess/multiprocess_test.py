@@ -12,26 +12,18 @@ if __name__ == "__main__":
     shape = (n, n)
     a = np.random.randint(1, 4, shape)
     b = np.random.randint(1, 4, shape)
-
     k = 4
+
+    # Sequential
     start = time.perf_counter()
     for _ in range(k):
         c = matrix_mult(a, b)
     end = time.perf_counter()
+    seq_time = end - start
+    print(f"Sequential time: {seq_time} s")
 
-    print(f"{k} matrix multiplications of {n} x {n} matrix takes: {end - start} s")
-
-    workers = [
-        mp.Process(
-            target=matrix_mult,
-            args=(
-                a,
-                b,
-            ),
-        )
-        for _ in range(k)
-    ]
-
+    # Parallel
+    workers = [mp.Process(target=matrix_mult, args=[a, b]) for _ in range(k)]
     start = time.perf_counter()
     for w in workers:
         w.start()
@@ -39,5 +31,7 @@ if __name__ == "__main__":
     for w in workers:
         w.join()
     end = time.perf_counter()
+    parallel = end - start
+    print(f"Parallel time: {parallel} s")
 
-    print(f"{k} matrix multiplications of {n} x {n} matrix takes: {end - start} s")
+    print(f"Speed Up factor: {seq_time / parallel}")
