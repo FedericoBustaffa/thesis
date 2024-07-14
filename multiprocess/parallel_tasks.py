@@ -10,6 +10,8 @@ def matrix_mult(a, b):
 
 
 if __name__ == "__main__":
+    print("Dev branch")
+
     n = 4
     shape = (n, n)
     a = np.random.randint(1, 4, shape)
@@ -37,3 +39,6 @@ if __name__ == "__main__":
     print(f"Parallel time: {parallel} s")
 
     print(f"Speed Up factor: {seq_time / parallel}")
+
+    shared = sm.SharedMemory("Mem 1", True, 256)
+    print(shared)
