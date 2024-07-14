@@ -10,8 +10,6 @@ def matrix_mult(a, b):
 
 
 if __name__ == "__main__":
-    print("Dev branch")
-
     n = 4
     shape = (n, n)
     a = np.random.randint(1, 4, shape)
