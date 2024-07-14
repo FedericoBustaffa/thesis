@@ -39,6 +39,3 @@ if __name__ == "__main__":
     print(f"Parallel time: {parallel} s")
 
     print(f"Speed Up factor: {seq_time / parallel}")
-
-    shared = sm.SharedMemory("Mem 1", True, 256)
-    print(shared)
