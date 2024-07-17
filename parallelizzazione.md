@@ -49,7 +49,7 @@ valutare $N / C$ individui.
 
 Per quanto riguarda la **selezione** non so quanto sia
 corretto effettuare una parallelizzazione e nel caso non
-so quale sai il modo correto di farla. Dobbiamo inoltre
+so quale sia il modo correto di farla. Dobbiamo inoltre
 considerare che al momento della selezione gli individui sono
 stati valutati e ho pensato quindi a due possibili scenari:
 
