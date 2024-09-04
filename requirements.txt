@@ -4,3 +4,6 @@ pandas
 setuptools
 numba
 interpreters-3-12
+pyarrow
+ipykernel
+notebook
