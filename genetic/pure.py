@@ -1,6 +1,3 @@
-import random
-
-
 class Genome:
     def __init__(self, chromosome: list, fitness: float = 0):
         self.chromosome = chromosome

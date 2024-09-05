@@ -3,7 +3,7 @@ import sys
 
 import pandas as pd
 
-import genetic as ga
+from ppga.genetic import pure
 
 
 def chromosome_generation(values: list) -> list:
@@ -34,5 +34,5 @@ if __name__ == "__main__":
     M = float(sys.argv[4])
 
     chromosome_values = [i for i in range(len(towns))]
-    population = ga.generate(N, chromosome_generation, chromosome_values)
+    population = generate(N, chromosome_generation, chromosome_values)
     print(population)
