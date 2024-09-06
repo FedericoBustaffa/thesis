@@ -12,6 +12,12 @@ class Genome:
     def __lq__(self, other) -> bool:
         return self.fitness < other.fitness
 
+    def __eq__(self, other) -> bool:
+        return self.chromosome == other.chromosome and self.fitness == other.fitness
+
+    def __hash__(self) -> int:
+        return hash((tuple(self.chromosome), self.fitness))
+
 
 def chromosome_generation(T: int) -> list[int]:
     chromosome = [i for i in range(T)]
@@ -38,9 +44,9 @@ def selection(population: list[Genome]) -> list[Genome]:
 
     for _ in range(len(population) // 2):
         first, second = random.choices(indices, k=2)
-        while first == second:
-            # print("selection conflict")
-            second = random.choice(indices)
+        # while first == second:
+        #     print("selection conflict")
+        #     second = random.choice(indices)
 
         if population[first].fitness > population[second].fitness:
             selected.append(population[first])
@@ -48,7 +54,10 @@ def selection(population: list[Genome]) -> list[Genome]:
             selected.append(population[second])
 
         indices.remove(first)
-        indices.remove(second)
+        try:
+            indices.remove(second)
+        except ValueError:
+            pass
 
     return selected
 
@@ -129,3 +138,7 @@ def replace(population: list[Genome], offsprings: list[Genome]) -> list[Genome]:
         next_generation.extend(population[index1:])
 
     return next_generation[: len(population)]
+
+
+def biodiversity(population: list[Genome]) -> float:
+    return len(set(population)) / len(population)

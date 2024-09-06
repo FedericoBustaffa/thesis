@@ -1,10 +1,10 @@
-import random
-import sys
 import math
+import sys
+import time
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
+import plotting
 import pure
 
 
@@ -32,7 +32,9 @@ if __name__ == "__main__":
         exit(1)
 
     data = pd.read_csv(sys.argv[1])
-    towns = [Town(data["x"][i], data["y"][i]) for i in range(len(data))]
+    x = data["x"]
+    y = data["y"]
+    towns = [Town(x.iloc[i], y.iloc[i]) for i in range(len(data))]
     distances = [[distance(t1, t2) for t2 in towns] for t1 in towns]
 
     # Initial population size
@@ -44,78 +46,83 @@ if __name__ == "__main__":
     # Mutation rate
     M = float(sys.argv[4])
 
-    # generate initial population
-    population = pure.generate(N, len(towns))
-    print(f"population size: {len(population)}")
+    # useful data
+    average_fitness = []
+    best_fitness = []
+    biodiversities = []
+    timings = {
+        "generation": 0.0,
+        "evaluation": 0.0,
+        "selection": 0.0,
+        "crossover": 0.0,
+        "mutation": 0.0,
+        "replacement": 0.0,
+    }
 
+    # generate initial population
+    start = time.perf_counter()
+    population = pure.generate(N, len(towns))
+    end = time.perf_counter()
+    timings["generation"] += end - start
+
+    start = time.perf_counter()
     population = pure.evaluation(population, fitness, distances)
+    end = time.perf_counter()
+    timings["evaluation"] += end - start
+
     best = population[0]
     print(f"first best: {best.fitness}")
-    for i in population:
-        print(i)
+    # display_population(population)
 
     for g in range(G):
+        biodiversities.append(pure.biodiversity(population))
+        average_fitness.append(sum([i.fitness for i in population]) / len(population))
+
+        # selection
+        start = time.perf_counter()
         selected = pure.selection(population)
-        print(f"selected: {len(selected)}")
-        for s in selected:
-            print(s)
+        end = time.perf_counter()
+        timings["selection"] += end - start
 
+        # crossover
+        start = time.perf_counter()
         offsprings = pure.crossover(selected)
-        print(f"generated offsprings: {len(offsprings)}")
-        for child in offsprings:
-            print(child)
+        end = time.perf_counter()
+        timings["crossover"] += end - start
 
+        # mutation
+        start = time.perf_counter()
         offsprings = pure.mutation(offsprings, M)
-        print("mutated offsprings")
-        for child in offsprings:
-            print(child)
+        end = time.perf_counter()
+        timings["mutation"] += end - start
 
+        # offsprings evaluation
+        start = time.perf_counter()
         offsprings = pure.evaluation(offsprings, fitness, distances)
-        print("offsprings evaluation")
-        for child in offsprings:
-            print(child)
+        end = time.perf_counter()
+        timings["evaluation"] += end - start
 
+        # replacement
+        start = time.perf_counter()
         population = pure.replace(population, offsprings)
-        print(f"replace: {len(population)} individuals")
-        for i in population:
-            print(i)
+        end = time.perf_counter()
+        timings["replacement"] += end - start
 
         if best.fitness < population[0].fitness:
             best = population[0]
 
-    print(f"Best solution: {best.fitness}")
+        best_fitness.append(best.fitness)
+
+    print(f"best solution: {best.fitness}")
 
     # drawing the graph
-    x = [towns[i].x for i in best.chromosome]
-    y = [towns[i].y for i in best.chromosome]
-
-    plt.figure(figsize=(12, 6))
-    plt.title("Best path found")
-    plt.xlabel("X coordinates")
-    plt.ylabel("Y coordinates")
-
-    plt.scatter(x, y, label="Towns")
-    plt.plot(x, y, c="k", label="Path")
-
-    plt.legend()
-    plt.show()
+    plotting.draw_graph(towns, best)
 
     # plotting data
-    # plt.figure(figsize=(12, 6))
-    # generations = [g for g in range(len(average_fitness))]
-    # plt.title("Fitness through generations")
-    # plt.xlabel("Generations")
-    # plt.ylabel("Fitness")
-
-    # plt.plot(generations, average_fitness, label="Average fitness")
-    # plt.plot(generations, best_fitness, label="Best fitness")
-
-    # plt.grid()
-    # plt.legend()
-    # plt.show()
+    plotting.fitness_trend(average_fitness, best_fitness)
+    # print(biodiversities)
+    plotting.biodiversity_trend(biodiversities)
 
     # timing
-    # plt.figure(figsize=(12, 6))
-    # plt.title("Timing")
-    # plt.pie([v for v in timings.values()], labels=[k for k in timings.keys()])
-    # plt.show()
+    plotting.timing(timings)
+    print(f"total time: {sum(timings.values())}")
