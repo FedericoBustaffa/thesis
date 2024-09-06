@@ -141,4 +141,4 @@ def replace(population: list[Genome], offsprings: list[Genome]) -> list[Genome]:
 
 
 def biodiversity(population: list[Genome]) -> float:
-    return len(set(population)) / len(population)
+    return len(set(population)) / len(population) * 100.0

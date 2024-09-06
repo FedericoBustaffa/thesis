@@ -24,8 +24,8 @@ def fitness_trend(average: list[float], best: list[float]):
     generations = [g for g in range(len(average))]
 
     plt.figure(figsize=(12, 6))
-    plt.title("Fitness through generations")
-    plt.xlabel("Generations")
+    plt.title("Fitness trend")
+    plt.xlabel("Generation")
     plt.ylabel("Fitness")
 
     plt.plot(generations, average, label="Average fitness")
@@ -40,6 +40,9 @@ def biodiversity_trend(biodiversities: list[float]):
     generations = [g for g in range(len(biodiversities))]
 
     plt.figure(figsize=(12, 6))
+    plt.title("Biodiversity trend")
+    plt.xlabel("Generation")
+    plt.ylabel("Biodiversity percentage")
     plt.plot(generations, biodiversities, label="Biodiversity", c="g")
 
     plt.grid()
