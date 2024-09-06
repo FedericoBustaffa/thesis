@@ -20,7 +20,7 @@ def distance(t1: Town, t2: Town) -> float:
 
 def fitness(chromosome: list[int], distances: list[list[float]]) -> float:
     total_distance = 0
-    for i in range(len(towns) - 1):
+    for i in range(len(distances) - 1):
         total_distance += distances[chromosome[i]][chromosome[i + 1]]
 
     return 1 / total_distance
@@ -31,13 +31,9 @@ if __name__ == "__main__":
         print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
         exit(1)
 
-    try:
-        data = pd.read_csv(sys.argv[1])
-        towns = [Town(data["x"][i], data["y"][i]) for i in range(len(data))]
-        distances = [[distance(t1, t2) for t2 in towns] for t1 in towns]
-    except FileNotFoundError:
-        print(f"File {sys.argv[1]} not found")
-        exit(1)
+    data = pd.read_csv(sys.argv[1])
+    towns = [Town(data["x"][i], data["y"][i]) for i in range(len(data))]
+    distances = [[distance(t1, t2) for t2 in towns] for t1 in towns]
 
     # Initial population size
     N = int(sys.argv[2])
@@ -55,34 +51,34 @@ if __name__ == "__main__":
     population = pure.evaluation(population, fitness, distances)
     best = population[0]
     print(f"first best: {best.fitness}")
-    # for i in population:
-    #     print(i)
+    for i in population:
+        print(i)
 
     for g in range(G):
         selected = pure.selection(population)
-        # print(f"selected: {len(selected)}")
-        # for s in selected:
-        #     print(s)
+        print(f"selected: {len(selected)}")
+        for s in selected:
+            print(s)
 
         offsprings = pure.crossover(selected)
-        # print(f"generated offsprings: {len(offsprings)}")
-        # for child in offsprings:
-        #     print(child)
+        print(f"generated offsprings: {len(offsprings)}")
+        for child in offsprings:
+            print(child)
 
         offsprings = pure.mutation(offsprings, M)
-        # print("mutated offsprings")
-        # for child in offsprings:
-        #     print(child)
+        print("mutated offsprings")
+        for child in offsprings:
+            print(child)
 
         offsprings = pure.evaluation(offsprings, fitness, distances)
-        # print("offsprings evaluation")
-        # for child in offsprings:
-        #     print(child)
+        print("offsprings evaluation")
+        for child in offsprings:
+            print(child)
 
         population = pure.replace(population, offsprings)
-        # print(f"replace: {len(population)} individuals")
-        # for i in population:
-        #     print(i)
+        print(f"replace: {len(population)} individuals")
+        for i in population:
+            print(i)
 
         if best.fitness < population[0].fitness:
             best = population[0]

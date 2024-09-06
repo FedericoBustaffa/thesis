@@ -21,9 +21,14 @@ def chromosome_generation(T: int) -> list[int]:
 
 
 def generate(population_size: int, chromosome_length: int) -> list[Genome]:
-    return [
-        Genome(chromosome_generation(chromosome_length)) for _ in range(population_size)
-    ]
+    chromosomes = []
+    for _ in range(population_size):
+        c = chromosome_generation(chromosome_length)
+        while c in chromosomes:
+            c = chromosome_generation(chromosome_length)
+        chromosomes.append(c)
+
+    return [Genome(c) for c in chromosomes]
 
 
 # tournament selection
@@ -39,10 +44,11 @@ def selection(population: list[Genome]) -> list[Genome]:
 
         if population[first].fitness > population[second].fitness:
             selected.append(population[first])
-            indices.remove(first)
         else:
             selected.append(population[second])
-            indices.remove(second)
+
+        indices.remove(first)
+        indices.remove(second)
 
     return selected
 
@@ -52,9 +58,9 @@ def crossover(selected: list[Genome]) -> list[Genome]:
     offsprings = []
     while len(selected) > 0:
         father, mother = random.choices(selected, k=2)
-        while father.chromosome == mother.chromosome:
-            # print("crossover conflict")
-            mother = random.choice(selected)
+        # while father.chromosome == mother.chromosome:
+        #     print("crossover conflict")
+        #     mother = random.choice(selected)
 
         crossover_point = random.randint(1, len(father.chromosome) - 2)
         offspring1 = father.chromosome[:crossover_point]
@@ -68,7 +74,10 @@ def crossover(selected: list[Genome]) -> list[Genome]:
 
         offsprings.extend([offspring1, offspring2])
         selected.remove(father)
-        selected.remove(mother)
+        try:
+            selected.remove(mother)
+        except ValueError:
+            pass
 
     return [Genome(child) for child in offsprings]
 
@@ -78,9 +87,9 @@ def mutation(offsprings: list[Genome], mutation_rate: float) -> list[Genome]:
     for child in offsprings:
         if random.random() < mutation_rate:
             a, b = random.choices(indices, k=2)
-            while a == b:
-                # print("mutation conflict")
-                b = random.choice(indices)
+            # while a == b:
+            #     print("mutation conflict")
+            #     b = random.choice(indices)
             first = a if a < b else b
             second = a if a > b else b
 
