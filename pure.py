@@ -26,9 +26,9 @@ def chromosome_generation(T: int) -> list[int]:
     return chromosome
 
 
-def generate(population_size: int, chromosome_length: int) -> list[Genome]:
+def generate(size: int, chromosome_length: int) -> list[Genome]:
     chromosomes = []
-    for _ in range(population_size):
+    for _ in range(size):
         c = chromosome_generation(chromosome_length)
         while c in chromosomes:
             c = chromosome_generation(chromosome_length)

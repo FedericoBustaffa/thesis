@@ -4,9 +4,9 @@ import time
 
 import pandas as pd
 
-import multi_processo
-import plotting
 import pure
+import plotting
+from evaluation import Evaluator
 
 
 class Town:
@@ -66,9 +66,10 @@ if __name__ == "__main__":
     end = time.perf_counter()
     timings["generation"] += end - start
 
+    evaluator = Evaluator(fitness, distances)
     start = time.perf_counter()
-    population = pure.evaluation(population, fitness, distances)
-    # population = multi_processo.evaluation(population, fitness, distances)
+    # population = pure.evaluation(population, fitness, distances)
+    population = evaluator.evaluate(population)
     end = time.perf_counter()
     timings["evaluation"] += end - start
 
