@@ -6,11 +6,14 @@ from multiprocessing.connection import Connection
 from pure import Genome
 
 
-def evaluate(individuals: list[Genome], connection: Connection, fitness_func, *args):
-    # print(f"{mp.current_process().name}: {len(individuals)}")
+def evaluate(connection: Connection, fitness_func, *args):
+    individuals = connection.recv()
+    if individuals == None:
+        return
+
     for i in individuals:
         i.fitness = fitness_func(i.chromosome, *args)
-        # print(i)
+        print(i)
 
     connection.send(individuals)
 
@@ -22,13 +25,35 @@ class Evaluator:
         self.workers = [
             mp.Process(
                 target=evaluate,
-                args=[self.pipes[i][1], i, fitness_func, *args],
+                args=[self.pipes[i][1], fitness_func, *args],
             )
             for i in range(self.cores)
         ]
+        for w in self.workers:
+            w.start()
 
     def evaluate(self, individuals: list[Genome]) -> list[Genome]:
-        return []
+        portion = math.ceil(len(individuals) / self.cores)
+        for i in range(self.cores):
+            first = i * portion
+            last = first + portion
+            if last > len(individuals):
+                last = len(individuals)
+
+            partial = individuals[first:last]
+            self.pipes[i][0].send(partial)
+
+        individuals.clear()
+        for i in range(len(self.workers)):
+            self.workers[i].join()
+            individuals.extend(self.pipes[i][0].recv())
+
+        return sorted(individuals, key=lambda x: x.fitness, reverse=True)
+
+    def shutdown(self) -> None:
+        for i in range(self.cores):
+            self.pipes[i][0].send(None)
+            self.workers[i].join()
 
 
 def evaluation(individuals: list[Genome], fitness_func, *args) -> list[Genome]:

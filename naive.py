@@ -101,8 +101,8 @@ if __name__ == "__main__":
 
         # offsprings evaluation
         start = time.perf_counter()
-        offsprings = pure.evaluation(offsprings, fitness, distances)
-        # offsprings = multi_processo.evaluation(offsprings, fitness, distances)
+        # offsprings = pure.evaluation(offsprings, fitness, distances)
+        offsprings = evaluator.evaluate(offsprings)
         end = time.perf_counter()
         timings["evaluation"] += end - start
 
@@ -118,6 +118,7 @@ if __name__ == "__main__":
         best_fitness.append(best.fitness)
 
     print(f"best solution: {best.fitness}")
+    evaluator.shutdown()
 
     # drawing the graph
     plotting.draw_graph(towns, best)
