@@ -4,6 +4,7 @@ import time
 
 import pandas as pd
 
+import multi_processo
 import plotting
 import pure
 
@@ -67,6 +68,7 @@ if __name__ == "__main__":
 
     start = time.perf_counter()
     population = pure.evaluation(population, fitness, distances)
+    # population = multi_processo.evaluation(population, fitness, distances)
     end = time.perf_counter()
     timings["evaluation"] += end - start
 
@@ -99,6 +101,7 @@ if __name__ == "__main__":
         # offsprings evaluation
         start = time.perf_counter()
         offsprings = pure.evaluation(offsprings, fitness, distances)
+        # offsprings = multi_processo.evaluation(offsprings, fitness, distances)
         end = time.perf_counter()
         timings["evaluation"] += end - start
 

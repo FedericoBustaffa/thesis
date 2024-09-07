@@ -91,6 +91,7 @@ def crossover(selected: list[Genome]) -> list[Genome]:
     return [Genome(child) for child in offsprings]
 
 
+# rotation mutation
 def mutation(offsprings: list[Genome], mutation_rate: float) -> list[Genome]:
     indices = [i for i in range(len(offsprings[0].chromosome))]
     for child in offsprings:
