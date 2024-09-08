@@ -6,13 +6,8 @@ import pandas as pd
 
 import pure
 import plotting
+from tsp import Town
 from evaluation import Evaluator
-
-
-class Town:
-    def __init__(self, x: float, y: float):
-        self.x = x
-        self.y = y
 
 
 def distance(t1: Town, t2: Town) -> float:
@@ -68,14 +63,12 @@ if __name__ == "__main__":
 
     evaluator = Evaluator(fitness, distances)
     start = time.perf_counter()
-    # population = pure.evaluation(population, fitness, distances)
     population = evaluator.evaluate(population)
     end = time.perf_counter()
     timings["evaluation"] += end - start
 
     best = population[0]
     print(f"first best: {best.fitness}")
-    # display_population(population)
 
     for g in range(G):
         biodiversities.append(pure.biodiversity(population))
@@ -101,7 +94,6 @@ if __name__ == "__main__":
 
         # offsprings evaluation
         start = time.perf_counter()
-        # offsprings = pure.evaluation(offsprings, fitness, distances)
         offsprings = evaluator.evaluate(offsprings)
         end = time.perf_counter()
         timings["evaluation"] += end - start
@@ -130,4 +122,7 @@ if __name__ == "__main__":
 
     # timing
     plotting.timing(timings)
-    print(f"total time: {sum(timings.values())}")
+
+    for k in timings.keys():
+        print(f"{k}: {timings[k]:.3f} seconds")
+    print(f"total time: {sum(timings.values()):.3f} seconds")

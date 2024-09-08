@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from naive import Town
+from tsp import Town
 from pure import Genome
 
 
@@ -53,5 +53,9 @@ def biodiversity_trend(biodiversities: list[float]):
 def timing(timings: dict[str, float]):
     plt.figure(figsize=(12, 6))
     plt.title("Timing")
-    plt.pie([v for v in timings.values()], labels=[k for k in timings.keys()])
+    plt.pie(
+        [v for v in timings.values()],
+        labels=[k for k in timings.keys()],
+        autopct="%1.1f%%",
+    )
     plt.show()

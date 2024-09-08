@@ -8,14 +8,13 @@ from pure import Genome
 
 def evaluate(connection: Connection, fitness_func, *args):
     individuals = connection.recv()
-    if individuals == None:
-        return
+    while individuals != None:
+        for i in individuals:
+            i.fitness = fitness_func(i.chromosome, *args)
+            # print(i)
 
-    for i in individuals:
-        i.fitness = fitness_func(i.chromosome, *args)
-        print(i)
-
-    connection.send(individuals)
+        connection.send(individuals)
+        individuals = connection.recv()
 
 
 class Evaluator:
@@ -45,7 +44,6 @@ class Evaluator:
 
         individuals.clear()
         for i in range(len(self.workers)):
-            self.workers[i].join()
             individuals.extend(self.pipes[i][0].recv())
 
         return sorted(individuals, key=lambda x: x.fitness, reverse=True)
@@ -54,31 +52,3 @@ class Evaluator:
         for i in range(self.cores):
             self.pipes[i][0].send(None)
             self.workers[i].join()
-
-
-def evaluation(individuals: list[Genome], fitness_func, *args) -> list[Genome]:
-    cores = mp.cpu_count()
-    portion = math.ceil(len(individuals) / cores)
-
-    pipes = [mp.Pipe(duplex=False) for _ in range(cores)]
-    workers = []
-    for i in range(cores):
-        first = i * portion
-        last = first + portion
-        if last > len(individuals):
-            last = len(individuals)
-
-        partial = individuals[first:last]
-        workers.append(
-            mp.Process(
-                target=evaluate, args=[partial, pipes[i][1], fitness_func, *args]
-            )
-        )
-        workers[i].start()
-
-    individuals.clear()
-    for i in range(len(workers)):
-        workers[i].join()
-        individuals.extend(pipes[i][0].recv())
-
-    return sorted(individuals, key=lambda x: x.fitness, reverse=True)
