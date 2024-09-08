@@ -22,6 +22,14 @@ def fitness(chromosome: list[int], distances: list[list[float]]) -> float:
     return 1 / total_distance
 
 
+def fitness2(chromosome: list[int], towns: list[Town]) -> float:
+    total_distance = 0
+    for i in range(len(towns) - 1):
+        total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
+
+    return 1 / total_distance
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 5:
         print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
@@ -117,7 +125,6 @@ if __name__ == "__main__":
 
     # plotting data
     plotting.fitness_trend(average_fitness, best_fitness)
-    # print(biodiversities)
     plotting.biodiversity_trend(biodiversities)
 
     # timing

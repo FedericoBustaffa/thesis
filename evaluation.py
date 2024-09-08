@@ -35,9 +35,11 @@ class Evaluator:
         portion = math.ceil(len(individuals) / self.cores)
         for i in range(self.cores):
             first = i * portion
-            last = first + portion
-            if last > len(individuals):
-                last = len(individuals)
+            last = (
+                first + portion
+                if first + portion <= len(individuals)
+                else len(individuals)
+            )
 
             partial = individuals[first:last]
             self.pipes[i][0].send(partial)

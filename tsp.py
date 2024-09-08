@@ -26,6 +26,14 @@ def fitness(chromosome: list[int], distances: list[list[float]]) -> float:
     return 1 / total_distance
 
 
+def fitness2(chromosome: list[int], towns: list[Town]) -> float:
+    total_distance = 0
+    for i in range(len(towns) - 1):
+        total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
+
+    return 1 / total_distance
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 5:
         print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
@@ -66,7 +74,8 @@ if __name__ == "__main__":
     timings["generation"] += end - start
 
     start = time.perf_counter()
-    population = pure.evaluation(population, fitness, distances)
+    # population = pure.evaluation(population, fitness, distances)
+    population = pure.evaluation(population, fitness2, towns)
     end = time.perf_counter()
     timings["evaluation"] += end - start
 
@@ -97,7 +106,8 @@ if __name__ == "__main__":
 
         # offsprings evaluation
         start = time.perf_counter()
-        offsprings = pure.evaluation(offsprings, fitness, distances)
+        # offsprings = pure.evaluation(offsprings, fitness, distances)
+        offsprings = pure.evaluation(offsprings, fitness2, towns)
         end = time.perf_counter()
         timings["evaluation"] += end - start
 
