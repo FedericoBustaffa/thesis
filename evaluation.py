@@ -32,7 +32,7 @@ class PipeEvaluator:
         for w in self.workers:
             w.start()
 
-    def evaluate(self, individuals: list[Genome]) -> list[Genome]:
+    def evaluate(self, individuals: list[Genome]) -> None:
         portion = math.ceil(len(individuals) / self.cores)
         for i in range(self.cores):
             first = i * portion
@@ -49,34 +49,9 @@ class PipeEvaluator:
         for i in range(len(self.workers)):
             individuals.extend(self.pipes[i][0].recv())
 
-        return sorted(individuals, key=lambda x: x.fitness, reverse=True)
+        individuals.sort(key=lambda x: x.fitness, reverse=True)
 
     def shutdown(self) -> None:
         for i in range(self.cores):
             self.pipes[i][0].send(None)
             self.workers[i].join()
-
-
-def shared_memory_evaluate(mem: SharedMemory, fitness_func, *args):
-    for i in individuals:
-        i.fitness = fitness_func(i.chromosome, *args)
-        # print(i)
-
-
-class SharedMemoryEvaluator:
-    def __init__(self, fitness_func, *args):
-        cores = mp.cpu_count()
-        mem = SharedMemory(create=True, size=2048)
-        self.workers = [
-            mp.Process(
-                target=shared_memory_evaluate, args=[mem, i, fitness_func, *args]
-            )
-            for i in range(cores)
-        ]
-        pass
-
-    def evaluate(self):
-        pass
-
-    def shutdown(self):
-        pass

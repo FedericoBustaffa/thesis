@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     evaluator = PipeEvaluator(fitness, distances)
     start = time.perf_counter()
-    population = evaluator.evaluate(population)
+    evaluator.evaluate(population)
     end = time.perf_counter()
     timings["evaluation"] += end - start
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
         # offsprings evaluation
         start = time.perf_counter()
-        offsprings = evaluator.evaluate(offsprings)
+        evaluator.evaluate(offsprings)
         end = time.perf_counter()
         timings["evaluation"] += end - start
 
