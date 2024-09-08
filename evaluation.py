@@ -2,11 +2,12 @@ import math
 
 import multiprocessing as mp
 from multiprocessing.connection import Connection
+from multiprocessing.shared_memory import SharedMemory
 
 from pure import Genome
 
 
-def evaluate(connection: Connection, fitness_func, *args):
+def pipe_evaluate(connection: Connection, fitness_func, *args):
     individuals = connection.recv()
     while individuals != None:
         for i in individuals:
@@ -17,13 +18,13 @@ def evaluate(connection: Connection, fitness_func, *args):
         individuals = connection.recv()
 
 
-class Evaluator:
+class PipeEvaluator:
     def __init__(self, fitness_func, *args, cores: int = 0) -> None:
         self.cores = cores if cores != 0 else mp.cpu_count()
         self.pipes = [mp.Pipe() for _ in range(self.cores)]
         self.workers = [
             mp.Process(
-                target=evaluate,
+                target=pipe_evaluate,
                 args=[self.pipes[i][1], fitness_func, *args],
             )
             for i in range(self.cores)
@@ -54,3 +55,28 @@ class Evaluator:
         for i in range(self.cores):
             self.pipes[i][0].send(None)
             self.workers[i].join()
+
+
+def shared_memory_evaluate(mem: SharedMemory, fitness_func, *args):
+    for i in individuals:
+        i.fitness = fitness_func(i.chromosome, *args)
+        # print(i)
+
+
+class SharedMemoryEvaluator:
+    def __init__(self, fitness_func, *args):
+        cores = mp.cpu_count()
+        mem = SharedMemory(create=True, size=2048)
+        self.workers = [
+            mp.Process(
+                target=shared_memory_evaluate, args=[mem, i, fitness_func, *args]
+            )
+            for i in range(cores)
+        ]
+        pass
+
+    def evaluate(self):
+        pass
+
+    def shutdown(self):
+        pass

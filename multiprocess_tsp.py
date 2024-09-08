@@ -7,7 +7,7 @@ import pandas as pd
 import pure
 import plotting
 from tsp import Town
-from evaluation import Evaluator
+from evaluation import PipeEvaluator
 
 
 def distance(t1: Town, t2: Town) -> float:
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     end = time.perf_counter()
     timings["generation"] += end - start
 
-    evaluator = Evaluator(fitness, distances)
+    evaluator = PipeEvaluator(fitness, distances)
     start = time.perf_counter()
     population = evaluator.evaluate(population)
     end = time.perf_counter()
