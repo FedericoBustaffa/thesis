@@ -55,3 +55,8 @@ class PipeEvaluator:
         for i in range(self.cores):
             self.pipes[i][0].send(None)
             self.workers[i].join()
+
+
+class SharedMemoryEvaluator:
+    def __init__(self, fitness_func, *args) -> None:
+        pass
