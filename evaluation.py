@@ -2,7 +2,6 @@ import math
 
 import multiprocessing as mp
 from multiprocessing.connection import Connection
-from multiprocessing.shared_memory import SharedMemory
 
 from genetic import Genome
 
@@ -57,6 +56,51 @@ class PipeEvaluator:
             self.workers[i].join()
 
 
-class SharedMemoryEvaluator:
-    def __init__(self, fitness_func, *args) -> None:
-        pass
+def pipe_crossover(connection, crossover_func):
+    couples = connection.recv()
+    while couples != None:
+        for father, mother in couples:
+            offspring1, offspring2 = crossover_func(father, mother)
+            # print(i)
+
+        connection.send(individuals)
+        individuals = connection.recv()
+
+
+class PipeCrossover:
+    def __init__(self, crossover_func, cores: int = 0) -> None:
+        self.cores = cores if cores != 0 else mp.cpu_count()
+        self.pipes = [mp.Pipe() for _ in range(self.cores)]
+        self.workers = [
+            mp.Process(
+                target=pipe_crossover,
+                args=[self.pipes[i][1], crossover_func],
+            )
+            for i in range(self.cores)
+        ]
+        for w in self.workers:
+            w.start()
+
+    def crossover(self, selected):
+        portion = math.ceil(len(individuals) / self.cores)
+        for i in range(self.cores):
+            first = i * portion
+            last = (
+                first + portion
+                if first + portion <= len(individuals)
+                else len(individuals)
+            )
+
+            partial = individuals[first:last]
+            self.pipes[i][0].send(partial)
+
+        individuals.clear()
+        for i in range(len(self.workers)):
+            individuals.extend(self.pipes[i][0].recv())
+
+        individuals.sort(key=lambda x: x.fitness, reverse=True)
+
+    def shutdown(self):
+        for i in range(len(self.workers)):
+            self.pipes[i][0].send(None)
+            self.workers[i].join()

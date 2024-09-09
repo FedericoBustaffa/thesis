@@ -5,6 +5,7 @@ import time
 
 import pandas as pd
 
+from evaluation import PipeCrossover, PipeEvaluator
 import genetic
 import plotting
 
@@ -144,6 +145,9 @@ if __name__ == "__main__":
         "replacement": 0.0,
     }
 
+    # evaluator = PipeEvaluator(fitness, towns)
+    crossoverer = PipeCrossover(one_point_no_rep)
+
     # generate initial population
     start = time.perf_counter()
     population = genetic.generate(N, generate_chromosome, len(towns))
@@ -151,8 +155,8 @@ if __name__ == "__main__":
     timings["generation"] += end - start
 
     start = time.perf_counter()
-    # population = pure.evaluation(population, fitness, distances)
     population = genetic.evaluation(population, fitness, towns)
+    # evaluator.evaluate(population)
     end = time.perf_counter()
     timings["evaluation"] += end - start
 
@@ -171,7 +175,8 @@ if __name__ == "__main__":
 
         # crossover
         start = time.perf_counter()
-        offsprings = genetic.crossover(selected, one_point_no_rep)
+        # offsprings = genetic.crossover(selected, one_point_no_rep)
+        offsprings = crossoverer.crossover(selected)
         end = time.perf_counter()
         timings["crossover"] += end - start
 
@@ -183,7 +188,7 @@ if __name__ == "__main__":
 
         # offsprings evaluation
         start = time.perf_counter()
-        # offsprings = pure.evaluation(offsprings, fitness, distances)
+        # evaluator.evaluate(offsprings)
         offsprings = genetic.evaluation(offsprings, fitness, towns)
         end = time.perf_counter()
         timings["evaluation"] += end - start
@@ -198,8 +203,13 @@ if __name__ == "__main__":
             best = population[0]
 
         best_fitness.append(best.fitness)
+        # if best.fitness == average_fitness[-1]:
+        #     print(f"stopped at generation: {g}")
+        #     break
 
     print(f"best solution: {best.fitness}")
+    # evaluator.shutdown()
+    crossoverer.shutdown()
 
     # drawing the graph
     plotting.draw_graph(towns, best)
