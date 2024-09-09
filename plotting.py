@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 from tsp import Town
-from pure import Genome
+from genetic import Genome
 
 
 def draw_graph(towns: list[Town], best: Genome):

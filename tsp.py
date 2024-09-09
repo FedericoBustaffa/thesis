@@ -1,10 +1,11 @@
 import math
+import random
 import sys
 import time
 
 import pandas as pd
 
-import pure
+import genetic
 import plotting
 
 
@@ -14,24 +15,101 @@ class Town:
         self.y = y
 
 
+def generate_chromosome(length: int) -> list[int]:
+    chromosome = [i for i in range(length)]
+    random.shuffle(chromosome)
+
+    return chromosome
+
+
 def distance(t1: Town, t2: Town) -> float:
     return math.sqrt(math.pow(t1.x - t2.x, 2) + math.pow(t1.y - t2.y, 2))
 
 
-def fitness(chromosome: list[int], distances: list[list[float]]) -> float:
-    total_distance = 0
-    for i in range(len(distances) - 1):
-        total_distance += distances[chromosome[i]][chromosome[i + 1]]
-
-    return 1 / total_distance
-
-
-def fitness2(chromosome: list[int], towns: list[Town]) -> float:
+def fitness(chromosome: list[int], towns: list[Town]) -> float:
     total_distance = 0
     for i in range(len(towns) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
     return 1 / total_distance
+
+
+def tournament(population):
+    selected = []
+    indices = [i for i in range(len(population))]
+
+    for _ in range(len(population) // 2):
+        first, second = random.choices(indices, k=2)
+        # while first == second:
+        #     print("selection conflict")
+        #     second = random.choice(indices)
+
+        if population[first].fitness > population[second].fitness:
+            selected.append(population[first])
+        else:
+            selected.append(population[second])
+
+        indices.remove(first)
+        try:
+            indices.remove(second)
+        except ValueError:
+            pass
+
+    return selected
+
+
+def one_point_no_rep(father, mother):
+    crossover_point = random.randint(1, len(father.chromosome) - 2)
+    offspring1 = father.chromosome[:crossover_point]
+    offspring2 = father.chromosome[crossover_point:]
+
+    for gene in mother.chromosome:
+        if gene not in offspring1:
+            offspring1.append(gene)
+        else:
+            offspring2.append(gene)
+
+    return offspring1, offspring2
+
+
+def rotation(offspring):
+    indices = [i for i in range(len(offspring.chromosome))]
+    a, b = random.choices(indices, k=2)
+    # while a == b:
+    #     print("mutation conflict")
+    #     b = random.choice(indices)
+    first = a if a < b else b
+    second = a if a > b else b
+
+    head = offspring.chromosome[:first]
+    middle = reversed(offspring.chromosome[first:second])
+    tail = offspring.chromosome[second:]
+    head.extend(middle)
+    head.extend(tail)
+    offspring.chromosome = head
+
+    return offspring
+
+
+def merge_replace(population, offsprings):
+    next_generation = []
+    index1 = 0
+    index2 = 0
+
+    while index1 < len(population) and index2 < len(offsprings):
+        if population[index1].fitness > offsprings[index2].fitness:
+            next_generation.append(population[index1])
+            index1 += 1
+        else:
+            next_generation.append(offsprings[index2])
+            index2 += 1
+
+    if index1 >= len(population):
+        next_generation.extend(offsprings[index2:])
+    else:
+        next_generation.extend(population[index1:])
+
+    return next_generation[: len(population)]
 
 
 if __name__ == "__main__":
@@ -43,7 +121,6 @@ if __name__ == "__main__":
     x = data["x"]
     y = data["y"]
     towns = [Town(x.iloc[i], y.iloc[i]) for i in range(len(data))]
-    distances = [[distance(t1, t2) for t2 in towns] for t1 in towns]
 
     # Initial population size
     N = int(sys.argv[2])
@@ -52,7 +129,7 @@ if __name__ == "__main__":
     G = int(sys.argv[3])
 
     # Mutation rate
-    M = float(sys.argv[4])
+    mutation_rate = float(sys.argv[4])
 
     # useful data
     average_fitness = []
@@ -69,13 +146,13 @@ if __name__ == "__main__":
 
     # generate initial population
     start = time.perf_counter()
-    population = pure.generate(N, len(towns))
+    population = genetic.generate(N, generate_chromosome, len(towns))
     end = time.perf_counter()
     timings["generation"] += end - start
 
     start = time.perf_counter()
     # population = pure.evaluation(population, fitness, distances)
-    population = pure.evaluation(population, fitness2, towns)
+    population = genetic.evaluation(population, fitness, towns)
     end = time.perf_counter()
     timings["evaluation"] += end - start
 
@@ -83,37 +160,37 @@ if __name__ == "__main__":
     print(f"first best: {best.fitness}")
 
     for g in range(G):
-        biodiversities.append(pure.biodiversity(population))
+        biodiversities.append(genetic.biodiversity(population))
         average_fitness.append(sum([i.fitness for i in population]) / len(population))
 
         # selection
         start = time.perf_counter()
-        selected = pure.selection(population)
+        selected = genetic.selection(population, tournament)
         end = time.perf_counter()
         timings["selection"] += end - start
 
         # crossover
         start = time.perf_counter()
-        offsprings = pure.crossover(selected)
+        offsprings = genetic.crossover(selected, one_point_no_rep)
         end = time.perf_counter()
         timings["crossover"] += end - start
 
         # mutation
         start = time.perf_counter()
-        offsprings = pure.mutation(offsprings, M)
+        offsprings = genetic.mutation(offsprings, rotation, mutation_rate)
         end = time.perf_counter()
         timings["mutation"] += end - start
 
         # offsprings evaluation
         start = time.perf_counter()
         # offsprings = pure.evaluation(offsprings, fitness, distances)
-        offsprings = pure.evaluation(offsprings, fitness2, towns)
+        offsprings = genetic.evaluation(offsprings, fitness, towns)
         end = time.perf_counter()
         timings["evaluation"] += end - start
 
         # replacement
         start = time.perf_counter()
-        population = pure.replace(population, offsprings)
+        population = genetic.replace(population, offsprings, merge_replace)
         end = time.perf_counter()
         timings["replacement"] += end - start
 

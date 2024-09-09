@@ -4,7 +4,7 @@ import time
 
 import pandas as pd
 
-import pure
+import genetic
 import plotting
 from tsp import Town
 from evaluation import PipeEvaluator
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     # generate initial population
     start = time.perf_counter()
-    population = pure.generate(N, len(towns))
+    population = genetic.generate(N, len(towns))
     end = time.perf_counter()
     timings["generation"] += end - start
 
@@ -79,24 +79,24 @@ if __name__ == "__main__":
     print(f"first best: {best.fitness}")
 
     for g in range(G):
-        biodiversities.append(pure.biodiversity(population))
+        biodiversities.append(genetic.biodiversity(population))
         average_fitness.append(sum([i.fitness for i in population]) / len(population))
 
         # selection
         start = time.perf_counter()
-        selected = pure.selection(population)
+        selected = genetic.selection(population)
         end = time.perf_counter()
         timings["selection"] += end - start
 
         # crossover
         start = time.perf_counter()
-        offsprings = pure.crossover(selected)
+        offsprings = genetic.crossover(selected)
         end = time.perf_counter()
         timings["crossover"] += end - start
 
         # mutation
         start = time.perf_counter()
-        offsprings = pure.mutation(offsprings, M)
+        offsprings = genetic.mutation(offsprings, M)
         end = time.perf_counter()
         timings["mutation"] += end - start
 
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
         # replacement
         start = time.perf_counter()
-        population = pure.replace(population, offsprings)
+        population = genetic.replace(population, offsprings)
         end = time.perf_counter()
         timings["replacement"] += end - start
 

@@ -19,29 +19,66 @@ class Genome:
         return hash((tuple(self.chromosome), self.fitness))
 
 
-class GeneticAlgorithm:
-    def __init__(
-        self,
-        generation,
-        generation_args,
-        fitness_func,
-        fitness_func_args,
-        selection,
-        crossover,
-        mutation,
-    ):
-        self.generation = generation
-        self.generation_args = generation_args
+def generate(size: int, gen_func, *args) -> list[Genome]:
+    chromosomes = []
+    for _ in range(size):
+        c = gen_func(*args)
+        while c in chromosomes:
+            c = gen_func(*args)
+        chromosomes.append(c)
 
-        self.fitness_func = fitness_func
-        self.fitness_func_args = fitness_func_args
+    return [Genome(c) for c in chromosomes]
 
-        self.selection = selection
-        self.crossover = crossover
-        self.mutation = mutation
 
-    def run(self):
-        pass
+def evaluation(individuals: list[Genome], fitness, *args) -> list[Genome]:
+    for offspring in individuals:
+        offspring.fitness = fitness(offspring.chromosome, *args)
 
-    def get(self):
-        pass
+    return sorted(individuals, key=lambda x: x.fitness, reverse=True)
+
+
+# tournament selection
+def selection(population: list[Genome], selection_func, *args) -> list[Genome]:
+    return selection_func(population)
+
+
+# one point crossover without repetitions
+def crossover(selected: list[Genome], crossover_func) -> list[Genome]:
+    offsprings = []
+    while len(selected) > 0:
+        father, mother = random.choices(selected, k=2)
+        # while father.chromosome == mother.chromosome:
+        #     print("crossover conflict")
+        #     mother = random.choice(selected)
+        offspring1, offspring2 = crossover_func(father, mother)
+
+        offsprings.extend([offspring1, offspring2])
+        selected.remove(father)
+        try:
+            selected.remove(mother)
+        except ValueError:
+            pass
+
+    return [Genome(child) for child in offsprings]
+
+
+# rotation mutation
+def mutation(
+    offsprings: list[Genome], mutation_func, mutation_rate: float
+) -> list[Genome]:
+    indices = [i for i in range(len(offsprings[0].chromosome))]
+    for offspring in offsprings:
+        if random.random() < mutation_rate:
+            offspring = mutation_func(offspring)
+
+    return offsprings
+
+
+def replace(
+    population: list[Genome], offsprings: list[Genome], replace_func
+) -> list[Genome]:
+    return replace_func(population, offsprings)
+
+
+def biodiversity(population: list[Genome]) -> float:
+    return len(set(population)) / len(population) * 100.0

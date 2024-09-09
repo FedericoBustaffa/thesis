@@ -4,7 +4,7 @@ import multiprocessing as mp
 from multiprocessing.connection import Connection
 from multiprocessing.shared_memory import SharedMemory
 
-from pure import Genome
+from genetic import Genome
 
 
 def pipe_evaluate(connection: Connection, fitness_func, *args):
