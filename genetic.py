@@ -1,59 +1,47 @@
 import random
-from functools import partial
 import numpy as np
 
 
 class GeneticAlgorithm:
-    def __init__(
-        self,
-        population_size,
-        chromosome_length,
-        fitness_func,
-        *fitness_func_args,
-    ):
-        self.population = np.array()
-        self.population_fitness = []
 
-        self.selected = []
+    def __init__(self):
+        self.population = []
+        self.fitness_values = []
+
         self.offsprings = []
-
-        self.fitness_func = fitness_func
-        self.fitness_func_args = fitness_func_args
+        self.offsprings_fitness = []
 
     def generation(self, size: int, gen_func, *args) -> None:
+        self.population = []
+        self.fitness_values = np.zeros(size)
+
         for _ in range(size):
             c = gen_func(*args)
-            while c in self.population:
+            while any(np.array_equal(arr, c) for arr in self.population):
                 c = gen_func(*args)
             self.population.append(c)
 
-        self.population_fitness = np.array(
-            [self.fitness_func(c, *self.fitness_func_args) for c in self.population]
-        )
-
     def selection(self, selection_func) -> None:
-        self.selected = selection_func(self.population)
+        self.selected = selection_func(self.population, self.fitness_values)
 
     def crossover(self, crossover_func) -> None:
-        self.offsprings.clear()
-        while len(self.selected) > 0:
+        for i in range(0, len(self.selected), 2):
             father, mother = random.choices(self.selected, k=2)
+            father = self.population[father]
+            mother = self.population[mother]
             # while father.chromosome == mother.chromosome:
             #     print("crossover conflict")
             #     mother = random.choice(selected)
             offspring1, offspring2 = crossover_func(father, mother)
 
-            self.offsprings.extend([offspring1, offspring2])
+            self.offsprings[i] = offspring1
+            self.offsprings[i + 1] = offspring2
             self.selected.remove(father)
-            try:
-                self.selected.remove(mother)
-            except ValueError:
-                pass
+            self.selected.remove(mother)
 
     def evaluation(self, fitness, *args) -> None:
-        self.offsprings_fitness = np.sort(
-            list(map(partial(fitness, *args), self.offsprings))
-        )
+        for i in range(len(self.offsprings)):
+            self.offsprings_fitness[i] = fitness(self.offsprings[i], *args)
 
     def mutation(self, mutation_func, rate: float) -> None:
         for offspring in self.offsprings:
@@ -64,7 +52,7 @@ class GeneticAlgorithm:
         self.population = replace_func(self.population, self.offsprings)
 
     def get_best(self) -> tuple:
-        return self.population[0], self.population_fitness[0]
+        return self.population[0], self.fitness_values[0]
 
     def average_fitness(self) -> float:
         return sum([i.fitness for i in self.population]) / len(self.population)

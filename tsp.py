@@ -24,7 +24,7 @@ def compute_distances(data: pd.DataFrame) -> np.ndarray:
     return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
 
 
-def fitness(distances: np.ndarray, chromosome: np.ndarray) -> np.float64:
+def fitness(chromosome: np.ndarray, distances: np.ndarray) -> np.float64:
     total_distance = np.float64(0.0)
     for i in range(len(chromosome) - 1):
         total_distance += distances[chromosome[i]][chromosome[i + 1]]
@@ -32,36 +32,31 @@ def fitness(distances: np.ndarray, chromosome: np.ndarray) -> np.float64:
     return np.float64(1.0 / total_distance)
 
 
-def tournament(population):
-    selected = []
+def tournament(population, fitness_values):
+    selected = [0 for _ in range(len(population) // 2)]
     indices = [i for i in range(len(population))]
 
-    for _ in range(len(population) // 2):
+    for i in range(len(selected)):
         first, second = random.choices(indices, k=2)
         # while first == second:
-        #     print("selection conflict")
-        #     second = random.choice(indices)
+        #     first, second = random.choices(indices, k=2)
 
-        if population[first].fitness > population[second].fitness:
-            selected.append(population[first])
+        if fitness_values[first] > fitness_values[second]:
+            selected[i] = first
+            indices.remove(first)
         else:
-            selected.append(population[second])
-
-        indices.remove(first)
-        try:
+            selected[i] = second
             indices.remove(second)
-        except ValueError:
-            pass
 
     return selected
 
 
 def one_point_no_rep(father, mother) -> tuple:
-    crossover_point = random.randint(1, len(father.chromosome) - 2)
-    offspring1 = father.chromosome[:crossover_point]
-    offspring2 = father.chromosome[crossover_point:]
+    crossover_point = random.randint(1, len(father) - 2)
+    offspring1 = father[:crossover_point]
+    offspring2 = father[crossover_point:]
 
-    for gene in mother.chromosome:
+    for gene in mother:
         if gene not in offspring1:
             offspring1.append(gene)
         else:
@@ -71,7 +66,7 @@ def one_point_no_rep(father, mother) -> tuple:
 
 
 def rotation(offspring):
-    indices = [i for i in range(len(offspring.chromosome))]
+    indices = [i for i in range(len(offspring))]
     a, b = random.choices(indices, k=2)
     # while a == b:
     #     print("mutation conflict")
@@ -79,12 +74,12 @@ def rotation(offspring):
     first = a if a < b else b
     second = a if a > b else b
 
-    head = offspring.chromosome[:first]
-    middle = reversed(offspring.chromosome[first:second])
-    tail = offspring.chromosome[second:]
+    head = offspring[:first]
+    middle = reversed(offspring[first:second])
+    tail = offspring[second:]
     head.extend(middle)
     head.extend(tail)
-    offspring.chromosome = head
+    offspring = head
 
     return offspring
 
@@ -140,7 +135,7 @@ if __name__ == "__main__":
         "replacement": 0.0,
     }
 
-    ga = GeneticAlgorithm(fitness, distances)
+    ga = GeneticAlgorithm()
 
     # generate initial population
     start = time.perf_counter()
@@ -152,9 +147,6 @@ if __name__ == "__main__":
     print(f"first best: {best}")
 
     for g in range(G):
-        biodiversities.append(ga.biodiversity())
-        average_fitness.append(ga.average_fitness())
-
         # selection
         start = time.perf_counter()
         selected = ga.selection(tournament)
@@ -163,7 +155,6 @@ if __name__ == "__main__":
 
         # crossover
         start = time.perf_counter()
-        # offsprings = genetic.crossover(selected, one_point_no_rep)
         ga.crossover(one_point_no_rep)
         end = time.perf_counter()
         timings["crossover"] += end - start
@@ -193,6 +184,8 @@ if __name__ == "__main__":
             chromo = current_chromo
 
         best_fitness.append(best)
+        biodiversities.append(ga.biodiversity())
+        average_fitness.append(ga.average_fitness())
         # if best.fitness == average_fitness[-1]:
         #     print(f"stopped at generation: {g}")
         #     break

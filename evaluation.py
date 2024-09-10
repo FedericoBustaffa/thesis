@@ -3,8 +3,6 @@ import math
 import multiprocessing as mp
 from multiprocessing.connection import Connection
 
-from genetic import Genome
-
 
 def pipe_evaluate(connection: Connection, fitness_func, *args):
     individuals = connection.recv()
