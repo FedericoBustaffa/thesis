@@ -1,12 +1,11 @@
+import numpy as np
 import matplotlib.pyplot as plt
-
-from tsp import Town
-from genetic import Genome
+import pandas as pd
 
 
-def draw_graph(towns: list[Town], best: Genome):
-    x = [towns[i].x for i in best.chromosome]
-    y = [towns[i].y for i in best.chromosome]
+def draw_graph(towns: pd.DataFrame, best: np.ndarray):
+    x = [towns["x"][i].x for i in best]
+    y = [towns["y"][i].y for i in best]
 
     plt.figure(figsize=(12, 6))
     plt.title("Best path found")

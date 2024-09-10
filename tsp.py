@@ -1,39 +1,35 @@
-import math
 import random
-import sys
 import time
+import sys
 
+import numpy as np
 import pandas as pd
 
-from evaluation import PipeEvaluator
-from crossover import PipeCrossover
-import genetic
+from genetic import GeneticAlgorithm
 import plotting
 
 
-class Town:
-    def __init__(self, x: float, y: float):
-        self.x = x
-        self.y = y
-
-
-def generate_chromosome(length: int) -> list[int]:
-    chromosome = [i for i in range(length)]
-    random.shuffle(chromosome)
+def generate(length: int) -> np.ndarray:
+    chromosome = np.array([i for i in range(length)])
+    np.random.shuffle(chromosome)
 
     return chromosome
 
 
-def distance(t1: Town, t2: Town) -> float:
-    return math.sqrt(math.pow(t1.x - t2.x, 2) + math.pow(t1.y - t2.y, 2))
+def distance(t1, t2) -> np.float64:
+    return np.sqrt(np.pow(t1[0] - t2[0], 2) + np.pow(t1[1] - t2[1], 2))
 
 
-def fitness(chromosome: list[int], towns: list[Town]) -> float:
-    total_distance = 0
-    for i in range(len(towns) - 1):
-        total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
+def compute_distances(data: pd.DataFrame) -> np.ndarray:
+    return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
 
-    return 1 / total_distance
+
+def fitness(distances: np.ndarray, chromosome: np.ndarray) -> np.float64:
+    total_distance = np.float64(0.0)
+    for i in range(len(chromosome) - 1):
+        total_distance += distances[chromosome[i]][chromosome[i + 1]]
+
+    return np.float64(1.0 / total_distance)
 
 
 def tournament(population):
@@ -120,9 +116,7 @@ if __name__ == "__main__":
         exit(1)
 
     data = pd.read_csv(sys.argv[1])
-    x = data["x"]
-    y = data["y"]
-    towns = [Town(x.iloc[i], y.iloc[i]) for i in range(len(data))]
+    distances = compute_distances(data)
 
     # Initial population size
     N = int(sys.argv[2])
@@ -146,78 +140,70 @@ if __name__ == "__main__":
         "replacement": 0.0,
     }
 
-    evaluator = PipeEvaluator(fitness, towns)
-    crossoverer = PipeCrossover(one_point_no_rep)
+    ga = GeneticAlgorithm(fitness, distances)
 
     # generate initial population
     start = time.perf_counter()
-    population = genetic.generate(N, generate_chromosome, len(towns))
+    ga.generation(N, generate, len(distances))
     end = time.perf_counter()
     timings["generation"] += end - start
 
-    start = time.perf_counter()
-    # population = genetic.evaluation(population, fitness, towns)
-    evaluator.evaluate(population)
-    end = time.perf_counter()
-    timings["evaluation"] += end - start
-
-    best = population[0]
-    print(f"first best: {best.fitness}")
+    chromo, best = ga.get_best()
+    print(f"first best: {best}")
 
     for g in range(G):
-        biodiversities.append(genetic.biodiversity(population))
-        average_fitness.append(sum([i.fitness for i in population]) / len(population))
+        biodiversities.append(ga.biodiversity())
+        average_fitness.append(ga.average_fitness())
 
         # selection
         start = time.perf_counter()
-        selected = genetic.selection(population, tournament)
+        selected = ga.selection(tournament)
         end = time.perf_counter()
         timings["selection"] += end - start
 
         # crossover
         start = time.perf_counter()
         # offsprings = genetic.crossover(selected, one_point_no_rep)
-        offsprings = crossoverer.crossover(selected)
+        ga.crossover(one_point_no_rep)
         end = time.perf_counter()
         timings["crossover"] += end - start
 
         # mutation
         start = time.perf_counter()
-        offsprings = genetic.mutation(offsprings, rotation, mutation_rate)
+        ga.mutation(rotation, mutation_rate)
         end = time.perf_counter()
         timings["mutation"] += end - start
 
         # offsprings evaluation
         start = time.perf_counter()
-        # offsprings = genetic.evaluation(offsprings, fitness, towns)
-        evaluator.evaluate(offsprings)
+        ga.evaluation(fitness, distances)
+        # ga.evaluation(fitness2, towns)
         end = time.perf_counter()
         timings["evaluation"] += end - start
 
         # replacement
         start = time.perf_counter()
-        population = genetic.replace(population, offsprings, merge_replace)
+        ga.replace(merge_replace)
         end = time.perf_counter()
         timings["replacement"] += end - start
 
-        if best.fitness < population[0].fitness:
-            best = population[0]
+        current_chromo, current_best = ga.get_best()
+        if best.fitness < current_best:
+            best = current_best
+            chromo = current_chromo
 
-        best_fitness.append(best.fitness)
+        best_fitness.append(best)
         # if best.fitness == average_fitness[-1]:
         #     print(f"stopped at generation: {g}")
         #     break
 
-    print(f"best solution: {best.fitness}")
-    evaluator.shutdown()
-    crossoverer.shutdown()
+    print(f"best solution: {best}")
 
     # drawing the graph
-    plotting.draw_graph(towns, best)
+    plotting.draw_graph(data, chromo)
 
     # plotting data
     plotting.fitness_trend(average_fitness, best_fitness)
-    # print(biodiversities)
     plotting.biodiversity_trend(biodiversities)
 
     # timing
