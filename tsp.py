@@ -5,7 +5,8 @@ import time
 
 import pandas as pd
 
-from evaluation import PipeCrossover, PipeEvaluator
+from evaluation import PipeEvaluator
+from crossover import PipeCrossover
 import genetic
 import plotting
 
@@ -59,7 +60,7 @@ def tournament(population):
     return selected
 
 
-def one_point_no_rep(father, mother):
+def one_point_no_rep(father, mother) -> tuple:
     crossover_point = random.randint(1, len(father.chromosome) - 2)
     offspring1 = father.chromosome[:crossover_point]
     offspring2 = father.chromosome[crossover_point:]
@@ -145,7 +146,7 @@ if __name__ == "__main__":
         "replacement": 0.0,
     }
 
-    # evaluator = PipeEvaluator(fitness, towns)
+    evaluator = PipeEvaluator(fitness, towns)
     crossoverer = PipeCrossover(one_point_no_rep)
 
     # generate initial population
@@ -155,8 +156,8 @@ if __name__ == "__main__":
     timings["generation"] += end - start
 
     start = time.perf_counter()
-    population = genetic.evaluation(population, fitness, towns)
-    # evaluator.evaluate(population)
+    # population = genetic.evaluation(population, fitness, towns)
+    evaluator.evaluate(population)
     end = time.perf_counter()
     timings["evaluation"] += end - start
 
@@ -188,8 +189,8 @@ if __name__ == "__main__":
 
         # offsprings evaluation
         start = time.perf_counter()
-        # evaluator.evaluate(offsprings)
-        offsprings = genetic.evaluation(offsprings, fitness, towns)
+        # offsprings = genetic.evaluation(offsprings, fitness, towns)
+        evaluator.evaluate(offsprings)
         end = time.perf_counter()
         timings["evaluation"] += end - start
 
@@ -208,7 +209,7 @@ if __name__ == "__main__":
         #     break
 
     print(f"best solution: {best.fitness}")
-    # evaluator.shutdown()
+    evaluator.shutdown()
     crossoverer.shutdown()
 
     # drawing the graph
