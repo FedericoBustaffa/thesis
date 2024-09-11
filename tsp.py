@@ -34,77 +34,95 @@ def fitness(distances: np.ndarray, chromosome: np.ndarray) -> np.float64:
     return np.float64(1.0 / total_distance)
 
 
-def tournament(population, fitness_values):
-    selected = [0 for _ in range(len(population) // 2)]
+def tournament(population, scores):
+    selected = []
     indices = [i for i in range(len(population))]
 
-    for i in range(len(selected)):
+    for _ in range(len(population) // 2):
         first, second = random.choices(indices, k=2)
         # while first == second:
         #     first, second = random.choices(indices, k=2)
 
-        if fitness_values[first] > fitness_values[second]:
-            selected[i] = first
+        if scores[first] > scores[second]:
+            selected.append(first)
             indices.remove(first)
         else:
-            selected[i] = second
+            selected.append(second)
             indices.remove(second)
 
     return selected
 
 
-def one_point_no_rep(father, mother) -> tuple:
+def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
     crossover_point = random.randint(1, len(father) - 2)
-    offspring1 = father[:crossover_point]
-    offspring2 = father[crossover_point:]
+    offspring1 = np.zeros(len(father))
+    offspring2 = np.zeros(len(father))
 
+    offspring1[:crossover_point] = father[:crossover_point]
+    offspring2[crossover_point:] = father[crossover_point:]
+
+    idx1 = crossover_point
+    idx2 = 0
     for gene in mother:
-        if gene not in offspring1:
-            offspring1.append(gene)
+        if gene not in offspring1[:crossover_point]:
+            offspring1[idx1] = gene
+            idx1 += 1
         else:
-            offspring2.append(gene)
+            offspring2[idx2] = gene
+            idx2 += 1
 
-    return offspring1, offspring2
+    return offspring1.astype("int32"), offspring2.astype("int32")
 
 
-def rotation(offspring):
+def rotation(offspring: np.ndarray):
     indices = [i for i in range(len(offspring))]
     a, b = random.choices(indices, k=2)
-    # while a == b:
-    #     print("mutation conflict")
-    #     b = random.choice(indices)
+    while a == b:
+        b = random.choice(indices)
+
     first = a if a < b else b
     second = a if a > b else b
 
     head = offspring[:first]
     middle = reversed(offspring[first:second])
     tail = offspring[second:]
-    head.extend(middle)
-    head.extend(tail)
-    offspring = head
+    offspring[first:second] = np.array(list(reversed(offspring[first:second])))
 
     return offspring
 
 
-def merge_replace(population, offsprings):
+def merge_replace(
+    population: list[np.ndarray],
+    scores: np.ndarray,
+    offsprings: list[np.ndarray],
+    offsprings_scores: np.ndarray,
+):
     next_generation = []
+    next_generation_scores = np.zeros(len(population))
+    index = 0
     index1 = 0
     index2 = 0
 
-    while index1 < len(population) and index2 < len(offsprings):
-        if population[index1].fitness > offsprings[index2].fitness:
+    while index < len(population) and index2 < len(offsprings):
+        if scores[index1] > offsprings_scores[index2]:
             next_generation.append(population[index1])
+            next_generation_scores[index] = scores[index1]
             index1 += 1
         else:
             next_generation.append(offsprings[index2])
+            next_generation_scores[index] = offsprings_scores[index2]
             index2 += 1
 
-    if index1 >= len(population):
-        next_generation.extend(offsprings[index2:])
-    else:
-        next_generation.extend(population[index1:])
+        index += 1
+        # print(f"{index}: {next_generation_scores[index]}")
 
-    return next_generation[: len(population)]
+    if index1 >= len(population):
+        return next_generation, next_generation_scores
+    elif index2 >= len(offsprings):
+        next_generation.extend(population[index:])
+        next_generation_scores[index:] = scores[index:]
+
+    return next_generation, next_generation_scores
 
 
 if __name__ == "__main__":
@@ -151,18 +169,24 @@ if __name__ == "__main__":
         merge_replace,
     )
 
+    start = time.perf_counter()
     ga.run(G)
+    end = time.perf_counter()
+    print(f"time: {end - start:.3f} seconds")
+
+    chromosome, score = ga.get_best()
+    print(f"best score: {score:.3f}")
 
     # drawing the graph
-    plotting.draw_graph(data, chromo)
+    plotting.draw_graph(data, chromosome)
 
-    # plotting data
-    plotting.fitness_trend(average_fitness, best_fitness)
-    plotting.biodiversity_trend(biodiversities)
+    # # plotting data
+    # plotting.fitness_trend(average_fitness, best_fitness)
+    # plotting.biodiversity_trend(biodiversities)
 
-    # timing
-    plotting.timing(timings)
+    # # timing
+    # plotting.timing(timings)
 
-    for k in timings.keys():
-        print(f"{k}: {timings[k]:.3f} seconds")
-    print(f"total time: {sum(timings.values()):.3f} seconds")
+    # for k in timings.keys():
+    #     print(f"{k}: {timings[k]:.3f} seconds")
+    # print(f"total time: {sum(timings.values()):.3f} seconds")
