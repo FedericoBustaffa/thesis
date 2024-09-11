@@ -2,6 +2,8 @@ import random
 import time
 import sys
 
+from functools import partial
+
 import numpy as np
 import pandas as pd
 
@@ -24,7 +26,7 @@ def compute_distances(data: pd.DataFrame) -> np.ndarray:
     return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
 
 
-def fitness(chromosome: np.ndarray, distances: np.ndarray) -> np.float64:
+def fitness(distances: np.ndarray, chromosome: np.ndarray) -> np.float64:
     total_distance = np.float64(0.0)
     for i in range(len(chromosome) - 1):
         total_distance += distances[chromosome[i]][chromosome[i + 1]]
@@ -135,62 +137,21 @@ if __name__ == "__main__":
         "replacement": 0.0,
     }
 
-    ga = GeneticAlgorithm()
+    generate_func = partial(generate, len(distances))
+    fitness_func = partial(fitness, distances)
 
-    # generate initial population
-    start = time.perf_counter()
-    ga.generation(N, generate, len(distances))
-    end = time.perf_counter()
-    timings["generation"] += end - start
+    ga = GeneticAlgorithm(
+        N,
+        generate_func,
+        fitness_func,
+        tournament,
+        one_point_no_rep,
+        rotation,
+        mutation_rate,
+        merge_replace,
+    )
 
-    chromo, best = ga.get_best()
-    print(f"first best: {best}")
-
-    for g in range(G):
-        # selection
-        start = time.perf_counter()
-        selected = ga.selection(tournament)
-        end = time.perf_counter()
-        timings["selection"] += end - start
-
-        # crossover
-        start = time.perf_counter()
-        ga.crossover(one_point_no_rep)
-        end = time.perf_counter()
-        timings["crossover"] += end - start
-
-        # mutation
-        start = time.perf_counter()
-        ga.mutation(rotation, mutation_rate)
-        end = time.perf_counter()
-        timings["mutation"] += end - start
-
-        # offsprings evaluation
-        start = time.perf_counter()
-        ga.evaluation(fitness, distances)
-        # ga.evaluation(fitness2, towns)
-        end = time.perf_counter()
-        timings["evaluation"] += end - start
-
-        # replacement
-        start = time.perf_counter()
-        ga.replace(merge_replace)
-        end = time.perf_counter()
-        timings["replacement"] += end - start
-
-        current_chromo, current_best = ga.get_best()
-        if best.fitness < current_best:
-            best = current_best
-            chromo = current_chromo
-
-        best_fitness.append(best)
-        biodiversities.append(ga.biodiversity())
-        average_fitness.append(ga.average_fitness())
-        # if best.fitness == average_fitness[-1]:
-        #     print(f"stopped at generation: {g}")
-        #     break
-
-    print(f"best solution: {best}")
+    ga.run(G)
 
     # drawing the graph
     plotting.draw_graph(data, chromo)
