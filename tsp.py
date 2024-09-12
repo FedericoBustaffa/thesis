@@ -1,15 +1,13 @@
 import math
 import random
 import sys
-
 from functools import partial
 
 import pandas as pd
 
+from genetic import Genome
 from genetic import GeneticAlgorithm
 import plotting
-
-from genetic import Genome
 
 
 def generate(length: int) -> list[int]:

@@ -1,23 +1,12 @@
 import random
 import time
 
+import multiprocessing as mp
 
-class Genome:
-    def __init__(self, chromosome: list, fitness: float = 0.0):
-        self.chromosome = chromosome
-        self.fitness = fitness
-
-    def __eq__(self, other) -> bool:
-        return self.chromosome == other.chromosome
-
-    def __hash__(self) -> int:
-        return hash((tuple(self.chromosome), self.fitness))
-
-    def __repr__(self) -> str:
-        return f"{self.chromosome}: {self.fitness:.3f}"
+from genetic import Genome
 
 
-class GeneticAlgorithm:
+class ParallelGeneticAlgorithm:
 
     def __init__(
         self,

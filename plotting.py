@@ -1,9 +1,8 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def draw_graph(towns: pd.DataFrame, best: np.ndarray):
+def draw_graph(towns: pd.DataFrame, best: list[int]):
     x = [towns["x"][i] for i in best]
     y = [towns["y"][i] for i in best]
 
@@ -19,7 +18,7 @@ def draw_graph(towns: pd.DataFrame, best: np.ndarray):
     plt.show()
 
 
-def fitness_trend(average: np.ndarray, best: np.ndarray):
+def fitness_trend(average: list[float], best: list[float]):
     generations = [g for g in range(len(average))]
 
     plt.figure(figsize=(12, 6))
@@ -35,7 +34,7 @@ def fitness_trend(average: np.ndarray, best: np.ndarray):
     plt.show()
 
 
-def biodiversity_trend(biodiversities: np.ndarray):
+def biodiversity_trend(biodiversities: list[float]):
     generations = [g for g in range(len(biodiversities))]
 
     plt.figure(figsize=(12, 6))
