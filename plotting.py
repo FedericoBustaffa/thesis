@@ -7,7 +7,7 @@ def draw_graph(towns: pd.DataFrame, best: np.ndarray):
     x = [towns["x"][i] for i in best]
     y = [towns["y"][i] for i in best]
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(20, 10))
     plt.title("Best path found")
     plt.xlabel("X coordinates")
     plt.ylabel("Y coordinates")
@@ -19,10 +19,10 @@ def draw_graph(towns: pd.DataFrame, best: np.ndarray):
     plt.show()
 
 
-def fitness_trend(average: list[float], best: list[float]):
+def fitness_trend(average: np.ndarray, best: np.ndarray):
     generations = [g for g in range(len(average))]
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(20, 10))
     plt.title("Fitness trend")
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
@@ -35,10 +35,10 @@ def fitness_trend(average: list[float], best: list[float]):
     plt.show()
 
 
-def biodiversity_trend(biodiversities: list[float]):
+def biodiversity_trend(biodiversities: np.ndarray):
     generations = [g for g in range(len(biodiversities))]
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(20, 10))
     plt.title("Biodiversity trend")
     plt.xlabel("Generation")
     plt.ylabel("Biodiversity percentage")
@@ -50,7 +50,7 @@ def biodiversity_trend(biodiversities: list[float]):
 
 
 def timing(timings: dict[str, float]):
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(20, 10))
     plt.title("Timing")
     plt.pie(
         [v for v in timings.values()],

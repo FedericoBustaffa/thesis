@@ -34,20 +34,20 @@ def fitness(distances: np.ndarray, chromosome: np.ndarray) -> np.float64:
     return np.float64(1.0 / total_distance)
 
 
-def tournament(population, scores):
-    selected = []
+def tournament(population: np.ndarray, scores: np.ndarray) -> np.ndarray:
+    selected = np.zeros(len(population) // 2, dtype=np.int32)
     indices = [i for i in range(len(population))]
 
-    for _ in range(len(population) // 2):
+    for i in range(len(selected)):
         first, second = random.choices(indices, k=2)
         # while first == second:
         #     first, second = random.choices(indices, k=2)
 
         if scores[first] > scores[second]:
-            selected.append(first)
+            selected[i] = first
             indices.remove(first)
         else:
-            selected.append(second)
+            selected[i] = second
             indices.remove(second)
 
     return selected
@@ -74,18 +74,14 @@ def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
     return offspring1.astype("int32"), offspring2.astype("int32")
 
 
-def rotation(offspring: np.ndarray):
-    indices = [i for i in range(len(offspring))]
-    a, b = random.choices(indices, k=2)
+def rotation(offspring: np.ndarray) -> np.ndarray:
+    a = np.random.randint(0, len(offspring))
+    b = np.random.randint(0, len(offspring))
     while a == b:
-        b = random.choice(indices)
+        b = np.random.randint(0, len(offspring))
 
     first = a if a < b else b
     second = a if a > b else b
-
-    head = offspring[:first]
-    middle = reversed(offspring[first:second])
-    tail = offspring[second:]
     offspring[first:second] = np.array(list(reversed(offspring[first:second])))
 
     return offspring
@@ -142,19 +138,6 @@ if __name__ == "__main__":
     # Mutation rate
     mutation_rate = float(sys.argv[4])
 
-    # useful data
-    average_fitness = []
-    best_fitness = []
-    biodiversities = []
-    timings = {
-        "generation": 0.0,
-        "evaluation": 0.0,
-        "selection": 0.0,
-        "crossover": 0.0,
-        "mutation": 0.0,
-        "replacement": 0.0,
-    }
-
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
@@ -180,13 +163,18 @@ if __name__ == "__main__":
     # drawing the graph
     plotting.draw_graph(data, chromosome)
 
-    # # plotting data
-    # plotting.fitness_trend(average_fitness, best_fitness)
-    # plotting.biodiversity_trend(biodiversities)
+    # statistics data
+    average_fitness = ga.get_average_fitness()
+    best_fitness = ga.get_best_fitness()
+    biodiversity = ga.get_biodiversity()
 
-    # # timing
-    # plotting.timing(timings)
+    plotting.fitness_trend(average_fitness, best_fitness)
+    plotting.biodiversity_trend(biodiversity)
 
-    # for k in timings.keys():
-    #     print(f"{k}: {timings[k]:.3f} seconds")
-    # print(f"total time: {sum(timings.values()):.3f} seconds")
+    # timing
+    timings = ga.get_timings()
+    plotting.timing(timings)
+
+    for k in timings.keys():
+        print(f"{k}: {timings[k]:.3f} seconds")
+    print(f"total time: {sum(timings.values()):.3f} seconds")
