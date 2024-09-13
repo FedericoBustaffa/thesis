@@ -2,7 +2,7 @@ import random
 import time
 
 import multiprocessing as mp
-import multiprocessing.sharedctypes as shared
+from multiprocessing.connection import Connection
 
 from genetic import Genome
 
@@ -31,7 +31,14 @@ class ParallelGeneticAlgorithm:
         self.mutation_rate = mutation_rate
         self.replace_func = replace_func
 
-        self.workers_num = workers_num
+        self.pipes = [mp.Pipe() for _ in range(workers_num)]
+        self.workers = [
+            mp.Process(target=self.work, args=[self.pipes[i][1]])
+            for i in range(workers_num)
+        ]
+
+        for w in self.workers:
+            w.start()
 
         # statistics
         self.average_fitness = []
@@ -46,8 +53,8 @@ class ParallelGeneticAlgorithm:
             "replacement": 0.0,
         }
 
-    def work(self, offsprings):
-        print(offsprings)
+    def work(self, pipe: Connection):
+        data = pipe.recv()
 
     def generation(self) -> None:
         start = time.perf_counter()
@@ -77,13 +84,10 @@ class ParallelGeneticAlgorithm:
 
         # init for faster crossover
         chromosome_length = len(chromosomes[0])
-        self.offsprings = mp.Array(
-            Genome,
-            [
-                Genome([0 for _ in range(chromosome_length)])
-                for _ in range(self.population_size // 2)
-            ],
-        )
+        self.offsprings = [
+            Genome([0 for _ in range(chromosome_length)])
+            for _ in range(self.population_size // 2)
+        ]
 
         # workers_num creation
         self.workers = [
@@ -100,6 +104,20 @@ class ParallelGeneticAlgorithm:
         self.selected = self.selection_func(self.population)
         end = time.perf_counter()
         self.timings["selection"] += end - start
+
+    def make_couples(self) -> list:
+        couples = []
+        for i in range(0, len(self.selected), 2):
+            father, mother = random.choices(self.selected, k=2)
+            couples.append((father, mother))
+
+            self.selected.remove(father)
+            try:
+                self.selected.remove(mother)
+            except ValueError:
+                pass
+
+        return couples
 
     def crossover(self) -> None:
         start = time.perf_counter()
@@ -172,6 +190,13 @@ class ParallelGeneticAlgorithm:
             # print(f"population: {len(self.population)}")
 
             self.selection()
+
+            couples = self.make_couples()
+
+            # send the selected to the processes here
+            for i in range(len(self.workers)):
+                self.pipes[i][0].send()
+
             self.crossover()
             self.mutation()
             self.evaluation()
