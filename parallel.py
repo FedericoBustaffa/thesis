@@ -2,6 +2,7 @@ import random
 import time
 
 import multiprocessing as mp
+import multiprocessing.sharedctypes as shared
 
 from genetic import Genome
 
@@ -18,7 +19,9 @@ class ParallelGeneticAlgorithm:
         mutation_func,
         mutation_rate,
         replace_func,
+        workers_num: int = 0,
     ):
+        # genetic components and operator
         self.population_size = population_size
         self.generation_func = generation_func
         self.fitness_func = fitness_func
@@ -27,6 +30,8 @@ class ParallelGeneticAlgorithm:
         self.mutation_func = mutation_func
         self.mutation_rate = mutation_rate
         self.replace_func = replace_func
+
+        self.workers_num = workers_num
 
         # statistics
         self.average_fitness = []
@@ -40,6 +45,9 @@ class ParallelGeneticAlgorithm:
             "mutation": 0.0,
             "replacement": 0.0,
         }
+
+    def work(self, offsprings):
+        print(offsprings)
 
     def generation(self) -> None:
         start = time.perf_counter()
@@ -69,10 +77,23 @@ class ParallelGeneticAlgorithm:
 
         # init for faster crossover
         chromosome_length = len(chromosomes[0])
-        self.offsprings = [
-            Genome([0 for _ in range(chromosome_length)])
-            for _ in range(self.population_size // 2)
+        self.offsprings = mp.Array(
+            Genome,
+            [
+                Genome([0 for _ in range(chromosome_length)])
+                for _ in range(self.population_size // 2)
+            ],
+        )
+
+        # workers_num creation
+        self.workers = [
+            mp.Process(target=self.work, args=[self.offsprings])
+            for _ in range(self.workers_num)
         ]
+
+        for w in self.workers:
+            w.start()
+            w.join()
 
     def selection(self) -> None:
         start = time.perf_counter()

@@ -1,9 +1,16 @@
 import random
 import time
 
+import ctypes
 
-class Genome:
+
+class Genome(ctypes.Structure):
+
     def __init__(self, chromosome: list, fitness: float = 0.0):
+        self._fields_ = [
+            ("chromosome", ctypes.c_int32 * len(chromosome)),
+            ("fitness", ctypes.c_double),
+        ]
         self.chromosome = chromosome
         self.fitness = fitness
 

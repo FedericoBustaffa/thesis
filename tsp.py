@@ -7,6 +7,7 @@ import pandas as pd
 
 from genetic import Genome
 from genetic import GeneticAlgorithm
+from parallel import ParallelGeneticAlgorithm
 import plotting
 
 
@@ -139,8 +140,19 @@ if __name__ == "__main__":
         mutation_rate,
         merge_replace,
     )
-
     ga.run(G)
+
+    pga = ParallelGeneticAlgorithm(
+        N,
+        generate_func,
+        fitness_func,
+        tournament,
+        one_point_no_rep,
+        rotation,
+        mutation_rate,
+        merge_replace,
+    )
+    pga.run(G)
 
     best = ga.get_best()
     print(f"best score: {best.fitness:.3f}")
@@ -158,6 +170,14 @@ if __name__ == "__main__":
 
     # timing
     timings = ga.get_timings()
+    plotting.timing(timings)
+
+    for k in timings.keys():
+        print(f"{k}: {timings[k]:.3f} seconds")
+    print(f"total time: {sum(timings.values()):.3f} seconds")
+    
+    # parallel timing
+    timings = pga.get_timings()
     plotting.timing(timings)
 
     for k in timings.keys():
