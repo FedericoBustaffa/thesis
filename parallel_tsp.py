@@ -6,8 +6,7 @@ from functools import partial
 import pandas as pd
 
 from genetic import Genome
-from genetic import GeneticAlgorithm
-from parallel import ParallelGeneticAlgorithm
+from parallel import PipeGeneticAlgorithm
 import plotting
 
 
@@ -130,19 +129,7 @@ if __name__ == "__main__":
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
-    ga = GeneticAlgorithm(
-        N,
-        generate_func,
-        fitness_func,
-        tournament,
-        one_point_no_rep,
-        rotation,
-        mutation_rate,
-        merge_replace,
-    )
-    ga.run(G)
-
-    pga = ParallelGeneticAlgorithm(
+    pga = PipeGeneticAlgorithm(
         N,
         generate_func,
         fitness_func,
@@ -155,22 +142,13 @@ if __name__ == "__main__":
     )
     pga.run(G)
 
-    best = ga.get_best()
-    best2 = pga.get_best()
+    best = pga.get_best()
     print(f"best score: {best.fitness:.3f}")
-    print(f"parallel best score: {best2.fitness:.3f}")
 
     # drawing the graph
     plotting.draw_graph(data, best.chromosome)
-    plotting.draw_graph(data, best2.chromosome)
 
     # statistics data
-    average_fitness = ga.get_average_fitness()
-    best_fitness = ga.get_best_fitness()
-    biodiversity = ga.get_biodiversity()
-    plotting.fitness_trend(average_fitness, best_fitness)
-    plotting.biodiversity_trend(biodiversity)
-
     average_fitness = pga.get_average_fitness()
     best_fitness = pga.get_best_fitness()
     biodiversity = pga.get_biodiversity()
@@ -178,14 +156,6 @@ if __name__ == "__main__":
     plotting.biodiversity_trend(biodiversity)
 
     # timing
-    timings = ga.get_timings()
-    plotting.timing(timings)
-
-    for k in timings.keys():
-        print(f"{k}: {timings[k]:.3f} seconds")
-    print(f"total time: {sum(timings.values()):.3f} seconds")
-
-    # parallel timing
     timings = pga.get_timings()
     plotting.timing(timings)
 

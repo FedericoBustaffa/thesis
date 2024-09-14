@@ -7,7 +7,7 @@ from multiprocessing.connection import Connection
 from genetic import Genome
 
 
-class ParallelGeneticAlgorithm:
+class PipeGeneticAlgorithm:
 
     def __init__(
         self,
@@ -54,7 +54,15 @@ class ParallelGeneticAlgorithm:
         }
 
     def work(self, pipe: Connection):
-        data = pipe.recv()
+        selected = pipe.recv()
+        while selected != None:
+            self.crossover()
+            offsprings = self.mutation(selected)
+            self.mutation(offsprings)
+            self.evaluation(offsprings)
+
+            pipe.send(offsprings)
+            selected = pipe.recv()
 
     def generation(self) -> None:
         start = time.perf_counter()
@@ -105,24 +113,10 @@ class ParallelGeneticAlgorithm:
         end = time.perf_counter()
         self.timings["selection"] += end - start
 
-    def make_couples(self) -> list:
-        couples = []
-        for i in range(0, len(self.selected), 2):
-            father, mother = random.choices(self.selected, k=2)
-            couples.append((father, mother))
-
-            self.selected.remove(father)
-            try:
-                self.selected.remove(mother)
-            except ValueError:
-                pass
-
-        return couples
-
-    def crossover(self) -> None:
+    def crossover(self, selected) -> None:
         start = time.perf_counter()
-        for i in range(0, len(self.selected), 2):
-            father_idx, mother_idx = random.choices(self.selected, k=2)
+        for i in range(0, len(selected), 2):
+            father_idx, mother_idx = random.choices(selected, k=2)
 
             father = self.population[father_idx].chromosome
             mother = self.population[mother_idx].chromosome
@@ -131,9 +125,9 @@ class ParallelGeneticAlgorithm:
             self.offsprings[i] = Genome(offspring1)
             self.offsprings[i + 1] = Genome(offspring2)
 
-            self.selected.remove(father_idx)
+            selected.remove(father_idx)
             try:
-                self.selected.remove(mother_idx)
+                selected.remove(mother_idx)
             except ValueError:
                 pass
 
@@ -191,15 +185,14 @@ class ParallelGeneticAlgorithm:
 
             self.selection()
 
-            couples = self.make_couples()
-
             # send the selected to the processes here
             for i in range(len(self.workers)):
-                self.pipes[i][0].send()
+                self.pipes[i][0].send(self.selected)
 
-            self.crossover()
-            self.mutation()
-            self.evaluation()
+            offsprings_parts = [
+                self.pipes[i][0].recv() for i in range(len(self.workers))
+            ]
+            self.offsprings = self.merge(offsprings_parts)
             self.replace()
 
             if self.best.fitness < self.population[0].fitness:

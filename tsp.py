@@ -7,7 +7,6 @@ import pandas as pd
 
 from genetic import Genome
 from genetic import GeneticAlgorithm
-from parallel import ParallelGeneticAlgorithm
 import plotting
 
 
@@ -142,27 +141,11 @@ if __name__ == "__main__":
     )
     ga.run(G)
 
-    pga = ParallelGeneticAlgorithm(
-        N,
-        generate_func,
-        fitness_func,
-        tournament,
-        one_point_no_rep,
-        rotation,
-        mutation_rate,
-        merge_replace,
-        workers_num=2,
-    )
-    pga.run(G)
-
     best = ga.get_best()
-    best2 = pga.get_best()
     print(f"best score: {best.fitness:.3f}")
-    print(f"parallel best score: {best2.fitness:.3f}")
 
     # drawing the graph
     plotting.draw_graph(data, best.chromosome)
-    plotting.draw_graph(data, best2.chromosome)
 
     # statistics data
     average_fitness = ga.get_average_fitness()
@@ -171,22 +154,8 @@ if __name__ == "__main__":
     plotting.fitness_trend(average_fitness, best_fitness)
     plotting.biodiversity_trend(biodiversity)
 
-    average_fitness = pga.get_average_fitness()
-    best_fitness = pga.get_best_fitness()
-    biodiversity = pga.get_biodiversity()
-    plotting.fitness_trend(average_fitness, best_fitness)
-    plotting.biodiversity_trend(biodiversity)
-
     # timing
     timings = ga.get_timings()
-    plotting.timing(timings)
-
-    for k in timings.keys():
-        print(f"{k}: {timings[k]:.3f} seconds")
-    print(f"total time: {sum(timings.values()):.3f} seconds")
-
-    # parallel timing
-    timings = pga.get_timings()
     plotting.timing(timings)
 
     for k in timings.keys():
