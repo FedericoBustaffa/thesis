@@ -149,14 +149,14 @@ if __name__ == "__main__":
     plotting.draw_graph(data, best.chromosome)
 
     # statistics data
-    average_fitness = pga.get_average_fitness()
-    best_fitness = pga.get_best_fitness()
-    biodiversity = pga.get_biodiversity()
+    average_fitness = pga.average_fitness
+    best_fitness = pga.best_fitness
+    biodiversity = pga.biodiversity
     plotting.fitness_trend(average_fitness, best_fitness)
     plotting.biodiversity_trend(biodiversity)
 
     # timing
-    timings = pga.get_timings()
+    timings = pga.timings
     plotting.timing(timings)
 
     for k in timings.keys():

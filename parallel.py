@@ -100,7 +100,7 @@ class PipeGeneticAlgorithm:
         # workers_num creation
         self.workers = [
             mp.Process(target=self.work, args=[self.offsprings])
-            for _ in range(self.workers_num)
+            for _ in range(len(self.workers))
         ]
 
         for w in self.workers:
@@ -156,21 +156,6 @@ class PipeGeneticAlgorithm:
         self.population = self.replace_func(self.population, self.offsprings)
         end = time.perf_counter()
         self.timings["evaluation"] += end - start
-
-    def get_best(self) -> Genome:
-        return self.best
-
-    def get_average_fitness(self) -> list[float]:
-        return self.average_fitness
-
-    def get_best_fitness(self) -> list[float]:
-        return self.best_fitness
-
-    def get_biodiversity(self) -> list[float]:
-        return self.biodiversities
-
-    def get_timings(self) -> dict[str, float]:
-        return self.timings
 
     def run(self, generations):
 
