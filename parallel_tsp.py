@@ -142,7 +142,7 @@ if __name__ == "__main__":
     )
     pga.run(G)
 
-    best = pga.get_best()
+    best = pga.best
     print(f"best score: {best.fitness:.3f}")
 
     # drawing the graph

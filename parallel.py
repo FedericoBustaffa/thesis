@@ -1,8 +1,7 @@
+import multiprocessing as mp
+import multiprocessing.connection as connection
 import random
 import time
-
-import multiprocessing as mp
-from multiprocessing.connection import Connection
 
 from genetic import Genome
 
@@ -43,7 +42,7 @@ class PipeGeneticAlgorithm:
         # statistics
         self.average_fitness = []
         self.best_fitness = []
-        self.biodiversities = []
+        self.biodiversity = []
         self.timings = {
             "generation": 0.0,
             "evaluation": 0.0,
@@ -53,10 +52,10 @@ class PipeGeneticAlgorithm:
             "replacement": 0.0,
         }
 
-    def work(self, pipe: Connection):
+    def work(self, pipe: connection.Connection):
         selected = pipe.recv()
         while selected != None:
-            self.crossover()
+            self.crossover(selected)
             offsprings = self.mutation(selected)
             self.mutation(offsprings)
             self.evaluation(offsprings)
@@ -173,11 +172,13 @@ class PipeGeneticAlgorithm:
             # send the selected to the processes here
             for i in range(len(self.workers)):
                 self.pipes[i][0].send(self.selected)
+                offsprings_part = self.pipes[i][0].recv()
+                self.offsprings.extend(offsprings_parts)
 
             offsprings_parts = [
                 self.pipes[i][0].recv() for i in range(len(self.workers))
             ]
-            self.offsprings = self.merge(offsprings_parts)
+
             self.replace()
 
             if self.best.fitness < self.population[0].fitness:
@@ -187,7 +188,7 @@ class PipeGeneticAlgorithm:
                 sum([i.fitness for i in self.population]) / len(self.population)
             )
 
-            self.biodiversities.append(
+            self.biodiversity.append(
                 len(list(set(self.population))) / len(self.population) * 100.0
             )
 
