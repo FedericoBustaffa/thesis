@@ -182,6 +182,6 @@ class GeneticAlgorithm:
             self.best_fitness.append(self.population[0].fitness)
 
             # convergence check
-            if self.best.fitness <= self.average_fitness[-1]:
-                print(f"stop at generation {g}")
-                break
+            # if self.best.fitness <= self.average_fitness[-1]:
+            #     print(f"stop at generation {g}")
+            #     break

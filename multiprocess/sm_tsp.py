@@ -6,7 +6,7 @@ from functools import partial
 
 import pandas as pd
 import plotting
-from pipe_algorithm import Chromosome, PipeGeneticAlgorithm
+from sm_algorithm import Chromosome, SharedMemoryGeneticAlgorithm
 
 
 def generate(length: int) -> list[int]:
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
-    pga = PipeGeneticAlgorithm(
+    pga = SharedMemoryGeneticAlgorithm(
         N,
         generate_func,
         fitness_func,

@@ -20,7 +20,7 @@ class Chromosome:
         return hash((tuple(self.values), self.fitness))
 
 
-class PipeGeneticAlgorithm:
+class SharedMemoryGeneticAlgorithm:
 
     def __init__(
         self,
@@ -45,7 +45,7 @@ class PipeGeneticAlgorithm:
         self.replace_func = replace_func
 
         self.population = []
-        self.offsprings = []
+        self.offsprings = [Chromosome([]) for _ in range(population_size // 2)]
 
         # statistics
         self.average_fitness = []
@@ -112,7 +112,6 @@ class PipeGeneticAlgorithm:
     def work(self, pipe: conn.Connection):
         timings = {"crossover": 0.0, "mutation": 0.0, "evaluation": 0.0}
         couples = pipe.recv()
-        offsprings = [Chromosome([]) for _ in range(len(couples) * 2)]
         while couples != None:
             for i in range(len(couples)):
                 father, mother = couples[i]
@@ -128,11 +127,11 @@ class PipeGeneticAlgorithm:
                 # print(f"{mp.current_process().name} mutated offsprings: {o1}, {o2}")
 
                 start = time.perf_counter()
-                offsprings[i * 2] = Chromosome(o1, self.fitness_func(o1))
-                offsprings[i * 2 + 1] = Chromosome(o2, self.fitness_func(o2))
+                self.offsprings[i * 2] = Chromosome(o1, self.fitness_func(o1))
+                self.offsprings[i * 2 + 1] = Chromosome(o2, self.fitness_func(o2))
                 timings["evaluation"] += time.perf_counter() - start
 
-            pipe.send(offsprings)
+            pipe.send(self.offsprings)
             couples = pipe.recv()
 
         pipe.send(timings)
@@ -155,7 +154,6 @@ class PipeGeneticAlgorithm:
         print(f"first best: {self.best.fitness}")
 
         for g in range(max_generations):
-            # print(g)
             # select individuals for crossover
             self.selection()
             # print("selected")
