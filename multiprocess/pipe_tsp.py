@@ -1,12 +1,13 @@
 import math
 import random
 import sys
+import time
 from functools import partial
 
 import pandas as pd
 
-from data_stream import Chromosome
-from data_stream import PipeGeneticAlgorithm
+from pipe_algorithm import Chromosome
+from pipe_algorithm import PipeGeneticAlgorithm
 import plotting
 
 
@@ -84,6 +85,9 @@ def rotation(offspring: list[int]) -> list[int]:
 def merge_replace(
     population: list[Chromosome], offsprings: list[Chromosome]
 ) -> list[Chromosome]:
+    population.sort(key=lambda x: x.fitness, reverse=True)
+    offsprings.sort(key=lambda x: x.fitness, reverse=True)
+
     next_generation = []
     index = 0
     index1 = 0
@@ -140,15 +144,18 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        workers_num=2,
+        # num_of_workers=4,
     )
+
+    start = time.perf_counter()
     pga.run(G)
+    print(f"total time: {time.perf_counter() - start} seconds")
 
     best = pga.best
     print(f"best score: {best.fitness:.3f}")
 
     # drawing the graph
-    plotting.draw_graph(data, best.chromosome)
+    plotting.draw_graph(data, best.values)
 
     # statistics data
     average_fitness = pga.average_fitness
@@ -163,4 +170,4 @@ if __name__ == "__main__":
 
     for k in timings.keys():
         print(f"{k}: {timings[k]:.3f} seconds")
-    print(f"total time: {sum(timings.values()):.3f} seconds")
+    # print(f"total time: {sum(timings.values()):.3f} seconds")

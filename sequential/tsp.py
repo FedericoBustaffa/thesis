@@ -5,7 +5,7 @@ from functools import partial
 
 import pandas as pd
 
-from genetic import Genome
+from genetic import Chromosome
 from genetic import GeneticAlgorithm
 import plotting
 
@@ -33,7 +33,7 @@ def fitness(distances: list[list[float]], chromosome: list[int]) -> float:
     return 1.0 / total_distance
 
 
-def tournament(population: list[Genome]) -> list[int]:
+def tournament(population: list[Chromosome]) -> list[int]:
     selected = []
     indices = [i for i in range(len(population))]
 
@@ -81,7 +81,9 @@ def rotation(offspring: list[int]) -> list[int]:
     return offspring
 
 
-def merge_replace(population: list[Genome], offsprings: list[Genome]) -> list[Genome]:
+def merge_replace(
+    population: list[Chromosome], offsprings: list[Chromosome]
+) -> list[Chromosome]:
     next_generation = []
     index = 0
     index1 = 0
@@ -114,7 +116,7 @@ if __name__ == "__main__":
         print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
         exit(1)
 
-    data = pd.read_csv(f"../datasets/{sys.argv[1]}")
+    data = pd.read_csv(f"datasets/{sys.argv[1]}")
     distances = compute_distances(data)
 
     # Initial population size
@@ -145,7 +147,7 @@ if __name__ == "__main__":
     print(f"best score: {best.fitness:.3f}")
 
     # drawing the graph
-    plotting.draw_graph(data, best.chromosome)
+    plotting.draw_graph(data, best.values)
 
     # statistics data
     average_fitness = ga.get_average_fitness()

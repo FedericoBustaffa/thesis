@@ -2,20 +2,20 @@ import random
 import time
 
 
-class Genome:
+class Chromosome:
 
-    def __init__(self, chromosome: list, fitness: float = 0.0):
-        self.chromosome = chromosome
+    def __init__(self, values: list, fitness: float = 0.0):
+        self.values = values
         self.fitness = fitness
 
     def __eq__(self, other) -> bool:
-        return self.chromosome == other.chromosome
+        return self.values == other.values
 
     def __hash__(self) -> int:
-        return hash((tuple(self.chromosome), self.fitness))
+        return hash((tuple(self.values), self.fitness))
 
     def __repr__(self) -> str:
-        return f"{self.chromosome}: {self.fitness:.3f}"
+        return f"{self.values}: {self.fitness:.3f}"
 
 
 class GeneticAlgorithm:
@@ -70,7 +70,7 @@ class GeneticAlgorithm:
 
         self.population = sorted(
             [
-                Genome(chromosome, score)
+                Chromosome(chromosome, score)
                 for chromosome, score in zip(chromosomes, scores)
             ],
             key=lambda x: x.fitness,
@@ -82,7 +82,7 @@ class GeneticAlgorithm:
         # init for faster crossover
         chromosome_length = len(chromosomes[0])
         self.offsprings = [
-            Genome([0 for _ in range(chromosome_length)])
+            Chromosome([0 for _ in range(chromosome_length)])
             for _ in range(self.population_size // 2)
         ]
 
@@ -97,12 +97,12 @@ class GeneticAlgorithm:
         for i in range(0, len(self.selected), 2):
             father_idx, mother_idx = random.choices(self.selected, k=2)
 
-            father = self.population[father_idx].chromosome
-            mother = self.population[mother_idx].chromosome
+            father = self.population[father_idx].values
+            mother = self.population[mother_idx].values
 
             offspring1, offspring2 = self.crossover_func(father, mother)
-            self.offsprings[i] = Genome(offspring1)
-            self.offsprings[i + 1] = Genome(offspring2)
+            self.offsprings[i] = Chromosome(offspring1)
+            self.offsprings[i + 1] = Chromosome(offspring2)
 
             self.selected.remove(father_idx)
             try:
@@ -117,14 +117,14 @@ class GeneticAlgorithm:
         start = time.perf_counter()
         for offspring in self.offsprings:
             if random.random() < self.mutation_rate:
-                offspring.chromosome = self.mutation_func(offspring.chromosome)
+                offspring.chromosome = self.mutation_func(offspring.values)
         end = time.perf_counter()
         self.timings["mutation"] += end - start
 
     def evaluation(self) -> None:
         start = time.perf_counter()
         for i in self.offsprings:
-            i.fitness = self.fitness_func(i.chromosome)
+            i.fitness = self.fitness_func(i.values)
 
         self.offsprings = sorted(self.offsprings, key=lambda x: x.fitness, reverse=True)
         end = time.perf_counter()
@@ -136,7 +136,7 @@ class GeneticAlgorithm:
         end = time.perf_counter()
         self.timings["evaluation"] += end - start
 
-    def get_best(self) -> Genome:
+    def get_best(self) -> Chromosome:
         return self.best
 
     def get_average_fitness(self) -> list[float]:
