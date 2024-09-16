@@ -116,7 +116,7 @@ if __name__ == "__main__":
         print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
         exit(1)
 
-    data = pd.read_csv(f"datasets/{sys.argv[1]}")
+    data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
     distances = compute_distances(data)
 
     # Initial population size
