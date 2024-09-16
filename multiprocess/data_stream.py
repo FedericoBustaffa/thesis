@@ -3,7 +3,14 @@ import multiprocessing.connection as connection
 import random
 import time
 
-from genetic import Genome
+
+class Chromosome:
+    def __init__(self, values, fitness=0) -> None:
+        self.values = values
+        self.fitness = fitness
+
+    def __repr__(self) -> str:
+        return f"{self.values}: {self.fitness}"
 
 
 class PipeGeneticAlgorithm:
@@ -80,7 +87,7 @@ class PipeGeneticAlgorithm:
 
         self.population = sorted(
             [
-                Genome(chromosome, score)
+                Chromosome(chromosome, score)
                 for chromosome, score in zip(chromosomes, scores)
             ],
             key=lambda x: x.fitness,
@@ -92,7 +99,7 @@ class PipeGeneticAlgorithm:
         # init for faster crossover
         chromosome_length = len(chromosomes[0])
         self.offsprings = [
-            Genome([0 for _ in range(chromosome_length)])
+            Chromosome([0 for _ in range(chromosome_length)])
             for _ in range(self.population_size // 2)
         ]
 
@@ -121,8 +128,8 @@ class PipeGeneticAlgorithm:
             mother = self.population[mother_idx].chromosome
 
             offspring1, offspring2 = self.crossover_func(father, mother)
-            self.offsprings[i] = Genome(offspring1)
-            self.offsprings[i + 1] = Genome(offspring2)
+            self.offsprings[i] = Chromosome(offspring1)
+            self.offsprings[i + 1] = Chromosome(offspring2)
 
             selected.remove(father_idx)
             try:

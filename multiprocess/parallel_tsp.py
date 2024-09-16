@@ -5,8 +5,8 @@ from functools import partial
 
 import pandas as pd
 
-from genetic import Genome
-from genetic import GeneticAlgorithm
+from data_stream import Chromosome
+from data_stream import PipeGeneticAlgorithm
 import plotting
 
 
@@ -33,7 +33,7 @@ def fitness(distances: list[list[float]], chromosome: list[int]) -> float:
     return 1.0 / total_distance
 
 
-def tournament(population: list[Genome]) -> list[int]:
+def tournament(population: list[Chromosome]) -> list[int]:
     selected = []
     indices = [i for i in range(len(population))]
 
@@ -81,7 +81,9 @@ def rotation(offspring: list[int]) -> list[int]:
     return offspring
 
 
-def merge_replace(population: list[Genome], offsprings: list[Genome]) -> list[Genome]:
+def merge_replace(
+    population: list[Chromosome], offsprings: list[Chromosome]
+) -> list[Chromosome]:
     next_generation = []
     index = 0
     index1 = 0
@@ -114,7 +116,7 @@ if __name__ == "__main__":
         print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
         exit(1)
 
-    data = pd.read_csv(sys.argv[1])
+    data = pd.read_csv(f"datasets/{sys.argv[1]}")
     distances = compute_distances(data)
 
     # Initial population size
@@ -129,7 +131,7 @@ if __name__ == "__main__":
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
-    ga = GeneticAlgorithm(
+    pga = PipeGeneticAlgorithm(
         N,
         generate_func,
         fitness_func,
@@ -138,24 +140,25 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
+        workers_num=2,
     )
-    ga.run(G)
+    pga.run(G)
 
-    best = ga.get_best()
+    best = pga.best
     print(f"best score: {best.fitness:.3f}")
 
     # drawing the graph
     plotting.draw_graph(data, best.chromosome)
 
     # statistics data
-    average_fitness = ga.get_average_fitness()
-    best_fitness = ga.get_best_fitness()
-    biodiversity = ga.get_biodiversity()
+    average_fitness = pga.average_fitness
+    best_fitness = pga.best_fitness
+    biodiversity = pga.biodiversity
     plotting.fitness_trend(average_fitness, best_fitness)
     plotting.biodiversity_trend(biodiversity)
 
     # timing
-    timings = ga.get_timings()
+    timings = pga.timings
     plotting.timing(timings)
 
     for k in timings.keys():

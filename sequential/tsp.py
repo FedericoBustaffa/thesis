@@ -6,7 +6,7 @@ from functools import partial
 import pandas as pd
 
 from genetic import Genome
-from parallel import PipeGeneticAlgorithm
+from genetic import GeneticAlgorithm
 import plotting
 
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
         exit(1)
 
-    data = pd.read_csv(sys.argv[1])
+    data = pd.read_csv(f"../datasets/{sys.argv[1]}")
     distances = compute_distances(data)
 
     # Initial population size
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
-    pga = PipeGeneticAlgorithm(
+    ga = GeneticAlgorithm(
         N,
         generate_func,
         fitness_func,
@@ -138,25 +138,24 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        workers_num=2,
     )
-    pga.run(G)
+    ga.run(G)
 
-    best = pga.best
+    best = ga.get_best()
     print(f"best score: {best.fitness:.3f}")
 
     # drawing the graph
     plotting.draw_graph(data, best.chromosome)
 
     # statistics data
-    average_fitness = pga.average_fitness
-    best_fitness = pga.best_fitness
-    biodiversity = pga.biodiversity
+    average_fitness = ga.get_average_fitness()
+    best_fitness = ga.get_best_fitness()
+    biodiversity = ga.get_biodiversity()
     plotting.fitness_trend(average_fitness, best_fitness)
     plotting.biodiversity_trend(biodiversity)
 
     # timing
-    timings = pga.timings
+    timings = ga.get_timings()
     plotting.timing(timings)
 
     for k in timings.keys():
