@@ -6,7 +6,7 @@ from functools import partial
 
 import pandas as pd
 import plotting
-from sm_algorithm import Chromosome, SharedMemoryGeneticAlgorithm
+from sm_algorithm import SharedMemoryGeneticAlgorithm
 
 
 def generate(length: int) -> list[int]:
@@ -32,16 +32,16 @@ def fitness(distances: list[list[float]], chromosome: list[int]) -> float:
     return 1.0 / total_distance
 
 
-def tournament(population: list[Chromosome]) -> list[int]:
+def tournament(scores: list[float]) -> list[int]:
     selected = []
-    indices = [i for i in range(len(population))]
+    indices = [i for i in range(len(scores))]
 
-    for _ in range(len(population) // 2):
+    for _ in range(len(scores) // 2):
         first, second = random.choices(indices, k=2)
         while first == second:
             first, second = random.choices(indices, k=2)
 
-        if population[first].fitness > population[second].fitness:
+        if scores[first] > scores[second]:
             selected.append(first)
             indices.remove(first)
         else:
@@ -81,8 +81,9 @@ def rotation(offspring: list[int]) -> list[int]:
 
 
 def merge_replace(
-    population: list[Chromosome], offsprings: list[Chromosome]
-) -> list[Chromosome]:
+    population: list[int],
+    offsprings: list[int],
+) -> list[int]:
     population.sort(key=lambda x: x.fitness, reverse=True)
     offsprings.sort(key=lambda x: x.fitness, reverse=True)
 
@@ -149,23 +150,23 @@ if __name__ == "__main__":
     pga.run(G)
     print(f"total time: {time.perf_counter() - start} seconds")
 
-    best = pga.best
-    print(f"best score: {best.fitness:.3f}")
+    # best = pga.best
+    # print(f"best score: {best.fitness:.3f}")
 
-    # drawing the graph
-    plotting.draw_graph(data, best.values)
+    # # drawing the graph
+    # plotting.draw_graph(data, best.values)
 
-    # statistics data
-    average_fitness = pga.average_fitness
-    best_fitness = pga.best_fitness
-    biodiversity = pga.biodiversity
-    plotting.fitness_trend(average_fitness, best_fitness)
-    plotting.biodiversity_trend(biodiversity)
+    # # statistics data
+    # average_fitness = pga.average_fitness
+    # best_fitness = pga.best_fitness
+    # biodiversity = pga.biodiversity
+    # plotting.fitness_trend(average_fitness, best_fitness)
+    # plotting.biodiversity_trend(biodiversity)
 
-    # timing
-    timings = pga.timings
-    plotting.timing(timings)
+    # # timing
+    # timings = pga.timings
+    # plotting.timing(timings)
 
-    for k in timings.keys():
-        print(f"{k}: {timings[k]:.3f} seconds")
-    # print(f"total time: {sum(timings.values()):.3f} seconds")
+    # for k in timings.keys():
+    #     print(f"{k}: {timings[k]:.3f} seconds")
+    # # print(f"total time: {sum(timings.values()):.3f} seconds")
