@@ -82,8 +82,11 @@ def rotation(offspring: list[int]) -> list[int]:
 
 def merge_replace(
     population: list[int],
+    scores1: list[float],
     offsprings: list[int],
+    scores2: list[float],
 ) -> list[int]:
+
     population.sort(key=lambda x: x.fitness, reverse=True)
     offsprings.sort(key=lambda x: x.fitness, reverse=True)
 
@@ -143,7 +146,7 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        # num_of_workers=4,
+        num_of_workers=2,
     )
 
     start = time.perf_counter()

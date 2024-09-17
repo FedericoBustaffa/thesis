@@ -1,8 +1,25 @@
 import multiprocessing as mp
 import multiprocessing.shared_memory as sm
+import multiprocessing.synchronize as sync
 import random
 
 import numpy as np
+
+
+def share(buffer, mem_name):
+
+    buffer = np.array(buffer)
+    buffer_memory = sm.SharedMemory(name=mem_name, create=True, size=buffer.nbytes)
+
+    shared_buffer = np.ndarray(
+        shape=buffer.shape,
+        dtype=buffer.dtype,
+        buffer=buffer_memory.buf,
+    )
+
+    shared_buffer[:] = buffer[:]
+
+    return buffer_memory, shared_buffer
 
 
 class SharedMemoryGeneticAlgorithm:
@@ -28,14 +45,16 @@ class SharedMemoryGeneticAlgorithm:
         self.mutation_rate = mutation_rate
         self.replace_func = replace_func
 
+        self.condition = mp.Condition()
         self.workers = [
-            mp.Process(target=self.parallel_work, args=[i, num_of_workers])
+            mp.Process(
+                target=self.parallel_work, args=[i, num_of_workers, self.condition]
+            )
             for i in range(num_of_workers)
         ]
 
         for w in self.workers:
             w.start()
-            w.join()
 
         # statistics
         self.average_fitness = []
@@ -51,48 +70,56 @@ class SharedMemoryGeneticAlgorithm:
         }
 
     def generate(self):
-        self.population = []
-        self.scores = []
+        population = []
+        scores = []
 
         for _ in range(self.population_size):
             chromosome = self.gen_func()
-            while chromosome in self.population:
+            while chromosome in population:
                 chromosome = self.gen_func()
 
-            self.population.append(chromosome)
-            self.scores.append(self.fitness_func(chromosome))
+            population.append(chromosome)
+            scores.append(self.fitness_func(chromosome))
 
-        self.population = np.array(self.population)
-        self.scores = np.array(self.scores)
-
-        self.population_memory = sm.SharedMemory(
-            name="population_memory", create=True, size=self.population.nbytes
-        )
-
-        self.scores_memory = sm.SharedMemory(
-            name="scores_memory", create=True, size=self.scores.nbytes
-        )
-
-        self.couples_memory = sm.SharedMemory(
-            name="couples_memory", create=True, size=self.scores.nbytes // 2
-        )
+        # creating a shared memory for the population and scores
+        self.population_memory, self.population = share(population, "population_mem")
+        self.scores_memory, self.scores = share(scores, "scores_mem")
 
     def selection(self):
         self.selected = self.selection_func(self.scores)
+        couples_buffer = [[-1, -1] for _ in range(len(self.selected) // 2)]
+        self.couples_memory, self.couples = share(couples_buffer, "couples_mem")
 
     def mating(self):
         couples = []
         for _ in range(len(self.selected) // 2):
             father, mother = random.choices(self.selected, k=2)
             # controllo father != mother ?
-
             couples.append([father, mother])
 
-        couples = np.array(couples)
+        self.couples[:] = np.array(couples)[:]
 
-    def parallel_work(self, index: int, num_of_workers: int, couples_memory_name: str):
-        couples_memory = sm.SharedMemory(name=couples_memory_name)
-        couples = np.ndarray(buffer=couples_memory.buf)
+    def parallel_work(self, index: int, num_of_workers: int, condition: sync.Condition):
+
+        with condition:
+            condition.wait()
+
+        couples_memory = sm.SharedMemory(name="couples_mem")
+        couples = np.ndarray(
+            shape=(len(self.population_size) // 2, 2),
+            dtype=np.int64,
+            buffer=couples_memory.buf,
+        )
+
+        with condition:
+            condition.wait()
+
+        for c in couples:
+            print(f"{mp.current_process().name}: {c}")
+
+    def replace(self):
+        # self.replace_func(self.population, self.scores, self.offsprings, self.offsprings_scores)
+        pass
 
     def run(self, max_generations: int) -> None:
         # initial population gen
@@ -102,16 +129,33 @@ class SharedMemoryGeneticAlgorithm:
             print(f"{i}: {s}")
 
         for g in range(max_generations):
+            print(f"generation: {g+1}")
+
             # --- selection ---
             self.selection()
+
+            with self.condition:
+                self.condition.notify_all()
+
             print(f"selected")
             for i in self.selected:
                 print(f"{self.population[i]}: {self.scores[i]}")
 
             # --- mating ---
-
-            # should be in shared memory
             self.mating()
+
+            # to delete (should be processes work)
+            with self.condition:
+                self.condition.notify_all()
+
+            self.replace()
+
+        for w in self.workers:
+            w.join()
+
+        self.population_memory.unlink()
+        self.scores_memory.unlink()
+        self.couples_memory.unlink()
 
     def get(self):
         pass
