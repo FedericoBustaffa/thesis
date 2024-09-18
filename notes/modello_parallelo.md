@@ -63,4 +63,21 @@ Per capire quali siano le strutture dati condivise
 tra i vari processi ho considerato il seguente
 modello:
 
-![dataflow](images/dataflow.svg)
+![](images/dataflow.svg)
+
+In azzurro le funzioni e gli operatori genetici,
+in verde i dati generati da ogni fase
+dell'algoritmo.
+
+Per il momento non mi soffermo
+sull'implementazione di tali strutture, quello
+che ci interessa è capire quando una struttura
+dati è richiesta dai processi che operano in
+parallelo e quando invece è il processo principale
+a richiedere dati elaborati in parallelo dai
+processi.
+
+In questo modo mi sono reso conto che per la fase
+crossover abbiamo bisogno di generare le coppie
+in anticipo nel caso si vogliano estrarre gli
+individui dall'intero gruppo dei selezionati.
