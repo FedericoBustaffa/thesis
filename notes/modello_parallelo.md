@@ -45,4 +45,22 @@ sincronizzazione dei vari processi che a mio parere
 si potrebbe benissimo evitare accorpando le tre
 fasi in un'unico processo come mostro di seguito:
 
-![](images/model.svg)
+![](images/modello2.svg)
+
+In questo modo si hanno solo due fasi di
+sincronizzazione, la prima quando si inizia la fase
+in parallelo e la seconda quando si termina e si
+deve unire i risultati ottenuti per la fase di
+rimpiazzo.
+
+Una volta che i processi terminano il loro lavoro
+devono essere messi in attesa e risvegliati solo
+al momento opportuno.
+
+## Strutture dati condivise
+
+Per capire quali siano le strutture dati condivise
+tra i vari processi ho considerato il seguente
+modello:
+
+![dataflow](images/dataflow.svg)
