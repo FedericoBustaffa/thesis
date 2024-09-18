@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import multiprocessing.shared_memory as sm
 import multiprocessing.synchronize as sync
+import multiprocessing.sharedctypes as st
 import random
 
 import numpy as np
@@ -45,10 +46,20 @@ class SharedMemoryGeneticAlgorithm:
         self.mutation_rate = mutation_rate
         self.replace_func = replace_func
 
+        self.main_ready = mp.Value("i", 0)
+        self.process_ready_counter = mp.Value("i", 0)
+
         self.condition = mp.Condition()
         self.workers = [
             mp.Process(
-                target=self.parallel_work, args=[i, num_of_workers, self.condition]
+                target=self.parallel_work,
+                args=[
+                    i,
+                    num_of_workers,
+                    self.condition,
+                    self.main_ready,
+                    self.process_ready_counter,
+                ],
             )
             for i in range(num_of_workers)
         ]
@@ -99,23 +110,38 @@ class SharedMemoryGeneticAlgorithm:
 
         self.couples[:] = np.array(couples)[:]
 
-    def parallel_work(self, index: int, num_of_workers: int, condition: sync.Condition):
+    def parallel_work(
+        self,
+        index: int,
+        num_of_workers: int,
+        condition: sync.Condition,
+        main_ready: st.Synchronized,
+        process_ready: st.Synchronized,
+    ):
 
         with condition:
             condition.wait()
 
-        couples_memory = sm.SharedMemory(name="couples_mem")
+        couples_memory = sm.SharedMemory(name="couples_mem", create=False)
         couples = np.ndarray(
-            shape=(len(self.population_size) // 2, 2),
+            shape=(self.population_size // 4, 2),
             dtype=np.int64,
             buffer=couples_memory.buf,
         )
 
+        print(f"{mp.current_process().name} ready")
+
         with condition:
-            condition.wait()
+            condition.wait_for(lambda: main_ready.value == 1)
 
         for c in couples:
             print(f"{mp.current_process().name}: {c}")
+
+        with condition:
+            process_ready.value += 1
+            condition.notify_all()
+
+        couples_memory.close()
 
     def replace(self):
         # self.replace_func(self.population, self.scores, self.offsprings, self.offsprings_scores)
@@ -146,16 +172,22 @@ class SharedMemoryGeneticAlgorithm:
 
             # to delete (should be processes work)
             with self.condition:
+                self.main_ready.value = 1
                 self.condition.notify_all()
+
+            with self.condition:
+                self.condition.wait_for(
+                    lambda: self.process_ready_counter.value == len(self.workers)
+                )
 
             self.replace()
 
-        for w in self.workers:
-            w.join()
-
+        self.couples_memory.unlink()
         self.population_memory.unlink()
         self.scores_memory.unlink()
-        self.couples_memory.unlink()
+
+        for w in self.workers:
+            w.join()
 
     def get(self):
         pass
