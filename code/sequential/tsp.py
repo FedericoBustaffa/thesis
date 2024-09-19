@@ -4,10 +4,9 @@ import sys
 from functools import partial
 
 import pandas as pd
+from genetic import Chromosome, GeneticAlgorithm
 
-from genetic import Chromosome
-from genetic import GeneticAlgorithm
-import plotting
+from utils import plotting
 
 
 def generate(length: int) -> list[int]:
