@@ -5,8 +5,9 @@ import time
 from functools import partial
 
 import pandas as pd
-import plotting
 from sm_algorithm import SharedMemoryGeneticAlgorithm
+
+from utils import plotting
 
 
 def generate(length: int) -> list[int]:
