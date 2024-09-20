@@ -19,7 +19,7 @@ class SharedMemoryGeneticAlgorithm:
         mutation_func,
         mutation_rate,
         replace_func,
-        num_of_workers: int = mp.cpu_count(),
+        workers_num: int = mp.cpu_count(),
     ) -> None:
 
         self.population_size = population_size
@@ -30,27 +30,28 @@ class SharedMemoryGeneticAlgorithm:
         self.mutation_func = mutation_func
         self.mutation_rate = mutation_rate
         self.replace_func = replace_func
+        self.workers_num = workers_num
 
-        self.main_ready = mp.Value("i", 0)
-        self.process_ready_counter = mp.Value("i", 0)
+        # processes sync
+        self.ready = mp.Event()
+        self.ready_counter = mp.Value("i", workers_num)
 
-        self.condition = mp.Condition()
-        # self.workers = [
-        #     mp.Process(
-        #         target=self.parallel_work,
-        #         args=[
-        #             i,
-        #             num_of_workers,
-        #             self.condition,
-        #             self.main_ready,
-        #             self.process_ready_counter,
-        #         ],
-        #     )
-        #     for i in range(num_of_workers)
-        # ]
+        self.workers = [
+            mp.Process(
+                target=parallel_work,
+                args=[
+                    self,
+                    i,
+                    workers_num,
+                    self.ready,
+                    self.ready_counter,
+                ],
+            )
+            for i in range(workers_num)
+        ]
 
-        # for w in self.workers:
-        #     w.start()
+        for w in self.workers:
+            w.start()
 
         # statistics
         self.average_fitness = []
@@ -64,8 +65,6 @@ class SharedMemoryGeneticAlgorithm:
             "mutation": 0.0,
             "replacement": 0.0,
         }
-
-    parallel_work = parallel_work
 
     def generate(self):
         population = []
@@ -83,12 +82,12 @@ class SharedMemoryGeneticAlgorithm:
         self.population_memory, self.population = share(population, "population_mem")
         self.scores_memory, self.scores = share(scores, "scores_mem")
 
+        # create a shared memory for couples
+        couples_buffer = [[-1, -1] for _ in range(len(self.population) // 4)]
+        self.couples_memory, self.couples = share(couples_buffer, "couples_mem")
+
     def selection(self):
         self.selected = self.selection_func(self.scores)
-
-        # create a shared memory for couples
-        couples_buffer = [[-1, -1] for _ in range(len(self.selected) // 2)]
-        self.couples_memory, self.couples = share(couples_buffer, "couples_mem")
 
     def mating(self):
         couples = []
@@ -96,6 +95,11 @@ class SharedMemoryGeneticAlgorithm:
             father, mother = random.choices(self.selected, k=2)
             # controllo father != mother ?
             couples.append([father, mother])
+            self.selected.remove(father)
+            try:
+                self.selected.remove(mother)
+            except:
+                pass
 
         self.couples[:] = np.array(couples)[:]
 
@@ -104,11 +108,13 @@ class SharedMemoryGeneticAlgorithm:
         pass
 
     def run(self, max_generations: int) -> None:
-        # initial population gen
+
         self.generate()
-        print(f"generated")
-        for i, s in zip(self.population, self.scores):
-            print(f"{i}: {s}")
+
+        self.selection()
+        self.mating()
+
+        self.ready.set()
 
         # for g in range(max_generations):
         #     print(f"generation: {g+1}")
@@ -138,12 +144,12 @@ class SharedMemoryGeneticAlgorithm:
 
         #     self.replace()
 
-        # for w in self.workers:
-        #     w.join()
+        for w in self.workers:
+            w.join()
 
-        # self.couples_memory.unlink()
         self.population_memory.unlink()
         self.scores_memory.unlink()
+        self.couples_memory.unlink()
 
     def get(self):
         pass
