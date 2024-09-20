@@ -55,6 +55,7 @@ class GeneticAlgorithm:
 
     def generation(self) -> None:
         start = time.perf_counter()
+
         chromosomes = []
         for _ in range(self.population_size):
             c = self.generation_func()
@@ -62,6 +63,7 @@ class GeneticAlgorithm:
                 c = self.generation_func()
 
             chromosomes.append(c)
+
         end = time.perf_counter()
         self.timings["generation"] += end - start
 
@@ -117,7 +119,7 @@ class GeneticAlgorithm:
         start = time.perf_counter()
         for offspring in self.offsprings:
             if random.random() < self.mutation_rate:
-                offspring.chromosome = self.mutation_func(offspring.values)
+                offspring.values = self.mutation_func(offspring.values)
         end = time.perf_counter()
         self.timings["mutation"] += end - start
 
@@ -154,13 +156,14 @@ class GeneticAlgorithm:
     def run(self, generations):
 
         self.generation()
+        for i in self.population:
+            print(i)
 
         self.best = self.population[0]
         print(f"first best score: {self.best.fitness}")
 
         for g in range(generations):
-            # print(f"generation: {g}")
-            # print(f"population: {len(self.population)}")
+            print(f"generation: {g+1}")
 
             self.selection()
             self.crossover()
@@ -179,9 +182,9 @@ class GeneticAlgorithm:
                 len(list(set(self.population))) / len(self.population) * 100.0
             )
 
-            self.best_fitness.append(self.population[0].fitness)
+            self.best_fitness.append(self.best.fitness)
 
             # convergence check
-            # if self.best.fitness <= self.average_fitness[-1]:
-            #     print(f"stop at generation {g}")
-            #     break
+            if self.best.fitness <= self.average_fitness[-1]:
+                print(f"stop at generation {g+1}")
+                break

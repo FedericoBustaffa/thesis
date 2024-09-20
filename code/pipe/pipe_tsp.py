@@ -5,8 +5,10 @@ import time
 from functools import partial
 
 import pandas as pd
-import plotting
-from pipe_algorithm import Chromosome, PipeGeneticAlgorithm
+from chromosome import Chromosome
+from pipe_algorithm import PipeGeneticAlgorithm
+
+from utils import plotting
 
 
 def generate(length: int) -> list[int]:

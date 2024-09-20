@@ -1,11 +1,10 @@
 import math
 import random
 import sys
-import time
 from functools import partial
 
 import pandas as pd
-from sm_algorithm import SharedMemoryGeneticAlgorithm
+from seq import GeneticAlgorithm
 
 from utils import plotting
 
@@ -86,12 +85,24 @@ def merge_replace(
     scores1: list[float],
     offsprings: list[int],
     scores2: list[float],
-) -> list[int]:
+) -> tuple[list[int], list[float]]:
 
-    population.sort(key=lambda x: x.fitness, reverse=True)
-    offsprings.sort(key=lambda x: x.fitness, reverse=True)
+    population, scores1 = (
+        list(t)
+        for t in zip(
+            *sorted(zip(population, scores1), key=lambda x: x[1], reverse=True)
+        )
+    )
+
+    offsprings, scores2 = (
+        list(t)
+        for t in zip(
+            *sorted(zip(offsprings, scores2), key=lambda x: x[1], reverse=True)
+        )
+    )
 
     next_generation = []
+    next_gen_scores = []
     index = 0
     index1 = 0
     index2 = 0
@@ -101,21 +112,24 @@ def merge_replace(
         and index1 < len(population)
         and index2 < len(offsprings)
     ):
-        if population[index1].fitness > offsprings[index2].fitness:
+        if scores1[index1] > scores2[index2]:
             next_generation.append(population[index1])
+            next_gen_scores.append(scores1[index1])
             index1 += 1
         else:
             next_generation.append(offsprings[index2])
+            next_gen_scores.append(scores2[index2])
             index2 += 1
 
         index += 1
 
     if index1 >= len(population):
-        return next_generation
+        return next_generation, next_gen_scores
     elif index2 >= len(offsprings):
         next_generation.extend(population[index1 : len(population) - index2])
+        next_gen_scores.extend(scores1[index1 : len(scores1) - index2])
 
-    return next_generation
+    return next_generation, next_gen_scores
 
 
 if __name__ == "__main__":
@@ -138,7 +152,7 @@ if __name__ == "__main__":
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
-    pga = SharedMemoryGeneticAlgorithm(
+    pga = GeneticAlgorithm(
         N,
         generate_func,
         fitness_func,
@@ -147,30 +161,26 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        num_of_workers=2,
     )
 
-    start = time.perf_counter()
     pga.run(G)
-    print(f"total time: {time.perf_counter() - start} seconds")
 
-    # best = pga.best
-    # print(f"best score: {best.fitness:.3f}")
+    print(f"best score: {pga.best_score:.3f}")
 
-    # # drawing the graph
-    # plotting.draw_graph(data, best.values)
+    # drawing the graph
+    plotting.draw_graph(data, pga.best)
 
-    # # statistics data
-    # average_fitness = pga.average_fitness
-    # best_fitness = pga.best_fitness
-    # biodiversity = pga.biodiversity
-    # plotting.fitness_trend(average_fitness, best_fitness)
-    # plotting.biodiversity_trend(biodiversity)
+    # statistics data
+    average_fitness = pga.average_fitness
+    best_fitness = pga.best_fitness
+    biodiversity = pga.biodiversity
+    plotting.fitness_trend(average_fitness, best_fitness)
+    plotting.biodiversity_trend(biodiversity)
 
-    # # timing
-    # timings = pga.timings
-    # plotting.timing(timings)
+    # timing
+    timings = pga.timings
+    plotting.timing(timings)
 
-    # for k in timings.keys():
-    #     print(f"{k}: {timings[k]:.3f} seconds")
-    # # print(f"total time: {sum(timings.values()):.3f} seconds")
+    for k in timings.keys():
+        print(f"{k}: {timings[k]:.3f} seconds")
+    print(f"total time: {sum(timings.values()):.3f} seconds")

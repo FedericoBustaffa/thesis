@@ -1,23 +1,11 @@
 import math
 import multiprocessing as mp
-import multiprocessing.connection as conn
-import random
-import time
 
-
-class Chromosome:
-    def __init__(self, values, fitness=0) -> None:
-        self.values = values
-        self.fitness = fitness
-
-    def __repr__(self) -> str:
-        return f"{self.values}: {self.fitness}"
-
-    def __eq__(self, other) -> bool:
-        return self.values == other.values
-
-    def __hash__(self) -> int:
-        return hash((tuple(self.values), self.fitness))
+from generation import generate
+from selection import select
+from crossover import mating
+from parallel import work
+from replacement import replace
 
 
 class PipeGeneticAlgorithm:
@@ -70,78 +58,11 @@ class PipeGeneticAlgorithm:
         for w in self.workers:
             w.start()
 
-    def generate(self):
-        start = time.perf_counter()
-        chromosomes = []
-        for _ in range(self.population_size):
-            values = self.gen_func()
-            while values in chromosomes:
-                values = self.gen_func()
-
-            chromosomes.append(values)
-
-        self.population = [
-            Chromosome(values, self.fitness_func(values)) for values in chromosomes
-        ]
-
-        self.timings["generation"] += time.perf_counter() - start
-
-    def selection(self):
-        start = time.perf_counter()
-        self.selected = self.selection_func(self.population)
-        self.timings["selection"] += time.perf_counter() - start
-
-    def make_couples(self):
-        start = time.perf_counter()
-        couples = []
-        for _ in range(0, len(self.selected), 2):
-            try:
-                father, mother = random.sample(self.selected, k=2)
-                couples.append(
-                    (self.population[father].values, self.population[mother].values)
-                )
-
-                self.selected.remove(father)
-                self.selected.remove(mother)
-            except:
-                pass
-        self.timings["crossover"] += time.perf_counter() - start
-
-        return couples
-
-    def work(self, pipe: conn.Connection):
-        timings = {"crossover": 0.0, "mutation": 0.0, "evaluation": 0.0}
-        couples = pipe.recv()
-        offsprings = [Chromosome([]) for _ in range(len(couples) * 2)]
-        while couples != None:
-            for i in range(len(couples)):
-                father, mother = couples[i]
-                start = time.perf_counter()
-                o1, o2 = self.crossover_func(father, mother)
-                timings["crossover"] += time.perf_counter() - start
-                # print(f"{mp.current_process().name} offsprings: {o1}, {o2}")
-
-                start = time.perf_counter()
-                o1 = self.mutation_func(o1)
-                o2 = self.mutation_func(o2)
-                timings["mutation"] += time.perf_counter() - start
-                # print(f"{mp.current_process().name} mutated offsprings: {o1}, {o2}")
-
-                start = time.perf_counter()
-                offsprings[i * 2] = Chromosome(o1, self.fitness_func(o1))
-                offsprings[i * 2 + 1] = Chromosome(o2, self.fitness_func(o2))
-                timings["evaluation"] += time.perf_counter() - start
-
-            pipe.send(offsprings)
-            couples = pipe.recv()
-
-        pipe.send(timings)
-        pipe.close()
-
-    def replace(self):
-        start = time.perf_counter()
-        self.population = self.replace_func(self.population, self.offsprings)
-        self.timings["replacement"] += time.perf_counter() - start
+    generate = generate
+    select = select
+    mating = mating
+    work = work
+    replace = replace
 
     def run(self, max_generations: int):
 
@@ -157,13 +78,13 @@ class PipeGeneticAlgorithm:
         for g in range(max_generations):
             # print(g)
             # select individuals for crossover
-            self.selection()
+            self.select()
             # print("selected")
             # for i in self.selected:
             #     print(f"{i}. {self.population[i]}")
 
             # creating couples for crossover
-            couples = self.make_couples()
+            couples = self.mating()
             # print("couples")
             # for c in couples:
             #     print(c)
