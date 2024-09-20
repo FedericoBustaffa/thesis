@@ -2,10 +2,10 @@ import math
 import random
 import sys
 from functools import partial
+import time
 
 import pandas as pd
-from seq import GeneticAlgorithm
-from sm_algorithm import SharedMemoryGeneticAlgorithm
+from algorithm import Algorithm
 
 from utils import plotting
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
-    pga = SharedMemoryGeneticAlgorithm(
+    pga = Algorithm(
         N,
         generate_func,
         fitness_func,
@@ -162,27 +162,29 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        num_of_workers=4,
+        workers_num=4,
     )
 
+    start = time.perf_counter()
     pga.run(G)
+    print(f"total time: {time.perf_counter() - start}")
 
-    # print(f"best score: {pga.best_score:.3f}")
+    print(f"best score: {pga.best_score:.3f}")
 
-    # # drawing the graph
-    # plotting.draw_graph(data, pga.best)
+    # drawing the graph
+    plotting.draw_graph(data, pga.best)
 
-    # # statistics data
-    # average_fitness = pga.average_fitness
-    # best_fitness = pga.best_fitness
-    # biodiversity = pga.biodiversity
-    # plotting.fitness_trend(average_fitness, best_fitness)
-    # plotting.biodiversity_trend(biodiversity)
+    # statistics data
+    average_fitness = pga.average_fitness
+    best_fitness = pga.best_fitness
+    biodiversity = pga.biodiversity
+    plotting.fitness_trend(average_fitness, best_fitness)
+    plotting.biodiversity_trend(biodiversity)
 
-    # # timing
-    # timings = pga.timings
-    # plotting.timing(timings)
+    # timing
+    timings = pga.timings
+    plotting.timing(timings)
 
-    # for k in timings.keys():
-    #     print(f"{k}: {timings[k]:.3f} seconds")
-    # print(f"total time: {sum(timings.values()):.3f} seconds")
+    for k in timings.keys():
+        print(f"{k}: {timings[k]:.3f} seconds")
+    print(f"total time: {sum(timings.values()):.3f} seconds")

@@ -156,14 +156,12 @@ class GeneticAlgorithm:
     def run(self, generations):
 
         self.generation()
-        for i in self.population:
-            print(i)
 
         self.best = self.population[0]
         print(f"first best score: {self.best.fitness}")
 
         for g in range(generations):
-            print(f"generation: {g+1}")
+            # print(f"generation: {g+1}")
 
             self.selection()
             self.crossover()

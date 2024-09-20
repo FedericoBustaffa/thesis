@@ -35,22 +35,22 @@ class SharedMemoryGeneticAlgorithm:
         self.process_ready_counter = mp.Value("i", 0)
 
         self.condition = mp.Condition()
-        self.workers = [
-            mp.Process(
-                target=self.parallel_work,
-                args=[
-                    i,
-                    num_of_workers,
-                    self.condition,
-                    self.main_ready,
-                    self.process_ready_counter,
-                ],
-            )
-            for i in range(num_of_workers)
-        ]
+        # self.workers = [
+        #     mp.Process(
+        #         target=self.parallel_work,
+        #         args=[
+        #             i,
+        #             num_of_workers,
+        #             self.condition,
+        #             self.main_ready,
+        #             self.process_ready_counter,
+        #         ],
+        #     )
+        #     for i in range(num_of_workers)
+        # ]
 
-        for w in self.workers:
-            w.start()
+        # for w in self.workers:
+        #     w.start()
 
         # statistics
         self.average_fitness = []
@@ -110,38 +110,38 @@ class SharedMemoryGeneticAlgorithm:
         for i, s in zip(self.population, self.scores):
             print(f"{i}: {s}")
 
-        for g in range(max_generations):
-            print(f"generation: {g+1}")
+        # for g in range(max_generations):
+        #     print(f"generation: {g+1}")
 
-            # --- selection ---
-            self.selection()
+        #     # --- selection ---
+        #     self.selection()
 
-            with self.condition:
-                self.condition.notify_all()
+        #     with self.condition:
+        #         self.condition.notify_all()
 
-            print(f"selected")
-            for i in self.selected:
-                print(f"{self.population[i]}: {self.scores[i]}")
+        #     print(f"selected")
+        #     for i in self.selected:
+        #         print(f"{self.population[i]}: {self.scores[i]}")
 
-            # --- mating ---
-            self.mating()
+        #     # --- mating ---
+        #     self.mating()
 
-            # to delete (should be processes work)
-            with self.condition:
-                self.main_ready.value = 1
-                self.condition.notify_all()
+        #     # to delete (should be processes work)
+        #     with self.condition:
+        #         self.main_ready.value = 1
+        #         self.condition.notify_all()
 
-            with self.condition:
-                self.condition.wait_for(
-                    lambda: self.process_ready_counter.value == len(self.workers)
-                )
+        #     with self.condition:
+        #         self.condition.wait_for(
+        #             lambda: self.process_ready_counter.value == len(self.workers)
+        #         )
 
-            self.replace()
+        #     self.replace()
 
-        for w in self.workers:
-            w.join()
+        # for w in self.workers:
+        #     w.join()
 
-        self.couples_memory.unlink()
+        # self.couples_memory.unlink()
         self.population_memory.unlink()
         self.scores_memory.unlink()
 
