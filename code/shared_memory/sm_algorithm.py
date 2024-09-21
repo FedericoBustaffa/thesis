@@ -35,6 +35,7 @@ class SharedMemoryGeneticAlgorithm:
         # processes sync
         self.ready = mp.Event()
         self.ready_counter = mp.Value("i", workers_num)
+        self.pipes = [mp.Pipe() for _ in range(workers_num)]
 
         self.workers = [
             mp.Process(
@@ -43,6 +44,7 @@ class SharedMemoryGeneticAlgorithm:
                     self,
                     i,
                     workers_num,
+                    self.pipes[i][1],
                     self.ready,
                     self.ready_counter,
                 ],
@@ -86,6 +88,9 @@ class SharedMemoryGeneticAlgorithm:
         couples_buffer = [[-1, -1] for _ in range(len(self.population) // 4)]
         self.couples_memory, self.couples = share(couples_buffer, "couples_mem")
 
+        for p in self.pipes:
+            p[0].send((self.couples.shape, self.couples.dtype))
+
     def selection(self):
         self.selected = self.selection_func(self.scores)
 
@@ -104,7 +109,9 @@ class SharedMemoryGeneticAlgorithm:
         self.couples[:] = np.array(couples)[:]
 
     def replace(self):
-        # self.replace_func(self.population, self.scores, self.offsprings, self.offsprings_scores)
+        # self.replace_func(
+        #     self.population, self.scores, self.offsprings, self.offsprings_scores
+        # )
         pass
 
     def run(self, max_generations: int) -> None:
@@ -115,6 +122,14 @@ class SharedMemoryGeneticAlgorithm:
         self.mating()
 
         self.ready.set()
+        print("Ok")
+
+        with self.ready_counter:
+            while self.ready_counter.value != 0:
+                self.ready.clear()
+                self.ready.wait()
+
+        print("main takes control")
 
         # for g in range(max_generations):
         #     print(f"generation: {g+1}")
@@ -144,8 +159,20 @@ class SharedMemoryGeneticAlgorithm:
 
         #     self.replace()
 
+        for i in range(len(self.workers)):
+            self.pipes[i][0].close()
+            self.workers[i].join()
+
         for w in self.workers:
-            w.join()
+            w.close()
+
+        del self.population
+        del self.scores
+        del self.couples
+
+        self.population_memory.close()
+        self.scores_memory.close()
+        self.couples_memory.close()
 
         self.population_memory.unlink()
         self.scores_memory.unlink()
