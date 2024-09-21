@@ -162,7 +162,7 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        workers_num=4,
+        # workers_num=4,
     )
 
     pga.run(G)

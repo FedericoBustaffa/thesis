@@ -1,7 +1,5 @@
 import multiprocessing as mp
 import multiprocessing.shared_memory as sm
-import multiprocessing.sharedctypes as st
-import multiprocessing.synchronize as sync
 import random
 
 import numpy as np
@@ -9,6 +7,10 @@ from parallel import parallel_work, share
 
 
 class SharedMemoryGeneticAlgorithm:
+
+    share = share
+    worker_task = parallel_work
+
     def __init__(
         self,
         population_size,
@@ -33,20 +35,21 @@ class SharedMemoryGeneticAlgorithm:
         self.workers_num = workers_num
 
         # processes sync
-        self.ready = mp.Event()
-        self.ready_counter = mp.Value("i", workers_num)
         self.pipes = [mp.Pipe() for _ in range(workers_num)]
+        self.main_ready = [mp.Event() for _ in range(workers_num)]
+        self.workers_ready = [mp.Event() for _ in range(workers_num)]
+        self.stops = [mp.Value("i", 0) for _ in range(workers_num)]
 
         self.workers = [
             mp.Process(
-                target=parallel_work,
+                target=self.worker_task,
                 args=[
-                    self,
                     i,
                     workers_num,
                     self.pipes[i][1],
-                    self.ready,
-                    self.ready_counter,
+                    self.main_ready[i],
+                    self.workers_ready[i],
+                    self.stops[i],
                 ],
             )
             for i in range(workers_num)
@@ -81,15 +84,19 @@ class SharedMemoryGeneticAlgorithm:
             scores.append(self.fitness_func(chromosome))
 
         # create a shared memory for the population and scores
-        self.population_memory, self.population = share(population, "population_mem")
-        self.scores_memory, self.scores = share(scores, "scores_mem")
+        self.population_memory, self.population = self.share(
+            population, "population_mem"
+        )
+        self.scores_memory, self.scores = self.share(scores, "scores_mem")
 
         # create a shared memory for couples
         couples_buffer = [[-1, -1] for _ in range(len(self.population) // 4)]
-        self.couples_memory, self.couples = share(couples_buffer, "couples_mem")
+        self.couples_memory, self.couples = self.share(couples_buffer, "couples_mem")
 
         for p in self.pipes:
             p[0].send((self.couples.shape, self.couples.dtype))
+            p[0].send((self.population.shape, self.population.dtype))
+            p[0].send((self.scores.shape, self.scores.dtype))
 
     def selection(self):
         self.selected = self.selection_func(self.scores)
@@ -118,65 +125,32 @@ class SharedMemoryGeneticAlgorithm:
 
         self.generate()
 
-        self.selection()
-        self.mating()
+        for g in range(max_generations):
+            print(f"generation: {g+1}")
 
-        self.ready.set()
-        print("Ok")
+            self.selection()
+            self.mating()
 
-        with self.ready_counter:
-            while self.ready_counter.value != 0:
-                self.ready.clear()
-                self.ready.wait()
+            for main_ready in self.main_ready:
+                main_ready.set()
 
-        print("main takes control")
-
-        # for g in range(max_generations):
-        #     print(f"generation: {g+1}")
-
-        #     # --- selection ---
-        #     self.selection()
-
-        #     with self.condition:
-        #         self.condition.notify_all()
-
-        #     print(f"selected")
-        #     for i in self.selected:
-        #         print(f"{self.population[i]}: {self.scores[i]}")
-
-        #     # --- mating ---
-        #     self.mating()
-
-        #     # to delete (should be processes work)
-        #     with self.condition:
-        #         self.main_ready.value = 1
-        #         self.condition.notify_all()
-
-        #     with self.condition:
-        #         self.condition.wait_for(
-        #             lambda: self.process_ready_counter.value == len(self.workers)
-        #         )
-
-        #     self.replace()
+            for worker_ready in self.workers_ready:
+                worker_ready.wait()
+                worker_ready.clear()
 
         for i in range(len(self.workers)):
+            with self.stops[i]:
+                self.stops[i].value = 1
+            self.main_ready[i].set()
             self.pipes[i][0].close()
             self.workers[i].join()
 
-        for w in self.workers:
-            w.close()
-
-        del self.population
-        del self.scores
-        del self.couples
-
-        self.population_memory.close()
-        self.scores_memory.close()
-        self.couples_memory.close()
-
-        self.population_memory.unlink()
-        self.scores_memory.unlink()
-        self.couples_memory.unlink()
+        try:
+            self.population_memory.unlink()
+            self.scores_memory.unlink()
+            self.couples_memory.unlink()
+        except:
+            print("shared memory exception")
 
     def get(self):
         pass

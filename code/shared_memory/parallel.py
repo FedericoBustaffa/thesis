@@ -2,13 +2,14 @@ import multiprocessing as mp
 import multiprocessing.shared_memory as sm
 import multiprocessing.sharedctypes as st
 import multiprocessing.synchronize as sync
+import random
 import time
 from multiprocessing.connection import Connection
 
 import numpy as np
 
 
-def share(buffer, mem_name):
+def share(self, buffer, mem_name):
 
     buffer = np.array(buffer)
     buffer_memory = sm.SharedMemory(name=mem_name, create=True, size=buffer.nbytes)
@@ -26,33 +27,49 @@ def share(buffer, mem_name):
 def parallel_work(
     self,
     index: int,
-    num_of_workers: int,
+    workers_num: int,
     pipe: Connection,
+    main_ready: sync.Event,
     ready: sync.Event,
-    ready_counter: st.Synchronized,
+    stop: st.Synchronized,
 ):
     shape, dtype = pipe.recv()
-
-    # print(f"{mp.current_process().name}")
-    couples_memory = sm.SharedMemory(name="couples_mem")
+    couples_memory = sm.SharedMemory(name="couples_mem", create=False)
     couples = np.ndarray(
         shape=shape,
         dtype=dtype,
         buffer=couples_memory.buf,
     )
 
-    chunk = len(couples) // num_of_workers
-    for i in range(index * chunk, index * chunk + chunk, 1):
-        print(f"{mp.current_process().name}: {couples[i]}")
+    population_memory = sm.SharedMemory(name="population_mem", create=False)
+    population = np.ndarray(
+        shape=shape,
+        dtype=dtype,
+        buffer=couples_memory.buf,
+    )
 
-    print(ready.is_set())
-    while not ready.wait():
-        pass
+    scores_memory = sm.SharedMemory(name="scores_mem", create=False)
+    scores = np.ndarray(
+        shape=shape,
+        dtype=dtype,
+        buffer=couples_memory.buf,
+    )
 
-    print("work in progress")
-    time.sleep(2)
-    with ready_counter:
-        ready_counter.value -= 1
+    chunk = len(couples) // workers_num
+
+    while True:
+
+        main_ready.wait()
+        main_ready.clear()
+
+        with stop:
+            if stop.value == 1:
+                break
+
+        for i in range(index * chunk, index * chunk + chunk, 1):
+            father = population[couples[i][0]]
+            mother = population[couples[i][1]]
+
         ready.set()
 
     couples_memory.close()
