@@ -160,7 +160,7 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        workers_num=20,
+        # workers_num=20,
     )
 
     start = time.perf_counter()
