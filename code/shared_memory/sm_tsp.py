@@ -1,9 +1,12 @@
 import math
 import random
 import sys
+import time
 from functools import partial
 
+import numpy as np
 import pandas as pd
+from numba import njit
 from seq import GeneticAlgorithm
 from sm_algorithm import SharedMemoryGeneticAlgorithm
 
@@ -39,8 +42,6 @@ def tournament(scores: list[float]) -> list[int]:
 
     for _ in range(len(scores) // 2):
         first, second = random.choices(indices, k=2)
-        while first == second:
-            first, second = random.choices(indices, k=2)
 
         if scores[first] > scores[second]:
             selected.append(first)
@@ -52,11 +53,13 @@ def tournament(scores: list[float]) -> list[int]:
     return selected
 
 
-def one_point_no_rep(father: list[int], mother: list[int]) -> tuple:
+@njit
+def one_point_no_rep(father, mother) -> tuple:
+
     crossover_point = random.randint(1, len(father) - 2)
 
-    offspring1 = father[:crossover_point]
-    offspring2 = father[crossover_point:]
+    offspring1 = list(father[:crossover_point])
+    offspring2 = list(father[crossover_point:])
 
     for gene in mother:
         if gene not in offspring1:
@@ -68,11 +71,11 @@ def one_point_no_rep(father: list[int], mother: list[int]) -> tuple:
 
 
 def rotation(offspring: list[int]) -> list[int]:
-    a = random.randint(0, len(offspring))
-    b = random.randint(0, len(offspring))
+    a = np.random.randint(0, len(offspring))
+    b = np.random.randint(0, len(offspring))
 
     while a == b:
-        b = random.randint(0, len(offspring))
+        b = np.random.randint(0, len(offspring))
 
     first = a if a < b else b
     second = a if a > b else b
@@ -81,12 +84,7 @@ def rotation(offspring: list[int]) -> list[int]:
     return offspring
 
 
-def merge_replace(
-    population: list[int],
-    scores1: list[float],
-    offsprings: list[int],
-    scores2: list[float],
-) -> tuple[list[int], list[float]]:
+def merge_replace(population, scores1, offsprings, scores2):
 
     population, scores1 = (
         list(t)
@@ -162,27 +160,24 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        # workers_num=4,
+        workers_num=20,
     )
 
+    start = time.perf_counter()
     pga.run(G)
+    print(f"total time: {time.perf_counter() - start} seconds")
 
-    # print(f"best score: {pga.best_score:.3f}")
+    print(f"best score: {pga.best_score:.3f}")
 
     # # drawing the graph
-    # plotting.draw_graph(data, pga.best)
+    plotting.draw_graph(data, pga.best)
 
     # # statistics data
-    # average_fitness = pga.average_fitness
-    # best_fitness = pga.best_fitness
-    # biodiversity = pga.biodiversity
-    # plotting.fitness_trend(average_fitness, best_fitness)
-    # plotting.biodiversity_trend(biodiversity)
+    plotting.fitness_trend(pga.average_fitness, pga.best_fitness)
+    plotting.biodiversity_trend(pga.biodiversity)
 
-    # # timing
-    # timings = pga.timings
-    # plotting.timing(timings)
+    # timing
+    plotting.timing(pga.timings)
 
-    # for k in timings.keys():
-    #     print(f"{k}: {timings[k]:.3f} seconds")
-    # print(f"total time: {sum(timings.values()):.3f} seconds")
+    for k in pga.timings.keys():
+        print(f"{k}: {pga.timings[k]:.3f} seconds")

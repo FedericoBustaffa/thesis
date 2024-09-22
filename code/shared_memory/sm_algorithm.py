@@ -1,19 +1,35 @@
 import multiprocessing as mp
 import multiprocessing.shared_memory as sm
-import random
+import time
 
 import numpy as np
-from parallel import parallel_work, share
+
+from genetic import (
+    generate,
+    mating,
+    replace,
+    select,
+    unlink,
+)
+from parallel import parallel_work, start_workers
 
 
 class SharedMemoryGeneticAlgorithm:
 
-    share = share
-    worker_task = parallel_work
+    # genetic functions and operators
+    generate = generate
+    select = select
+    mating = mating
+    replace = replace
+    unlink = unlink
+
+    # parallel methods
+    start_workers = start_workers
+    parallel_work = parallel_work
 
     def __init__(
         self,
-        population_size,
+        population_size: int,
         gen_func,
         fitness_func,
         selection_func,
@@ -35,28 +51,12 @@ class SharedMemoryGeneticAlgorithm:
         self.workers_num = workers_num
 
         # processes sync
-        self.pipes = [mp.Pipe() for _ in range(workers_num)]
         self.main_ready = [mp.Event() for _ in range(workers_num)]
         self.workers_ready = [mp.Event() for _ in range(workers_num)]
         self.stops = [mp.Value("i", 0) for _ in range(workers_num)]
 
-        self.workers = [
-            mp.Process(
-                target=self.worker_task,
-                args=[
-                    i,
-                    workers_num,
-                    self.pipes[i][1],
-                    self.main_ready[i],
-                    self.workers_ready[i],
-                    self.stops[i],
-                ],
-            )
-            for i in range(workers_num)
-        ]
-
-        for w in self.workers:
-            w.start()
+        self.shapes = []
+        self.dtypes = []
 
         # statistics
         self.average_fitness = []
@@ -64,93 +64,72 @@ class SharedMemoryGeneticAlgorithm:
         self.biodiversity = []
         self.timings = {
             "generation": 0.0,
-            "evaluation": 0.0,
             "selection": 0.0,
+            "mating": 0.0,
             "crossover": 0.0,
             "mutation": 0.0,
+            "evaluation": 0.0,
+            "parallel": 0.0,
             "replacement": 0.0,
+            "stuff": 0.0,
         }
-
-    def generate(self):
-        population = []
-        scores = []
-
-        for _ in range(self.population_size):
-            chromosome = self.gen_func()
-            while chromosome in population:
-                chromosome = self.gen_func()
-
-            population.append(chromosome)
-            scores.append(self.fitness_func(chromosome))
-
-        # create a shared memory for the population and scores
-        self.population_memory, self.population = self.share(
-            population, "population_mem"
-        )
-        self.scores_memory, self.scores = self.share(scores, "scores_mem")
-
-        # create a shared memory for couples
-        couples_buffer = [[-1, -1] for _ in range(len(self.population) // 4)]
-        self.couples_memory, self.couples = self.share(couples_buffer, "couples_mem")
-
-        for p in self.pipes:
-            p[0].send((self.couples.shape, self.couples.dtype))
-            p[0].send((self.population.shape, self.population.dtype))
-            p[0].send((self.scores.shape, self.scores.dtype))
-
-    def selection(self):
-        self.selected = self.selection_func(self.scores)
-
-    def mating(self):
-        couples = []
-        for _ in range(len(self.selected) // 2):
-            father, mother = random.choices(self.selected, k=2)
-            # controllo father != mother ?
-            couples.append([father, mother])
-            self.selected.remove(father)
-            try:
-                self.selected.remove(mother)
-            except:
-                pass
-
-        self.couples[:] = np.array(couples)[:]
-
-    def replace(self):
-        # self.replace_func(
-        #     self.population, self.scores, self.offsprings, self.offsprings_scores
-        # )
-        pass
 
     def run(self, max_generations: int) -> None:
 
         self.generate()
 
+        self.best = np.zeros(len(self.population[0]))
+        np.copyto(self.best, self.population[0])
+        self.best_score = self.scores[0]
+        print(f"first best: {self.best_score}")
+
+        self.start_workers()
+
+        genetic_time = time.perf_counter()
         for g in range(max_generations):
             print(f"generation: {g+1}")
 
-            self.selection()
+            self.select()
             self.mating()
 
+            start = time.perf_counter()
             for main_ready in self.main_ready:
                 main_ready.set()
 
             for worker_ready in self.workers_ready:
                 worker_ready.wait()
                 worker_ready.clear()
+            self.timings["parallel"] += time.perf_counter() - start
 
+            self.replace()
+
+            start = time.perf_counter()
+            if self.best_score < self.scores[0]:
+                np.copyto(self.best, self.population[0])
+                self.best_score = self.scores[0]
+
+            self.average_fitness.append(self.scores.mean())
+            self.best_fitness.append(self.best_score)
+
+            # self.biodiversity.append(
+            #     len(set(tuple(i) for i in self.population))
+            #     / len(self.population)
+            #     * 100.0
+            # )
+            self.timings["stuff"] += time.perf_counter() - start
+
+            # convergence check
+            # if self.best_score <= self.average_fitness[-1]:
+            #     print(f"stop at generation {g+1}")
+            #     print(f"best score: {self.best_score}")
+            #     print(f"average fitness: {self.average_fitness[-1]}")
+            #     break
+
+        print(f"genetic time: {time.perf_counter() - genetic_time} seconds")
         for i in range(len(self.workers)):
             with self.stops[i]:
                 self.stops[i].value = 1
             self.main_ready[i].set()
-            self.pipes[i][0].close()
             self.workers[i].join()
 
-        try:
-            self.population_memory.unlink()
-            self.scores_memory.unlink()
-            self.couples_memory.unlink()
-        except:
-            print("shared memory exception")
-
-    def get(self):
-        pass
+        self.unlink()

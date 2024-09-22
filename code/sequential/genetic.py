@@ -51,6 +51,7 @@ class GeneticAlgorithm:
             "crossover": 0.0,
             "mutation": 0.0,
             "replacement": 0.0,
+            "stuff": 0.0,
         }
 
     def generation(self) -> None:
@@ -161,7 +162,7 @@ class GeneticAlgorithm:
         print(f"first best score: {self.best.fitness}")
 
         for g in range(generations):
-            # print(f"generation: {g+1}")
+            print(f"generation: {g+1}")
 
             self.selection()
             self.crossover()
@@ -169,6 +170,7 @@ class GeneticAlgorithm:
             self.evaluation()
             self.replace()
 
+            start = time.perf_counter()
             if self.best.fitness < self.population[0].fitness:
                 self.best = self.population[0]
 
@@ -181,8 +183,9 @@ class GeneticAlgorithm:
             )
 
             self.best_fitness.append(self.best.fitness)
+            self.timings["stuff"] += time.perf_counter() - start
 
             # convergence check
-            if self.best.fitness <= self.average_fitness[-1]:
-                print(f"stop at generation {g+1}")
-                break
+            # if self.best.fitness <= self.average_fitness[-1]:
+            #     print(f"stop at generation {g+1}")
+            #     break

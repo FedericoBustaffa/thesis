@@ -63,3 +63,46 @@ dati.
   dovesse crescere di dimensioni si dovrebbe
   riallocare anche la memoria condivisa e copiare
   i dati.
+
+### Cromosommi complessi
+
+Per quanto riguarda l'allocazione in memoria
+condivisa di cromosomi definiti dall'utente come
+oggetti complessi ci sono diversi problemi.
+
+Da quanto sono riuscito a capire, tutti i
+meccanismi di condivisione dati in uno spazio di
+memoria condiviso, sono molto limitati ai tipi
+base di Python e a strutture dati molto semplici.
+
+Per esempio è possibile condividere una lista di
+valoro numerici ma non una lista di liste (per
+esempio).
+
+Ecco che l'idea di avere un cromosoma definito come
+segue diventa abbastanza complicata.
+
+```py
+class Chromosome:
+  def __init__(self, chromosome, fitness):
+    self.chromosome = chromosome
+    self.fitness = fitness
+```
+
+Questo perché il parametro `chromosome` dovrebbe
+essere una lista o un array di un tipo
+potenzialmente qualsiasi. Il problema è che poi
+sarebbe impossibile creare una lista di condivisa
+di oggetti `Chromosome` a meno che non si aggiunga
+un po' di lavoro in più da dare al programmatore.
+
+In particolare il programmatore dovrebbe modellare
+la sua classe che rappresenta il gene in modo che
+diventi un `ctype`.
+
+Dobbiamo anche tenere di conto che per oggetti
+troppo complessi sarebbe poi necessario usare
+strumenti tipo `pickle` per serializzare e
+deserializzare i dati. Questo però elimina il
+vantaggio della memoria condivisa in quanto si
+creerebbero delle coppie ogni volta.
