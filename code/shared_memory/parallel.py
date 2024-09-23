@@ -121,9 +121,6 @@ def parallel_work(
             np.copyto(offsprings[i * 2 + 1], offspring2)
             self.timings["mutation"] += time.perf_counter() - start
                 
-            # offsprings[i * 2][:] = offspring1[:]
-            # offsprings[i * 2 + 1][:] = offspring2[:]
-
             start = time.perf_counter()
             offsprings_scores[i * 2] = self.fitness_func(offspring1)
             offsprings_scores[i * 2 + 1] = self.fitness_func(offspring2)

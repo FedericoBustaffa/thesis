@@ -36,6 +36,7 @@ class GeneticAlgorithm:
             "generation": 0.0,
             "evaluation": 0.0,
             "selection": 0.0,
+            "mating": 0.0,
             "crossover": 0.0,
             "mutation": 0.0,
             "replacement": 0.0,
@@ -54,14 +55,11 @@ class GeneticAlgorithm:
 
             self.population.append(chromosome)
         self.population = np.array(self.population)
-
         self.timings["generation"] += time.perf_counter() - start
 
         start = time.perf_counter()
-
         for i in range(self.population_size):
             self.scores[i] = self.fitness_func(self.population[i])
-
         self.timings["evaluation"] += time.perf_counter() - start
 
         # preallocate memory for faster crossover
@@ -79,51 +77,42 @@ class GeneticAlgorithm:
         self.selected = self.selection_func(self.scores)
         self.timings["selection"] += time.perf_counter() - start
 
+    def mating(self) -> None:
+        start = time.perf_counter()
+        self.couples = np.random.choice(
+            self.selected, size=(len(self.selected) // 2, 2), replace=False
+        )
+        self.timings["mating"] += time.perf_counter() - start
+
     def crossover(self) -> None:
         start = time.perf_counter()
-
-        for i in range(0, len(self.selected), 2):
-            father_idx, mother_idx = random.choices(self.selected, k=2)
-
-            father = self.population[father_idx]
-            mother = self.population[mother_idx]
-
-            offspring1, offspring2 = self.crossover_func(father, mother)
-            self.offsprings[i] = offspring1
-            self.offsprings[i + 1] = offspring2
-
-            self.selected.remove(father_idx)
-            try:
-                self.selected.remove(mother_idx)
-            except ValueError:
-                pass
-
+        for i in range(len(self.couples)):
+            offspring1, offspring2 = self.crossover_func(
+                self.population[self.couples[i, 0]],
+                self.population[self.couples[i, 1]],
+            )
+            self.offsprings[i * 2] = offspring1
+            self.offsprings[i * 2 + 1] = offspring2
         self.timings["crossover"] += time.perf_counter() - start
 
     def mutation(self) -> None:
         start = time.perf_counter()
-
         for offspring in self.offsprings:
             if random.random() < self.mutation_rate:
                 offspring = self.mutation_func(offspring)
-
         self.timings["mutation"] += time.perf_counter() - start
 
     def evaluation(self) -> None:
         start = time.perf_counter()
-
         for i in range(len(self.offsprings)):
             self.offsprings_scores[i] = self.fitness_func(self.offsprings[i])
-
         self.timings["evaluation"] += time.perf_counter() - start
 
     def replace(self) -> None:
         start = time.perf_counter()
-
         self.population, self.scores = self.replace_func(
             self.population, self.scores, self.offsprings, self.offsprings_scores
         )
-
         self.timings["replacement"] += time.perf_counter() - start
 
     def run(self, generations):
@@ -135,9 +124,10 @@ class GeneticAlgorithm:
         print(f"first best score: {self.best_score}")
 
         for g in range(generations):
-            # print(f"generation: {g+1}")
+            print(f"generation: {g+1}")
 
             self.selection()
+            self.mating()
             self.crossover()
             self.mutation()
             self.evaluation()

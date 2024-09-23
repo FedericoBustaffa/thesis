@@ -1,13 +1,7 @@
 import random
-import sys
-from functools import partial
 
 import numpy as np
 import pandas as pd
-from genetic import GeneticAlgorithm
-from numba import njit
-
-from utils import plotting
 
 
 def generate(length: int) -> np.ndarray:
@@ -25,11 +19,10 @@ def compute_distances(data: pd.DataFrame) -> np.ndarray:
     return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
 
 
-@njit
 def fitness(distances: np.ndarray, chromosome: np.ndarray):
     total_distance = 0.0
     for i in range(len(chromosome) - 1):
-        total_distance += distances[chromosome[i]][chromosome[i + 1]]
+        total_distance += distances[chromosome[i], chromosome[i + 1]]
 
     return 1.0 / total_distance
 
@@ -53,29 +46,18 @@ def tournament(scores: np.ndarray) -> list[int]:
     return selected
 
 
-@njit
 def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
     crossover_point = random.randint(1, len(father) - 2)
 
     offspring1 = father[:crossover_point]
     offspring2 = father[crossover_point:]
 
-    tail1 = np.zeros(father[crossover_point:].size, np.int64)
-    tail2 = np.zeros(father[:crossover_point].size, np.int64)
-    idx1 = 0
-    idx2 = 0
-    for gene in mother:
-        if gene not in offspring1:
-            tail1[idx1] = gene
-            idx1 += 1
-        else:
-            tail2[idx2] = gene
-            idx2 += 1
+    tail1 = mother[np.isin(mother, offspring2)]
+    tail2 = mother[np.isin(mother, offspring1)]
 
     return np.append(offspring1, tail1), np.append(offspring2, tail2)
 
 
-@njit
 def rotation(offspring: np.ndarray) -> np.ndarray:
     a = random.randint(0, len(offspring) - 1)
     b = random.randint(0, len(offspring) - 1)
@@ -134,53 +116,3 @@ def merge_replace(
         next_gen_scores[index:] = scores1[index1 : len(scores1) - index2]
 
     return np.array(next_generation), np.array(next_gen_scores)
-
-
-if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
-        exit(1)
-
-    data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
-    distances = compute_distances(data)
-
-    # Initial population size
-    N = int(sys.argv[2])
-
-    # Max generations
-    G = int(sys.argv[3])
-
-    mutation_rate = float(sys.argv[4])
-
-    # partial functions to fix the arguments
-    generate_func = partial(generate, len(distances))
-    fitness_func = partial(fitness, distances)
-
-    ga = GeneticAlgorithm(
-        N,
-        len(data),
-        generate_func,
-        fitness_func,
-        tournament,
-        one_point_no_rep,
-        rotation,
-        mutation_rate,
-        merge_replace,
-    )
-    ga.run(G)
-
-    print(f"best score: {ga.best_score:.3f}")
-
-    # drawing the graph
-    plotting.draw_graph(data, ga.best)
-
-    # statistics data
-    plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
-    plotting.biodiversity_trend(ga.biodiversity)
-
-    # timing
-    plotting.timing(ga.timings)
-
-    for k in ga.timings.keys():
-        print(f"{k}: {ga.timings[k]:.3f} seconds")
-    print(f"total time: {sum(ga.timings.values()):.3f} seconds")
