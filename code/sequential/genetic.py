@@ -1,4 +1,4 @@
-from re import S
+import random
 import time
 
 import numpy as np
@@ -31,7 +31,7 @@ class GeneticAlgorithm:
         # statistics
         self.average_fitness = []
         self.best_fitness = []
-        self.biodiversities = []
+        self.biodiversity = []
         self.timings = {
             "generation": 0.0,
             "evaluation": 0.0,
@@ -54,19 +54,13 @@ class GeneticAlgorithm:
 
             self.population.append(chromosome)
         self.population = np.array(self.population)
-        self.population.reshape(self.population.size)
 
         self.timings["generation"] += time.perf_counter() - start
 
         start = time.perf_counter()
 
         for i in range(self.population_size):
-            self.scores[i] = self.fitness_func(
-                self.population[
-                    i * self.chromosome_length : i * self.chromosome_length
-                    + self.chromosome_length
-                ]
-            )
+            self.scores[i] = self.fitness_func(self.population[i])
 
         self.timings["evaluation"] += time.perf_counter() - start
 
@@ -89,7 +83,7 @@ class GeneticAlgorithm:
         start = time.perf_counter()
 
         for i in range(0, len(self.selected), 2):
-            father_idx, mother_idx = np.random.choice(self.selected, size=2)
+            father_idx, mother_idx = random.choices(self.selected, k=2)
 
             father = self.population[father_idx]
             mother = self.population[mother_idx]
@@ -110,7 +104,7 @@ class GeneticAlgorithm:
         start = time.perf_counter()
 
         for offspring in self.offsprings:
-            if np.random.random() < self.mutation_rate:
+            if random.random() < self.mutation_rate:
                 offspring = self.mutation_func(offspring)
 
         self.timings["mutation"] += time.perf_counter() - start
@@ -119,12 +113,7 @@ class GeneticAlgorithm:
         start = time.perf_counter()
 
         for i in range(len(self.offsprings)):
-            self.offsprings_scores[i] = self.fitness_func(
-                self.offsprings[
-                    i * self.chromosome_length : i * self.chromosome_length
-                    + self.chromosome_length
-                ]
-            )
+            self.offsprings_scores[i] = self.fitness_func(self.offsprings[i])
 
         self.timings["evaluation"] += time.perf_counter() - start
 
@@ -146,7 +135,7 @@ class GeneticAlgorithm:
         print(f"first best score: {self.best_score}")
 
         for g in range(generations):
-            print(f"generation: {g+1}")
+            # print(f"generation: {g+1}")
 
             self.selection()
             self.crossover()
@@ -160,8 +149,8 @@ class GeneticAlgorithm:
 
             self.average_fitness.append(np.mean(self.scores))
 
-            self.biodiversities.append(
-                len(list(set(self.population))) / len(self.population) * 100.0
+            self.biodiversity.append(
+                len(np.unique(self.population, axis=0)) / len(self.population) * 100.0
             )
 
             self.best_fitness.append(self.best_score)

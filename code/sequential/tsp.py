@@ -1,18 +1,20 @@
+import random
 import sys
 from functools import partial
 
 import numpy as np
 import pandas as pd
 from genetic import GeneticAlgorithm
+from numba import njit
 
 from utils import plotting
 
 
 def generate(length: int) -> np.ndarray:
-    chromosome = np.array([i for i in range(length)])
-    np.random.shuffle(chromosome)
+    chromosome = [i for i in range(length)]
+    random.shuffle(chromosome)
 
-    return chromosome
+    return np.array(chromosome)
 
 
 def distance(t1, t2) -> float:
@@ -23,6 +25,7 @@ def compute_distances(data: pd.DataFrame) -> np.ndarray:
     return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
 
 
+@njit
 def fitness(distances: np.ndarray, chromosome: np.ndarray):
     total_distance = 0.0
     for i in range(len(chromosome) - 1):
@@ -36,9 +39,9 @@ def tournament(scores: np.ndarray) -> list[int]:
     indices = [i for i in range(len(scores))]
 
     for _ in range(len(scores) // 2):
-        first, second = np.random.choice(indices, size=2)
+        first, second = random.choices(indices, k=2)
         while first == second:
-            first, second = np.random.choice(indices, size=2)
+            first, second = random.choices(indices, k=2)
 
         if scores[first] > scores[second]:
             selected.append(first)
@@ -50,8 +53,9 @@ def tournament(scores: np.ndarray) -> list[int]:
     return selected
 
 
+@njit
 def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
-    crossover_point = np.random.randint(1, len(father) - 1)
+    crossover_point = random.randint(1, len(father) - 2)
 
     offspring1 = father[:crossover_point]
     offspring2 = father[crossover_point:]
@@ -71,9 +75,10 @@ def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
     return np.append(offspring1, tail1), np.append(offspring2, tail2)
 
 
+@njit
 def rotation(offspring: np.ndarray) -> np.ndarray:
-    a = np.random.randint(0, len(offspring))
-    b = np.random.randint(0, len(offspring))
+    a = random.randint(0, len(offspring) - 1)
+    b = random.randint(0, len(offspring) - 1)
 
     while a == b:
         b = np.random.randint(0, len(offspring))
@@ -127,8 +132,6 @@ def merge_replace(
     elif index2 >= len(offsprings):
         next_generation[index:] = population[index1 : len(population) - index2]
         next_gen_scores[index:] = scores1[index1 : len(scores1) - index2]
-        # next_generation.extend(population[index1 : len(population) - index2])
-        # next_gen_scores.extend(scores1[index1 : len(scores1) - index2])
 
     return np.array(next_generation), np.array(next_gen_scores)
 
@@ -147,9 +150,9 @@ if __name__ == "__main__":
     # Max generations
     G = int(sys.argv[3])
 
-    # Mutation rate
     mutation_rate = float(sys.argv[4])
 
+    # partial functions to fix the arguments
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
@@ -173,7 +176,7 @@ if __name__ == "__main__":
 
     # statistics data
     plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
-    # plotting.biodiversity_trend(ga.biodiversity)
+    plotting.biodiversity_trend(ga.biodiversity)
 
     # timing
     plotting.timing(ga.timings)
