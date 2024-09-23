@@ -67,6 +67,7 @@ class SharedMemoryGeneticAlgorithm:
             "selection": 0.0,
             "mating": 0.0,
             "crossover": 0.0,
+            "crossover_operator": 0.0,
             "mutation": 0.0,
             "evaluation": 0.0,
             "parallel": 0.0,

@@ -1,4 +1,3 @@
-import math
 import random
 import sys
 import time
@@ -13,30 +12,30 @@ from sm_algorithm import SharedMemoryGeneticAlgorithm
 from utils import plotting
 
 
-def generate(length: int) -> list[int]:
-    chromosome = [i for i in range(length)]
-    random.shuffle(chromosome)
+def generate(length: int) -> np.ndarray:
+    chromosome = np.array([i for i in range(length)])
+    np.random.shuffle(chromosome)
 
     return chromosome
 
 
 def distance(t1, t2) -> float:
-    return math.sqrt(math.pow(t1[0] - t2[0], 2) + math.pow(t1[1] - t2[1], 2))
+    return np.sqrt(np.pow(t1[0] - t2[0], 2) + np.pow(t1[1] - t2[1], 2))
 
 
-def compute_distances(data: pd.DataFrame) -> list[list[float]]:
-    return [[distance(t1, t2) for t2 in data.values] for t1 in data.values]
+def compute_distances(data: pd.DataFrame) -> np.ndarray:
+    return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
 
 
-def fitness(distances: list[list[float]], chromosome: list[int]) -> float:
-    total_distance = 0.0
+def fitness(distances: np.ndarray, chromosome: np.ndarray) -> float:
+    total_distance = 0
     for i in range(len(chromosome) - 1):
         total_distance += distances[chromosome[i]][chromosome[i + 1]]
 
     return 1.0 / total_distance
 
 
-def tournament(scores: list[float]) -> list[int]:
+def tournament(scores: np.ndarray) -> list[int]:
     selected = []
     indices = [i for i in range(len(scores))]
 
@@ -53,24 +52,24 @@ def tournament(scores: list[float]) -> list[int]:
     return selected
 
 
-@njit
-def one_point_no_rep(father, mother) -> tuple:
-
+def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
     crossover_point = random.randint(1, len(father) - 2)
 
-    offspring1 = list(father[:crossover_point])
-    offspring2 = list(father[crossover_point:])
+    offspring1 = father[:crossover_point]
+    offspring2 = father[crossover_point:]
 
+    o1 = []
+    o2 = []
     for gene in mother:
-        if gene not in offspring1:
-            offspring1.append(gene)
+        if gene not in offspring1[:]:
+            o1.append(gene)
         else:
-            offspring2.append(gene)
+            o2.append(gene)
 
-    return offspring1, offspring2
+    return np.append(offspring1, o1), np.append(offspring2, o2)
 
 
-def rotation(offspring: list[int]) -> list[int]:
+def rotation(offspring: np.ndarray) -> np.ndarray:
     a = np.random.randint(0, len(offspring))
     b = np.random.randint(0, len(offspring))
 
@@ -79,7 +78,7 @@ def rotation(offspring: list[int]) -> list[int]:
 
     first = a if a < b else b
     second = a if a > b else b
-    offspring[first:second] = list(reversed(offspring[first:second]))
+    offspring[first:second] = np.flip(offspring[first:second])[:]
 
     return offspring
 
@@ -160,7 +159,7 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        # workers_num=20,
+        # workers_num=1,
     )
 
     start = time.perf_counter()
@@ -170,7 +169,7 @@ if __name__ == "__main__":
     print(f"best score: {pga.best_score:.3f}")
 
     # # drawing the graph
-    plotting.draw_graph(data, pga.best)
+    plotting.draw_graph(data, pga.best.tolist())
 
     # # statistics data
     plotting.fitness_trend(pga.average_fitness, pga.best_fitness)

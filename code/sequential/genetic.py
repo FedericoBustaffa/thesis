@@ -49,6 +49,7 @@ class GeneticAlgorithm:
             "evaluation": 0.0,
             "selection": 0.0,
             "crossover": 0.0,
+            "crossover_operator": 0.0,
             "mutation": 0.0,
             "replacement": 0.0,
             "stuff": 0.0,
@@ -103,9 +104,13 @@ class GeneticAlgorithm:
             father = self.population[father_idx].values
             mother = self.population[mother_idx].values
 
+            nano_start = time.perf_counter_ns()
             offspring1, offspring2 = self.crossover_func(father, mother)
             self.offsprings[i] = Chromosome(offspring1)
             self.offsprings[i + 1] = Chromosome(offspring2)
+            nano_end = time.perf_counter_ns()
+            if self.timings["crossover_operator"] < (nano_end - nano_start):
+                self.timings["crossover_operator"] = nano_end - nano_start
 
             self.selected.remove(father_idx)
             try:

@@ -104,9 +104,13 @@ def parallel_work(
             start = time.perf_counter()
             father = population[couples[i][0]].view()
             mother = population[couples[i][1]].view()
+            nano_start = time.perf_counter_ns()
             offspring1, offspring2 = self.crossover_func(father, mother)
+            nano_end = time.perf_counter_ns()
             self.timings["crossover"] += time.perf_counter() - start
-            
+            if self.timings["crossover_operator"] < (nano_end - nano_start):
+                self.timings["crossover_operator"] = nano_end - nano_start
+                
             start = time.perf_counter()
             if random.random() < self.mutation_rate:
                 offspring1 = np.array(self.mutation_func(offspring1))
@@ -127,9 +131,11 @@ def parallel_work(
             self.timings["evaluation"] += time.perf_counter() - start
 
         ready.set()
-        
-    print(f"{mp.current_process().name} time: {self.timings["crossover"]}")
-    print(f"{mp.current_process().name} time: {self.timings["mutation"]}")
-    print(f"{mp.current_process().name} time: {self.timings["evaluation"]}")
+    
+    
+    print(f"{mp.current_process().name} crossover time: {self.timings["crossover"]}")
+    print(f"{mp.current_process().name} crossover operator max time: {self.timings["crossover_operator"]} ns")
+    print(f"{mp.current_process().name} mutation time: {self.timings["mutation"]}")
+    print(f"{mp.current_process().name} evaluation time: {self.timings["evaluation"]}")
 
     couples_memory.close()
