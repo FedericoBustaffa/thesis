@@ -12,8 +12,8 @@ def generate(self):
     start = time.perf_counter()
     for _ in range(self.population_size):
         chromosome = self.gen_func()
-        # while np.isin(chromosome, population):
-        #     chromosome = self.gen_func()
+        while any(np.array_equal(chromosome, i) for i in population):
+            chromosome = self.gen_func()
 
         population.append(chromosome)
         scores.append(self.fitness_func(chromosome))

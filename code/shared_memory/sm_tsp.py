@@ -1,12 +1,9 @@
-import random
 import sys
 import time
 from functools import partial
 
 import numpy as np
 import pandas as pd
-from numba import njit
-from seq import GeneticAlgorithm
 from sm_algorithm import SharedMemoryGeneticAlgorithm
 
 from utils import plotting
@@ -27,8 +24,8 @@ def compute_distances(data: pd.DataFrame) -> np.ndarray:
     return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
 
 
-def fitness(distances: np.ndarray, chromosome: np.ndarray) -> float:
-    total_distance = 0
+def fitness(distances: np.ndarray, chromosome: np.ndarray):
+    total_distance = 0.0
     for i in range(len(chromosome) - 1):
         total_distance += distances[chromosome[i]][chromosome[i + 1]]
 
@@ -36,24 +33,24 @@ def fitness(distances: np.ndarray, chromosome: np.ndarray) -> float:
 
 
 def tournament(scores: np.ndarray) -> list[int]:
-    selected = []
+    selected = [0 for _ in range(len(scores) // 2)]
     indices = [i for i in range(len(scores))]
 
-    for _ in range(len(scores) // 2):
-        first, second = random.choices(indices, k=2)
+    for i in range(len(scores) // 2):
+        first, second = np.random.choice(indices, size=2)
 
         if scores[first] > scores[second]:
-            selected.append(first)
+            selected[i] = first
             indices.remove(first)
         else:
-            selected.append(second)
+            selected[i] = second
             indices.remove(second)
 
     return selected
 
 
 def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
-    crossover_point = random.randint(1, len(father) - 2)
+    crossover_point = np.random.randint(1, len(father) - 1)
 
     offspring1 = father[:crossover_point]
     offspring2 = father[crossover_point:]
@@ -83,21 +80,20 @@ def rotation(offspring: np.ndarray) -> np.ndarray:
     return offspring
 
 
-def merge_replace(population, scores1, offsprings, scores2):
+def merge_replace(
+    population: np.ndarray,
+    scores1: np.ndarray,
+    offsprings: np.ndarray,
+    scores2: np.ndarray,
+) -> tuple:
 
-    population, scores1 = (
-        list(t)
-        for t in zip(
-            *sorted(zip(population, scores1), key=lambda x: x[1], reverse=True)
-        )
-    )
+    sort_indices = np.argsort(scores1)[::-1]
+    population = population[sort_indices]
+    scores1 = scores1[sort_indices]
 
-    offsprings, scores2 = (
-        list(t)
-        for t in zip(
-            *sorted(zip(offsprings, scores2), key=lambda x: x[1], reverse=True)
-        )
-    )
+    sort_indices = np.argsort(scores2)[::-1]
+    offsprings = offsprings[sort_indices]
+    scores2 = scores2[sort_indices]
 
     next_generation = []
     next_gen_scores = []
@@ -127,7 +123,7 @@ def merge_replace(population, scores1, offsprings, scores2):
         next_generation.extend(population[index1 : len(population) - index2])
         next_gen_scores.extend(scores1[index1 : len(scores1) - index2])
 
-    return next_generation, next_gen_scores
+    return np.array(next_generation), np.array(next_gen_scores)
 
 
 if __name__ == "__main__":
@@ -159,7 +155,7 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        # workers_num=1,
+        workers_num=4,
     )
 
     start = time.perf_counter()

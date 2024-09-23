@@ -1,30 +1,29 @@
-import math
-import random
 import sys
 from functools import partial
 
+import numpy as np
 import pandas as pd
-from genetic import Chromosome, GeneticAlgorithm
+from genetic import GeneticAlgorithm
 
 from utils import plotting
 
 
-def generate(length: int) -> list[int]:
-    chromosome = [i for i in range(length)]
-    random.shuffle(chromosome)
+def generate(length: int) -> np.ndarray:
+    chromosome = np.array([i for i in range(length)])
+    np.random.shuffle(chromosome)
 
     return chromosome
 
 
 def distance(t1, t2) -> float:
-    return math.sqrt(math.pow(t1[0] - t2[0], 2) + math.pow(t1[1] - t2[1], 2))
+    return np.sqrt(np.pow(t1[0] - t2[0], 2) + np.pow(t1[1] - t2[1], 2))
 
 
-def compute_distances(data: pd.DataFrame) -> list[list[float]]:
-    return [[distance(t1, t2) for t2 in data.values] for t1 in data.values]
+def compute_distances(data: pd.DataFrame) -> np.ndarray:
+    return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
 
 
-def fitness(distances: list[list[float]], chromosome: list[int]) -> float:
+def fitness(distances: np.ndarray, chromosome: np.ndarray):
     total_distance = 0.0
     for i in range(len(chromosome) - 1):
         total_distance += distances[chromosome[i]][chromosome[i + 1]]
@@ -32,16 +31,16 @@ def fitness(distances: list[list[float]], chromosome: list[int]) -> float:
     return 1.0 / total_distance
 
 
-def tournament(population: list[Chromosome]) -> list[int]:
+def tournament(scores: np.ndarray) -> list[int]:
     selected = []
-    indices = [i for i in range(len(population))]
+    indices = [i for i in range(len(scores))]
 
-    for _ in range(len(population) // 2):
-        first, second = random.choices(indices, k=2)
+    for _ in range(len(scores) // 2):
+        first, second = np.random.choice(indices, size=2)
         while first == second:
-            first, second = random.choices(indices, k=2)
+            first, second = np.random.choice(indices, size=2)
 
-        if population[first].fitness > population[second].fitness:
+        if scores[first] > scores[second]:
             selected.append(first)
             indices.remove(first)
         else:
@@ -51,39 +50,58 @@ def tournament(population: list[Chromosome]) -> list[int]:
     return selected
 
 
-def one_point_no_rep(father: list[int], mother: list[int]) -> tuple:
-    crossover_point = random.randint(1, len(father) - 2)
+def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
+    crossover_point = np.random.randint(1, len(father) - 1)
 
     offspring1 = father[:crossover_point]
     offspring2 = father[crossover_point:]
 
+    tail1 = np.zeros(father[crossover_point:].size, np.int64)
+    tail2 = np.zeros(father[:crossover_point].size, np.int64)
+    idx1 = 0
+    idx2 = 0
     for gene in mother:
         if gene not in offspring1:
-            offspring1.append(gene)
+            tail1[idx1] = gene
+            idx1 += 1
         else:
-            offspring2.append(gene)
+            tail2[idx2] = gene
+            idx2 += 1
 
-    return offspring1, offspring2
+    return np.append(offspring1, tail1), np.append(offspring2, tail2)
 
 
-def rotation(offspring: list[int]) -> list[int]:
-    a = random.randint(0, len(offspring))
-    b = random.randint(0, len(offspring))
+def rotation(offspring: np.ndarray) -> np.ndarray:
+    a = np.random.randint(0, len(offspring))
+    b = np.random.randint(0, len(offspring))
 
     while a == b:
-        b = random.randint(0, len(offspring))
+        b = np.random.randint(0, len(offspring))
 
     first = a if a < b else b
     second = a if a > b else b
-    offspring[first:second] = list(reversed(offspring[first:second]))
+    offspring[first:second] = np.flip(offspring[first:second])[:]
 
     return offspring
 
 
 def merge_replace(
-    population: list[Chromosome], offsprings: list[Chromosome]
-) -> list[Chromosome]:
-    next_generation = []
+    population: np.ndarray,
+    scores1: np.ndarray,
+    offsprings: np.ndarray,
+    scores2: np.ndarray,
+) -> tuple:
+
+    sort_indices = np.flip(np.argsort(scores1))
+    population = np.array([population[i] for i in sort_indices])
+    scores1 = scores1[sort_indices]
+
+    sort_indices = np.flip(np.argsort(scores2))
+    offsprings = np.array([offsprings[i] for i in sort_indices])
+    scores2 = scores2[sort_indices]
+
+    next_generation = np.zeros(population.shape, dtype=np.int64)
+    next_gen_scores = np.zeros(scores1.shape, dtype=np.float64)
     index = 0
     index1 = 0
     index2 = 0
@@ -93,21 +111,26 @@ def merge_replace(
         and index1 < len(population)
         and index2 < len(offsprings)
     ):
-        if population[index1].fitness > offsprings[index2].fitness:
-            next_generation.append(population[index1])
+        if scores1[index1] > scores2[index2]:
+            next_generation[index] = population[index1]
+            next_gen_scores[index] = scores1[index1]
             index1 += 1
         else:
-            next_generation.append(offsprings[index2])
+            next_generation[index] = offsprings[index2]
+            next_gen_scores[index] = scores2[index2]
             index2 += 1
 
         index += 1
 
     if index1 >= len(population):
-        return next_generation
+        return next_generation, next_gen_scores
     elif index2 >= len(offsprings):
-        next_generation.extend(population[index1 : len(population) - index2])
+        next_generation[index:] = population[index1 : len(population) - index2]
+        next_gen_scores[index:] = scores1[index1 : len(scores1) - index2]
+        # next_generation.extend(population[index1 : len(population) - index2])
+        # next_gen_scores.extend(scores1[index1 : len(scores1) - index2])
 
-    return next_generation
+    return np.array(next_generation), np.array(next_gen_scores)
 
 
 if __name__ == "__main__":
@@ -132,6 +155,7 @@ if __name__ == "__main__":
 
     ga = GeneticAlgorithm(
         N,
+        len(data),
         generate_func,
         fitness_func,
         tournament,
@@ -142,23 +166,18 @@ if __name__ == "__main__":
     )
     ga.run(G)
 
-    best = ga.get_best()
-    print(f"best score: {best.fitness:.3f}")
+    print(f"best score: {ga.best_score:.3f}")
 
     # drawing the graph
-    plotting.draw_graph(data, best.values)
+    plotting.draw_graph(data, ga.best)
 
     # statistics data
-    average_fitness = ga.get_average_fitness()
-    best_fitness = ga.get_best_fitness()
-    biodiversity = ga.get_biodiversity()
-    plotting.fitness_trend(average_fitness, best_fitness)
-    plotting.biodiversity_trend(biodiversity)
+    plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
+    # plotting.biodiversity_trend(ga.biodiversity)
 
     # timing
-    timings = ga.get_timings()
-    plotting.timing(timings)
+    plotting.timing(ga.timings)
 
-    for k in timings.keys():
-        print(f"{k}: {timings[k]:.3f} seconds")
-    print(f"total time: {sum(timings.values()):.3f} seconds")
+    for k in ga.timings.keys():
+        print(f"{k}: {ga.timings[k]:.3f} seconds")
+    print(f"total time: {sum(ga.timings.values()):.3f} seconds")

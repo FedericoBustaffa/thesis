@@ -2,7 +2,6 @@ import multiprocessing as mp
 import multiprocessing.shared_memory as sm
 import multiprocessing.sharedctypes as st
 import multiprocessing.synchronize as sync
-import random
 import time
 
 import numpy as np
@@ -112,10 +111,10 @@ def parallel_work(
                 self.timings["crossover_operator"] = nano_end - nano_start
                 
             start = time.perf_counter()
-            if random.random() < self.mutation_rate:
+            if np.random.random() < self.mutation_rate:
                 offspring1 = np.array(self.mutation_func(offspring1))
 
-            if random.random() < self.mutation_rate:
+            if np.random.random() < self.mutation_rate:
                 offspring2 = np.array(self.mutation_func(offspring2))
                 
             np.copyto(offsprings[i * 2], offspring1)
