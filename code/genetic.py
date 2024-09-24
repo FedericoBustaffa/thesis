@@ -34,11 +34,11 @@ class GeneticAlgorithm:
         self.biodiversity = []
         self.timings = {
             "generation": 0.0,
-            "evaluation": 0.0,
             "selection": 0.0,
             "mating": 0.0,
             "crossover": 0.0,
             "mutation": 0.0,
+            "evaluation": 0.0,
             "replacement": 0.0,
         }
 
@@ -115,7 +115,7 @@ class GeneticAlgorithm:
         )
         self.timings["replacement"] += time.perf_counter() - start
 
-    def run(self, generations):
+    def run(self, generations: int) -> None:
 
         self.generation()
 
