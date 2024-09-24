@@ -238,26 +238,27 @@ class SharedMemoryGeneticAlgorithm:
                 for i in range(index * chunk_size, index * chunk_size + chunk_size, 1):
                     # crossover
                     start = time.perf_counter()
-                    father = population[couples[i, 0]].view()
-                    mother = population[couples[i, 1]].view()
-                    offspring1, offspring2 = self.crossover_func(father, mother)
+                    offsprings[i * 2], offsprings[i * 2 + 1] = self.crossover_func(
+                        population[couples[i, 0]], population[couples[i, 1]]
+                    )
                     timings["crossover"] += time.perf_counter() - start
 
                     # mutation
                     start = time.perf_counter()
                     if random.random() < self.mutation_rate:
-                        offspring1 = self.mutation_func(offspring1)
+                        offsprings[i * 2] = self.mutation_func(offsprings[i * 2])
                     if random.random() < self.mutation_rate:
-                        offspring2 = self.mutation_func(offspring2)
+                        offsprings[i * 2 + 1] = self.mutation_func(
+                            offsprings[i * 2 + 1]
+                        )
                     timings["mutation"] += time.perf_counter() - start
-
-                    offsprings[i * 2] = offspring1
-                    offsprings[i * 2 + 1] = offspring2
 
                     # evaluation
                     start = time.perf_counter()
-                    offsprings_scores[i * 2] = self.fitness_func(offspring1)
-                    offsprings_scores[i * 2 + 1] = self.fitness_func(offspring2)
+                    offsprings_scores[i * 2] = self.fitness_func(offsprings[i * 2])
+                    offsprings_scores[i * 2 + 1] = self.fitness_func(
+                        offsprings[i * 2 + 1]
+                    )
                     timings["evaluation"] += time.perf_counter() - start
 
                 ready.set()
@@ -286,18 +287,21 @@ class SharedMemoryGeneticAlgorithm:
         self.start_workers()
 
         genetic_time = time.perf_counter()
+        parallel_time = 0.0
         for g in range(max_generations):
-            print(f"generation: {g+1}")
+            # print(f"generation: {g+1}")
 
             self.selection()
             self.mating()
 
+            start = time.perf_counter()
             for main_ready in self.main_ready:
                 main_ready.set()
 
             for worker_ready in self.workers_ready:
                 worker_ready.wait()
                 worker_ready.clear()
+            parallel_time += time.perf_counter() - start
 
             self.replace()
 
@@ -340,3 +344,11 @@ class SharedMemoryGeneticAlgorithm:
             self.workers[i].join()
 
         self.unlink()
+
+        genetic_parallel_time = (
+            self.timings["crossover"]
+            + self.timings["mutation"]
+            + self.timings["evaluation"]
+        )
+        print(f"parallel global time: {parallel_time}")
+        print(f"parallel sync time: {parallel_time - genetic_parallel_time}")

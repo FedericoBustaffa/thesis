@@ -124,7 +124,7 @@ class GeneticAlgorithm:
         print(f"first best score: {self.best_score}")
 
         for g in range(generations):
-            print(f"generation: {g+1}")
+            # print(f"generation: {g+1}")
 
             self.selection()
             self.mating()
