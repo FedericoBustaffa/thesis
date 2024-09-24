@@ -1,4 +1,5 @@
 import multiprocessing as mp
+import multiprocessing.connection as conn
 import multiprocessing.shared_memory as sm
 import multiprocessing.sharedctypes as st
 import multiprocessing.synchronize as sync
@@ -50,11 +51,13 @@ class SharedMemoryGeneticAlgorithm:
         self.replace_func = replace_func
         self.workers_num = workers_num
 
-        # processes sync
+        # synchronization primitives
+        self.pipes = [mp.Pipe() for _ in range(workers_num)]
         self.main_ready = [mp.Event() for _ in range(workers_num)]
         self.workers_ready = [mp.Event() for _ in range(workers_num)]
         self.stops = [mp.Value("i", 0) for _ in range(workers_num)]
 
+        # for shared memory
         self.shapes = []
         self.dtypes = []
 
@@ -67,12 +70,9 @@ class SharedMemoryGeneticAlgorithm:
             "selection": 0.0,
             "mating": 0.0,
             "crossover": 0.0,
-            "crossover_operator": 0.0,
             "mutation": 0.0,
             "evaluation": 0.0,
-            "parallel": 0.0,
             "replacement": 0.0,
-            "stuff": 0.0,
         }
 
     def generation(self):
@@ -153,6 +153,7 @@ class SharedMemoryGeneticAlgorithm:
         self.timings["replacement"] += time.perf_counter() - start
 
     def start_workers(self):
+
         self.workers = [
             mp.Process(
                 target=self.parallel_work,
@@ -161,6 +162,7 @@ class SharedMemoryGeneticAlgorithm:
                     self.workers_num,
                     self.shapes,
                     self.dtypes,
+                    self.pipes[i][1],
                     self.main_ready[i],
                     self.workers_ready[i],
                     self.stops[i],
@@ -168,6 +170,7 @@ class SharedMemoryGeneticAlgorithm:
             )
             for i in range(self.workers_num)
         ]
+
         for w in self.workers:
             w.start()
 
@@ -177,6 +180,7 @@ class SharedMemoryGeneticAlgorithm:
         workers_num: int,
         shapes,
         dtypes,
+        pipe: conn.Connection,
         main_ready: sync.Event,
         ready: sync.Event,
         stop: st.Synchronized,
@@ -217,6 +221,12 @@ class SharedMemoryGeneticAlgorithm:
             buffer=couples_memory.buf,
         )
 
+        timings = {
+            "crossover": 0.0,
+            "mutation": 0.0,
+            "evaluation": 0.0,
+        }
+
         chunk_size = len(couples) // workers_num
         while True:
             main_ready.wait()
@@ -227,37 +237,34 @@ class SharedMemoryGeneticAlgorithm:
                     break
                 for i in range(index * chunk_size, index * chunk_size + chunk_size, 1):
                     # crossover
+                    start = time.perf_counter()
                     father = population[couples[i, 0]].view()
                     mother = population[couples[i, 1]].view()
                     offspring1, offspring2 = self.crossover_func(father, mother)
+                    timings["crossover"] += time.perf_counter() - start
 
                     # mutation
+                    start = time.perf_counter()
                     if random.random() < self.mutation_rate:
                         offspring1 = self.mutation_func(offspring1)
                     if random.random() < self.mutation_rate:
                         offspring2 = self.mutation_func(offspring2)
+                    timings["mutation"] += time.perf_counter() - start
 
                     offsprings[i * 2] = offspring1
                     offsprings[i * 2 + 1] = offspring2
 
                     # evaluation
+                    start = time.perf_counter()
                     offsprings_scores[i * 2] = self.fitness_func(offspring1)
                     offsprings_scores[i * 2 + 1] = self.fitness_func(offspring2)
+                    timings["evaluation"] += time.perf_counter() - start
 
                 ready.set()
 
-        print(
-            f"{mp.current_process().name} crossover time: {self.timings["crossover"]}"
-        )
-        print(
-            f"{mp.current_process().name} crossover operator max time: {self.timings["crossover_operator"]} ns"
-        )
-        print(f"{mp.current_process().name} mutation time: {self.timings["mutation"]}")
-        print(
-            f"{mp.current_process().name} evaluation time: {self.timings["evaluation"]}"
-        )
-
         couples_memory.close()
+        pipe.send(timings)
+        pipe.close()
 
     def unlink(self):
         try:
@@ -270,7 +277,6 @@ class SharedMemoryGeneticAlgorithm:
             print("shared memory exception")
 
     def run(self, max_generations: int) -> None:
-
         self.generation()
 
         self.best = self.population[0]
@@ -286,18 +292,15 @@ class SharedMemoryGeneticAlgorithm:
             self.selection()
             self.mating()
 
-            start = time.perf_counter()
             for main_ready in self.main_ready:
                 main_ready.set()
 
             for worker_ready in self.workers_ready:
                 worker_ready.wait()
                 worker_ready.clear()
-            self.timings["parallel"] += time.perf_counter() - start
 
             self.replace()
 
-            start = time.perf_counter()
             if self.best_score < self.scores[0]:
                 self.best = self.population[0]
                 self.best_score = self.scores[0]
@@ -310,8 +313,6 @@ class SharedMemoryGeneticAlgorithm:
 
             self.best_fitness.append(self.best_score)
 
-            self.timings["stuff"] += time.perf_counter() - start
-
             # convergence check
             # if self.best_score <= self.average_fitness[-1]:
             #     print(f"stop at generation {g+1}")
@@ -320,10 +321,22 @@ class SharedMemoryGeneticAlgorithm:
             #     break
 
         print(f"genetic time: {time.perf_counter() - genetic_time} seconds")
-        for i in range(len(self.workers)):
+        for i in range(self.workers_num):
             with self.stops[i]:
                 self.stops[i].value = 1
             self.main_ready[i].set()
+            timings = self.pipes[i][0].recv()
+
+            if self.timings["crossover"] < timings["crossover"]:
+                self.timings["crossover"] = timings["crossover"]
+
+            if self.timings["mutation"] < timings["mutation"]:
+                self.timings["mutation"] = timings["mutation"]
+
+            if self.timings["evaluation"] < timings["evaluation"]:
+                self.timings["evaluation"] = timings["evaluation"]
+
+            self.pipes[i][0].close()
             self.workers[i].join()
 
         self.unlink()
