@@ -2,14 +2,15 @@ import sys
 from functools import partial
 
 import pandas as pd
-
 from shared_genetic import SharedMemoryGeneticAlgorithm
 from tsp import *
 from utils import plotting
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <M>")
+    if len(sys.argv) != 6:
+        print(
+            f"USAGE: py {sys.argv[0]} <town_file> <populations_size> <generations> <mutation_rate> <workers>"
+        )
         exit(1)
 
     data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
@@ -22,6 +23,9 @@ if __name__ == "__main__":
     G = int(sys.argv[3])
 
     mutation_rate = float(sys.argv[4])
+
+    # number of workers
+    W = int(sys.argv[4])
 
     # partial functions to fix the arguments
     generate_func = partial(generate, len(distances))
@@ -37,7 +41,7 @@ if __name__ == "__main__":
         rotation,
         mutation_rate,
         merge_replace,
-        # workers_num=4,
+        workers_num=W,
     )
     ga.run(G)
 
