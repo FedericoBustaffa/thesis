@@ -1,3 +1,4 @@
+import math
 import multiprocessing as mp
 import multiprocessing.connection as conn
 import random
@@ -42,7 +43,7 @@ class PipeGeneticAlgorithm:
         ]
         for i in range(workers_num):
             self.workers[i].start()
-            
+
         # statistics
         self.average_fitness = []
         self.best_fitness = []
@@ -55,7 +56,6 @@ class PipeGeneticAlgorithm:
             "mutation": 0.0,
             "evaluation": 0.0,
             "replacement": 0.0,
-            "parallel": 0.0,
             "statistics": 0.0,
         }
 
@@ -104,23 +104,24 @@ class PipeGeneticAlgorithm:
     def parallel(self) -> None:
         start = time.perf_counter()
 
-        couples_chunk = len(self.couples) // self.workers_num
+        couples_chunk = math.ceil(len(self.couples) / self.workers_num)
         for i in range(len(self.pipes)):
             self.pipes[i][0].send(
                 self.couples[i * couples_chunk : i * couples_chunk + couples_chunk]
             )
 
-        offsprings_chunk = len(self.offsprings) // self.workers_num
+        offsprings_chunk = couples_chunk * 2
         for i in range(len(self.pipes)):
+            offsprings_part = self.pipes[i][0].recv()
             self.offsprings[
                 i * offsprings_chunk : i * offsprings_chunk + offsprings_chunk
-            ] = self.pipes[i][0].recv()
+            ] = offsprings_part
 
             self.offsprings_scores[
                 i * offsprings_chunk : i * offsprings_chunk + offsprings_chunk
             ] = self.pipes[i][0].recv()
 
-        self.timings["parallel"] += time.perf_counter() - start
+        self.parallel_time += time.perf_counter() - start
 
     def parallel_work(self, pipe: conn.Connection) -> None:
         timings = {
@@ -134,8 +135,6 @@ class PipeGeneticAlgorithm:
             couples = pipe.recv()
             if couples is None:
                 break
-
-            # print(len(couples))
 
             offsprings = np.zeros(
                 shape=(len(couples) * 2, self.chromosome_length), dtype=np.int64
@@ -172,12 +171,9 @@ class PipeGeneticAlgorithm:
 
     def replace(self) -> None:
         start = time.perf_counter()
-        population, scores = self.replace_func(
+        self.population, self.scores = self.replace_func(
             self.population, self.scores, self.offsprings, self.offsprings_scores
         )
-
-        np.copyto(self.population, population)
-        np.copyto(self.scores, scores)
         self.timings["replacement"] += time.perf_counter() - start
 
     def run(self, max_generations: int) -> None:
@@ -188,7 +184,9 @@ class PipeGeneticAlgorithm:
         self.best_score = self.scores[0]
         print(f"first best: {self.best_score}")
 
+        self.parallel_time = 0.0
         for g in range(max_generations):
+            # print(f"generation: {g}")
 
             self.selection()
             self.mating()
@@ -209,6 +207,13 @@ class PipeGeneticAlgorithm:
 
             self.best_fitness.append(self.best_score)
             self.timings["statistics"] += time.perf_counter() - start
+
+            # convergence check
+            # if self.best_score <= self.average_fitness[-1]:
+            #     print(f"stop at generation {g+1}")
+            #     print(f"best score: {self.best_score}")
+            #     print(f"average fitness: {self.average_fitness[-1]}")
+            #     break
 
         for i in range(self.workers_num):
             self.pipes[i][0].send(None)
@@ -231,4 +236,7 @@ class PipeGeneticAlgorithm:
             + self.timings["mutation"]
             + self.timings["evaluation"]
         )
-        print(f"parallel sync time: {self.timings["parallel"] - genetic_parallel_time}")
+        print(f"parallel time: {self.parallel_time} seconds")
+        print(
+            f"parallel sync time: {self.parallel_time - genetic_parallel_time} seconds"
+        )

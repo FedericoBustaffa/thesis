@@ -54,8 +54,7 @@ class SharedMemoryGeneticAlgorithm:
 
         # synchronization primitives
         self.pipes = [mp.Pipe() for _ in range(workers_num)]
-        # self.main_ready = [mp.Event() for _ in range(workers_num)]
-        # self.workers_ready = [mp.Event() for _ in range(workers_num)]
+        self.barrier = mp.Barrier(self.workers_num + 1)
         self.stops = [mp.Value("i", 0) for _ in range(workers_num)]
 
         # for shared memory
@@ -74,7 +73,6 @@ class SharedMemoryGeneticAlgorithm:
             "mutation": 0.0,
             "evaluation": 0.0,
             "replacement": 0.0,
-            "parallel": 0.0,
             "statistics": 0.0,
         }
 
@@ -98,9 +96,9 @@ class SharedMemoryGeneticAlgorithm:
 
         # evaluate the generated population
         start = time.perf_counter()
-        self.scores = []
-        for i in population:
-            self.scores.append(self.fitness_func(i))
+        self.scores = np.zeros(self.population_size)
+        for i in range(self.population_size):
+            self.scores[i] = self.fitness_func(self.population[i])
         self.scores = np.array(self.scores)
         self.timings["evaluation"] += time.perf_counter() - start
 
@@ -152,9 +150,7 @@ class SharedMemoryGeneticAlgorithm:
         self.timings["replacement"] += time.perf_counter() - start
 
     def start_workers(self):
-        
-        self.barrier = mp.Barrier(self.workers_num + 1)
-        
+
         self.workers = [
             mp.Process(
                 target=self.parallel_work,
@@ -165,8 +161,6 @@ class SharedMemoryGeneticAlgorithm:
                     self.dtypes,
                     self.pipes[i][1],
                     self.barrier,
-                    # self.main_ready[i],
-                    # self.workers_ready[i],
                     self.stops[i],
                 ],
             )
@@ -184,8 +178,6 @@ class SharedMemoryGeneticAlgorithm:
         dtypes,
         pipe: conn.Connection,
         barrier: sync.Barrier,
-        # main_ready: sync.Event,
-        # ready: sync.Event,
         stop: st.Synchronized,
     ):
 
@@ -225,14 +217,12 @@ class SharedMemoryGeneticAlgorithm:
 
         chunk_size = len(couples) // workers_num
         while True:
-            # main_ready.wait()
-            # main_ready.clear()
             barrier.wait()
 
             with stop:
                 if stop.value == 1:
                     break
-            
+
             for i in range(index * chunk_size, index * chunk_size + chunk_size, 1):
                 # crossover
                 start = time.perf_counter()
@@ -246,30 +236,24 @@ class SharedMemoryGeneticAlgorithm:
                 if random.random() < self.mutation_rate:
                     offsprings[i * 2] = self.mutation_func(offsprings[i * 2])
                 if random.random() < self.mutation_rate:
-                    offsprings[i * 2 + 1] = self.mutation_func(
-                        offsprings[i * 2 + 1]
-                    )
+                    offsprings[i * 2 + 1] = self.mutation_func(offsprings[i * 2 + 1])
                 timings["mutation"] += time.perf_counter() - start
 
                 # evaluation
                 start = time.perf_counter()
                 offsprings_scores[i * 2] = self.fitness_func(offsprings[i * 2])
-                offsprings_scores[i * 2 + 1] = self.fitness_func(
-                    offsprings[i * 2 + 1]
-                )
+                offsprings_scores[i * 2 + 1] = self.fitness_func(offsprings[i * 2 + 1])
                 timings["evaluation"] += time.perf_counter() - start
-            
+
             barrier.wait()
 
         pipe.send(timings)
-        # barrier.wait()
         pipe.close()
-        
+
         population_memory.close()
         offsprings_memory.close()
         offsprings_scores_memory.close()
         couples_memory.close()
-
 
     def unlink(self):
         try:
@@ -289,6 +273,7 @@ class SharedMemoryGeneticAlgorithm:
 
         self.start_workers()
 
+        self.parallel_time = 0.0
         for g in range(max_generations):
             # print(f"generation: {g+1}")
 
@@ -298,13 +283,7 @@ class SharedMemoryGeneticAlgorithm:
             start = time.perf_counter()
             self.barrier.wait()
             self.barrier.wait()
-            # for main_ready in self.main_ready:
-            #     main_ready.set()
-
-            # for worker_ready in self.workers_ready:
-            #     worker_ready.wait()
-            #     worker_ready.clear()
-            self.timings["parallel"] += time.perf_counter() - start
+            self.parallel_time += time.perf_counter() - start
 
             self.replace()
 
@@ -332,12 +311,12 @@ class SharedMemoryGeneticAlgorithm:
         for i in range(self.workers_num):
             with self.stops[i]:
                 self.stops[i].value = 1
-        
+
         self.barrier.wait()
-        
+
         for i in range(len(self.pipes)):
             timings = self.pipes[i][0].recv()
-            
+
             if self.timings["crossover"] < timings["crossover"]:
                 self.timings["crossover"] = timings["crossover"]
 
@@ -347,9 +326,6 @@ class SharedMemoryGeneticAlgorithm:
             if self.timings["evaluation"] < timings["evaluation"]:
                 self.timings["evaluation"] = timings["evaluation"]
 
-            
-        # self.barrier.wait()
-        
         for i in range(len(self.workers)):
             self.pipes[i][0].close()
             self.workers[i].join()
@@ -361,5 +337,7 @@ class SharedMemoryGeneticAlgorithm:
             + self.timings["mutation"]
             + self.timings["evaluation"]
         )
-        # print(f"parallel global time: {self.timings["parallel"]}")
-        print(f"parallel sync time: {self.timings["parallel"] - genetic_parallel_time}")
+        print(f"parallel time: {self.parallel_time} seconds")
+        print(
+            f"parallel sync time: {self.parallel_time - genetic_parallel_time} seconds"
+        )
