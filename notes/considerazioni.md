@@ -25,7 +25,7 @@ modulo.
 ## Memoria
 
 Principali considerazioni da fare sono riguardo
-alle strutture dati che, nel caso in cui
+alle strutture dati che, nel caso in cui siano
 ridimensionabili potrebbero comportare un
 approccio differente nell'implementazione.
 
@@ -106,3 +106,18 @@ strumenti tipo `pickle` per serializzare e
 deserializzare i dati. Questo però elimina il
 vantaggio della memoria condivisa in quanto si
 creerebbero delle coppie ogni volta.
+
+## Memoria condivisa vs Pipe
+
+Non sembrano esserci differenze sostanziali nei
+due approcci anche se in teoria la memoria
+condivisa dovrebbe essere molto più veloce.
+
+I meccanismi di sincronizzazione offerti dal
+modulo multiprocessing sembrano avere un overhead
+talmente alto da far sì che si perda tutto il
+vantaggio guadagnato dalla memoria condivisa.
+
+Vorrei capire se sto usando la memoria condivisa
+nel modo corretto o se inavvertitamente genero
+nuovi oggetti.

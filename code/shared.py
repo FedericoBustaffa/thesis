@@ -46,7 +46,7 @@ if __name__ == "__main__":
         workers_num=W,
     )
     ga.run(G)
-    print(f"genetic time: {time.perf_counter() - start} seconds")
+    print(f"algorithm total time: {time.perf_counter() - start} seconds")
 
     print(f"best score: {ga.best_score:.3f}")
 

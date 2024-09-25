@@ -1,4 +1,5 @@
 import sys
+import time
 from functools import partial
 
 import pandas as pd
@@ -27,6 +28,7 @@ if __name__ == "__main__":
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
+    start = time.perf_counter()
     ga = GeneticAlgorithm(
         N,
         len(data),
@@ -39,6 +41,7 @@ if __name__ == "__main__":
         merge_replace,
     )
     ga.run(G)
+    print(f"algorithm total time: {time.perf_counter() - start} seconds")
 
     print(f"best score: {ga.best_score:.3f}")
 
