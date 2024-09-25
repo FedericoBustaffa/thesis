@@ -25,7 +25,7 @@ if __name__ == "__main__":
     mutation_rate = float(sys.argv[4])
 
     # number of workers
-    W = int(sys.argv[4])
+    W = int(sys.argv[5])
 
     # partial functions to fix the arguments
     generate_func = partial(generate, len(distances))
