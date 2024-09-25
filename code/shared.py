@@ -1,5 +1,6 @@
 import sys
 from functools import partial
+import time
 
 import pandas as pd
 from shared_genetic import SharedMemoryGeneticAlgorithm
@@ -31,6 +32,7 @@ if __name__ == "__main__":
     generate_func = partial(generate, len(distances))
     fitness_func = partial(fitness, distances)
 
+    start = time.perf_counter()
     ga = SharedMemoryGeneticAlgorithm(
         N,
         len(data),
@@ -44,6 +46,7 @@ if __name__ == "__main__":
         workers_num=W,
     )
     ga.run(G)
+    print(f"genetic time: {time.perf_counter() - start} seconds")
 
     print(f"best score: {ga.best_score:.3f}")
 

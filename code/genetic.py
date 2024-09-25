@@ -40,6 +40,7 @@ class GeneticAlgorithm:
             "mutation": 0.0,
             "evaluation": 0.0,
             "replacement": 0.0,
+            "statistics": 0.0,
         }
 
     def generation(self) -> None:
@@ -137,6 +138,7 @@ class GeneticAlgorithm:
                 self.best = self.population[0]
                 self.best_score = self.scores[0]
 
+            start = time.perf_counter()
             self.average_fitness.append(np.mean(self.scores))
 
             self.biodiversity.append(
@@ -144,6 +146,7 @@ class GeneticAlgorithm:
             )
 
             self.best_fitness.append(self.best_score)
+            self.timings["statistics"] += time.perf_counter() - start
 
             # convergence check
             # if self.best_score <= self.average_fitness[-1]:

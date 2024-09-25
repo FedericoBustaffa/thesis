@@ -73,6 +73,7 @@ class SharedMemoryGeneticAlgorithm:
             "mutation": 0.0,
             "evaluation": 0.0,
             "replacement": 0.0,
+            "statistics": 0.0,
         }
 
     def generation(self):
@@ -286,7 +287,6 @@ class SharedMemoryGeneticAlgorithm:
 
         self.start_workers()
 
-        genetic_time = time.perf_counter()
         parallel_time = 0.0
         for g in range(max_generations):
             # print(f"generation: {g+1}")
@@ -309,6 +309,7 @@ class SharedMemoryGeneticAlgorithm:
                 self.best = self.population[0]
                 self.best_score = self.scores[0]
 
+            start = time.perf_counter()
             self.average_fitness.append(np.mean(self.scores))
 
             self.biodiversity.append(
@@ -316,6 +317,7 @@ class SharedMemoryGeneticAlgorithm:
             )
 
             self.best_fitness.append(self.best_score)
+            self.timings["statistics"] += time.perf_counter() - start
 
             # convergence check
             # if self.best_score <= self.average_fitness[-1]:
@@ -324,7 +326,6 @@ class SharedMemoryGeneticAlgorithm:
             #     print(f"average fitness: {self.average_fitness[-1]}")
             #     break
 
-        print(f"genetic time: {time.perf_counter() - genetic_time} seconds")
         for i in range(self.workers_num):
             with self.stops[i]:
                 self.stops[i].value = 1
