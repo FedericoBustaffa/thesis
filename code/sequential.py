@@ -45,15 +45,33 @@ if __name__ == "__main__":
     print(f"best score: {ga.best_score:.3f}")
 
     # drawing the graph
-    plotting.draw_graph(data, ga.best)
+    # plotting.draw_graph(data, ga.best)
 
     # statistics data
-    plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
-    plotting.biodiversity_trend(ga.biodiversity)
+    # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
+    # plotting.biodiversity_trend(ga.biodiversity)
 
     # timing
-    plotting.timing(ga.timings)
+    # plotting.timing(ga.timings)
 
     for k in ga.timings.keys():
         print(f"{k}: {ga.timings[k]:.3f} seconds")
     print(f"total time: {sum(ga.timings.values()):.3f} seconds")
+
+    data = pd.read_csv("stats/tsp_stats.csv")
+    stats = {
+        "workers": 1,
+        "cities": int(sys.argv[1]),
+        "population_size": N,
+        "generations": G,
+        "mutation_rate": mutation_rate,
+        "time": sum(
+            [ga.timings["crossover"], ga.timings["mutation"], ga.timings["evaluation"]]
+        ),
+    }
+
+    for k in stats.keys():
+        data[k].add(stats[k])
+    print(data)
+
+    # data.to_csv("stats/tsp_stats.csv", index=False)
