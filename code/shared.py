@@ -1,6 +1,6 @@
 import sys
-from functools import partial
 import time
+from functools import partial
 
 import pandas as pd
 from shared_genetic import SharedMemoryGeneticAlgorithm
@@ -62,4 +62,4 @@ if __name__ == "__main__":
 
     for k in ga.timings.keys():
         print(f"{k}: {ga.timings[k]:.3f} seconds")
-    print(f"total time: {sum(ga.timings.values()):.3f} seconds")
+    print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")

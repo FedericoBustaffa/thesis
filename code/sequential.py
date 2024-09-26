@@ -3,7 +3,6 @@ import time
 from functools import partial
 
 import pandas as pd
-
 from genetic import GeneticAlgorithm
 from tsp import *
 from utils import plotting

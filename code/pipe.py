@@ -3,7 +3,6 @@ import time
 from functools import partial
 
 import pandas as pd
-
 from pipe_genetic import PipeGeneticAlgorithm
 from tsp import *
 from utils import plotting
@@ -63,4 +62,4 @@ if __name__ == "__main__":
 
     for k in ga.timings.keys():
         print(f"{k}: {ga.timings[k]:.3f} seconds")
-    print(f"total time: {sum(ga.timings.values()):.3f} seconds")
+    print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")
