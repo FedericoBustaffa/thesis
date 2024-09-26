@@ -47,18 +47,18 @@ def main(argv):
     # print(f"best score: {ga.best_score:.3f}")
 
     # drawing the graph
-    # plotting.draw_graph(data, ga.best)
+    plotting.draw_graph(data, ga.best)
 
     # statistics data
-    # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
-    # plotting.biodiversity_trend(ga.biodiversity)
+    plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
+    plotting.biodiversity_trend(ga.biodiversity)
 
     # timing
-    # plotting.timing(ga.timings)
+    plotting.timing(ga.timings)
 
-    # for k in ga.timings.keys():
-    #     print(f"{k}: {ga.timings[k]:.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
+    for k in ga.timings.keys():
+        print(f"{k}: {ga.timings[k]:.3f} seconds")
+    print(f"total time: {sum(ga.timings.values()):.3f} seconds")
 
     data = pd.read_csv("stats/tsp_stats.csv")
     stats = {
