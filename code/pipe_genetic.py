@@ -182,7 +182,7 @@ class PipeGeneticAlgorithm:
 
         self.best = self.population[0]
         self.best_score = self.scores[0]
-        print(f"first best: {self.best_score}")
+        # print(f"first best: {self.best_score}")
 
         self.parallel_time = 0.0
         for g in range(max_generations):
@@ -209,11 +209,11 @@ class PipeGeneticAlgorithm:
             self.timings["statistics"] += time.perf_counter() - start
 
             # convergence check
-            if self.best_score <= self.average_fitness[-1]:
-                print(f"stop at generation {g+1}")
-                print(f"best score: {self.best_score}")
-                print(f"average fitness: {self.average_fitness[-1]}")
-                break
+            # if self.best_score <= self.average_fitness[-1]:
+            #     print(f"stop at generation {g+1}")
+            #     print(f"best score: {self.best_score}")
+            #     print(f"average fitness: {self.average_fitness[-1]}")
+            #     break
 
         for i in range(self.workers_num):
             self.pipes[i][0].send(None)
@@ -236,7 +236,7 @@ class PipeGeneticAlgorithm:
             + self.timings["mutation"]
             + self.timings["evaluation"]
         )
-        print(f"parallel time: {self.parallel_time} seconds")
-        print(
-            f"parallel sync time: {self.parallel_time - genetic_parallel_time} seconds"
-        )
+        # print(f"parallel time: {self.parallel_time} seconds")
+        # print(
+        #     f"parallel sync time: {self.parallel_time - genetic_parallel_time} seconds"
+        # )

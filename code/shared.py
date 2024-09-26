@@ -3,30 +3,32 @@ import time
 from functools import partial
 
 import pandas as pd
+
 from shared_genetic import SharedMemoryGeneticAlgorithm
 from tsp import *
 from utils import plotting
 
-if __name__ == "__main__":
-    if len(sys.argv) != 6:
+
+def main(argv):
+    if len(argv) != 6:
         print(
-            f"USAGE: py {sys.argv[0]} <town_file> <populations_size> <generations> <mutation_rate> <workers>"
+            f"USAGE: py {argv[0]} <town_file> <populations_size> <generations> <mutation_rate> <workers>"
         )
         exit(1)
 
-    data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
+    data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
     distances = compute_distances(data)
 
     # Initial population size
-    N = int(sys.argv[2])
+    N = int(argv[2])
 
     # Max generations
-    G = int(sys.argv[3])
+    G = int(argv[3])
 
-    mutation_rate = float(sys.argv[4])
+    mutation_rate = float(argv[4])
 
     # number of workers
-    W = int(sys.argv[5])
+    W = int(argv[5])
 
     # partial functions to fix the arguments
     generate_func = partial(generate, len(distances))
@@ -46,20 +48,38 @@ if __name__ == "__main__":
         workers_num=W,
     )
     ga.run(G)
-    print(f"algorithm total time: {time.perf_counter() - start} seconds")
 
-    print(f"best score: {ga.best_score:.3f}")
+    # print(f"algorithm total time: {time.perf_counter() - start} seconds")
+    # print(f"best score: {ga.best_score:.3f}")
 
     # drawing the graph
-    plotting.draw_graph(data, ga.best)
+    # plotting.draw_graph(data, ga.best)
 
     # statistics data
-    plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
-    plotting.biodiversity_trend(ga.biodiversity)
+    # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
+    # plotting.biodiversity_trend(ga.biodiversity)
 
     # timing
-    plotting.timing(ga.timings)
+    # plotting.timing(ga.timings)
 
-    for k in ga.timings.keys():
-        print(f"{k}: {ga.timings[k]:.3f} seconds")
-    print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")
+    # for k in ga.timings.keys():
+    #     print(f"{k}: {ga.timings[k]:.3f} seconds")
+    # print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")
+
+    data = pd.read_csv("stats/tsp_stats.csv")
+    stats = {
+        "implementation": "shared memory",
+        "workers": W,
+        "cities": [int(argv[1])],
+        "population_size": [N],
+        "generations": [G],
+        "mutation_rate": [mutation_rate],
+        "time": [ga.parallel_time],
+    }
+
+    data = pd.concat([data, pd.DataFrame.from_dict(stats)], ignore_index=True)
+    data.to_csv("stats/tsp_stats.csv", index=False)
+
+
+if __name__ == "__main__":
+    main(sys.argv)

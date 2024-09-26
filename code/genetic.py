@@ -122,7 +122,7 @@ class GeneticAlgorithm:
 
         self.best = self.population[0]
         self.best_score = self.scores[0]
-        print(f"first best score: {self.best_score}")
+        # print(f"first best score: {self.best_score}")
 
         for g in range(generations):
             # print(f"generation: {g+1}")

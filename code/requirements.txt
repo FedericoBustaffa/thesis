@@ -1,6 +1,7 @@
 setuptools
 wheel
 numpy
+colorama
 matplotlib
 pandas
 numba
