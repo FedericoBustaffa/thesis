@@ -303,9 +303,9 @@ class SharedMemoryGeneticAlgorithm:
 
             # convergence check
             if self.best_score <= self.average_fitness[-1]:
-                print(f"stop at generation {g+1}")
-                print(f"best score: {self.best_score}")
-                print(f"average fitness: {self.average_fitness[-1]}")
+                # print(f"stop at generation {g+1}")
+                # print(f"best score: {self.best_score}")
+                # print(f"average fitness: {self.average_fitness[-1]}")
                 break
 
         for i in range(self.workers_num):

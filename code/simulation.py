@@ -1,11 +1,10 @@
 import sys
 import time
 
-from colorama import Fore
-
 import pipe
 import sequential
 import shared
+from colorama import Fore
 
 if __name__ == "__main__":
     if len(sys.argv) != 7:
@@ -23,20 +22,20 @@ if __name__ == "__main__":
 
         start = time.perf_counter()
         sequential.main(sys.argv[1:])
-        print(Fore.CYAN + f"sequential: {time.perf_counter() - start}")
+        print(Fore.GREEN + f"sequential: {time.perf_counter() - start}")
 
-        for w in range(2, workers, 1):
-            sys.argv[-1] = w
+        for w in range(2, workers + 1, 1):
+            sys.argv[-1] = str(w)
             start = time.perf_counter()
             pipe.main(sys.argv[1:])
-            print(Fore.YELLOW + f"pipe with {w} workers: {time.perf_counter() - start}")
+            print(Fore.GREEN + f"pipe with {w} workers: {time.perf_counter() - start}")
 
-        for w in range(2, workers, 1):
-            sys.argv[-1] = w
+        for w in range(2, workers + 1, 1):
+            sys.argv[-1] = str(w)
             start = time.perf_counter()
             shared.main(sys.argv[1:])
             print(
-                Fore.MAGENTA
+                Fore.GREEN
                 + f"shared memory with {w} workers: {time.perf_counter() - start}"
             )
 

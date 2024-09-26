@@ -1,4 +1,5 @@
 setuptools
+py-cpuinfo
 wheel
 numpy
 colorama

@@ -34,12 +34,16 @@ if __name__ == "__main__":
     plt.ylabel("Speed Up")
 
     plt.plot(workers, workers, label="ideal")
-    plt.plot(df["pipe"].index, seq_mean_time / df["pipe"].values, label="pipe")
     plt.plot(
-        df["shared memory"].index,
-        seq_mean_time / df["shared memory"].values,
-        label="shared memory",
+        df[df["implementation" == "pipe"]].index.to_numpy(),
+        df[df["implementation" == "pipe"]].values.to_numpy() * 1 / seq_mean_time,
+        label="pipe",
     )
+    # plt.plot(
+    #     df[df["implementation" == "shared memory"]].index,
+    #     seq_mean_time / df["shared memory"].values,
+    #     label="shared memory",
+    # )
 
     plt.grid()
     plt.legend()
