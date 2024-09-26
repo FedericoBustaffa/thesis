@@ -1,4 +1,5 @@
 import sys
+import time
 
 from colorama import Fore
 
@@ -20,17 +21,23 @@ if __name__ == "__main__":
     for i in range(simulations):
         print(Fore.GREEN + f"starting simulation: {i+1}")
 
-        print(Fore.CYAN + f"sequential")
+        start = time.perf_counter()
         sequential.main(sys.argv[1:])
+        print(Fore.CYAN + f"sequential: {time.perf_counter() - start}")
 
-        for w in range(workers):
-            sys.argv[-1] = w + 1
-            print(Fore.YELLOW + f"pipe with {w + 1} workers")
+        for w in range(2, workers, 1):
+            sys.argv[-1] = w
+            start = time.perf_counter()
             pipe.main(sys.argv[1:])
+            print(Fore.YELLOW + f"pipe with {w} workers: {time.perf_counter() - start}")
 
-        for w in range(workers):
-            sys.argv[-1] = w + 1
-            print(Fore.MAGENTA + f"shared memory with {w + 1} workers")
+        for w in range(2, workers, 1):
+            sys.argv[-1] = w
+            start = time.perf_counter()
             shared.main(sys.argv[1:])
+            print(
+                Fore.MAGENTA
+                + f"shared memory with {w} workers: {time.perf_counter() - start}"
+            )
 
         print(Fore.GREEN + f"simulation {i+1} ended")

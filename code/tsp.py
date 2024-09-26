@@ -15,14 +15,10 @@ def distance(t1, t2) -> float:
     return np.sqrt(np.pow(t1[0] - t2[0], 2) + np.pow(t1[1] - t2[1], 2))
 
 
-def compute_distances(data: pd.DataFrame) -> np.ndarray:
-    return np.array([[distance(t1, t2) for t2 in data.values] for t1 in data.values])
-
-
-def fitness(distances: np.ndarray, chromosome: np.ndarray):
+def fitness(towns: np.ndarray, chromosome: np.ndarray):
     total_distance = 0.0
     for i in range(len(chromosome) - 1):
-        total_distance += distances[chromosome[i], chromosome[i + 1]]
+        total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
     return 1.0 / total_distance
 

@@ -12,8 +12,8 @@ if __name__ == "__main__":
     df = pd.read_csv(f"stats/{sys.argv[1]}")
     mask = (
         (df["cities"] == 100)
-        & (df["population_size"] == 500)
-        & (df["generations"] == 1000)
+        & (df["population_size"] == 2000)
+        & (df["generations"] == 500)
     )
     df = df[mask]
 

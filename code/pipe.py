@@ -17,7 +17,7 @@ def main(argv):
         exit(1)
 
     data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
-    distances = compute_distances(data)
+    towns = np.array([[data["x"].iloc[i], data["y"].iloc[i]] for i in range(len(data))])
 
     # Initial population size
     N = int(argv[2])
@@ -31,13 +31,13 @@ def main(argv):
     W = int(argv[5])
 
     # partial functions to fix the arguments
-    generate_func = partial(generate, len(distances))
-    fitness_func = partial(fitness, distances)
+    generate_func = partial(generate, len(towns))
+    fitness_func = partial(fitness, towns)
 
     start = time.perf_counter()
     ga = PipeGeneticAlgorithm(
         N,
-        len(data),
+        len(towns),
         generate_func,
         fitness_func,
         tournament,
