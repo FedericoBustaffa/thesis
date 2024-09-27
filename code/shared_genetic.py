@@ -302,11 +302,11 @@ class SharedMemoryGeneticAlgorithm:
             self.timings["statistics"] += time.perf_counter() - start
 
             # convergence check
-            if self.best_score <= self.average_fitness[-1]:
+            # if self.best_score <= self.average_fitness[-1]:
                 # print(f"stop at generation {g+1}")
                 # print(f"best score: {self.best_score}")
                 # print(f"average fitness: {self.average_fitness[-1]}")
-                break
+                # break
 
         for i in range(self.workers_num):
             with self.stops[i]:

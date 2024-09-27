@@ -5,45 +5,60 @@ import pandas as pd
 
 if __name__ == "__main__":
 
-    if len(sys.argv) != 2:
-        print(f"USAGE: py {sys.argv[0]} <stats_filename>")
+    if len(sys.argv) != 6:
+        print(
+            f"USAGE: py {sys.argv[0]} <stats_filename> <cities> <population_size> <generations>"
+        )
         exit(1)
 
-    df = pd.read_csv(f"stats/{sys.argv[1]}")
+    filepath = sys.argv[1]
+    cities = int(sys.argv[2])
+    population_size = int(sys.argv[3])
+    generations = int(sys.argv[4])
+    workers = int(sys.argv[5])
+
+    df = pd.read_csv(filepath)
     mask = (
-        (df["cities"] == 100)
-        & (df["population_size"] == 2000)
-        & (df["generations"] == 500)
+        (df["cities"] == cities)
+        & (df["population_size"] == population_size)
+        & (df["generations"] == generations)
     )
     df = df[mask]
 
+    print(df)
+
     # calculate the sequential time mean
     mask = df["implementation"] == "sequential"
-    seq_mean_time = df[mask]["time"].mean()
+    seq_mean_time = df.where(mask)["time"].mean()
 
     # calculate the pipe time mean
     mask = (df["implementation"] == "pipe") | (df["implementation"] == "shared memory")
-    df = df[mask]
+    df = df.where(mask)
     df = df.groupby(["implementation", "workers"])["time"].mean()
 
+    print(df)
+
     # plot the ideal time
-    workers = [i + 1 for i in range(20)]
+    workers = [i + 1 for i in range(workers)]
 
     plt.title("Speed up")
     plt.xlabel("Number of workers")
     plt.ylabel("Speed Up")
+    plt.xticks(workers)
 
     plt.plot(workers, workers, label="ideal")
+
     plt.plot(
-        df[df["implementation" == "pipe"]].index.to_numpy(),
-        df[df["implementation" == "pipe"]].values.to_numpy() * 1 / seq_mean_time,
+        df.loc["pipe"].index,
+        seq_mean_time / df.loc["pipe"].values,
         label="pipe",
     )
-    # plt.plot(
-    #     df[df["implementation" == "shared memory"]].index,
-    #     seq_mean_time / df["shared memory"].values,
-    #     label="shared memory",
-    # )
+
+    plt.plot(
+        df.loc["shared memory"].index,
+        seq_mean_time / df.loc["shared memory"].values,
+        label="shared memory",
+    )
 
     plt.grid()
     plt.legend()
