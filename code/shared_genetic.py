@@ -10,7 +10,6 @@ import numpy as np
 
 
 def share(buffer, mem_name):
-
     buffer = np.array(buffer)
     buffer_memory = sm.SharedMemory(name=mem_name, create=True, size=buffer.nbytes)
 
@@ -25,7 +24,6 @@ def share(buffer, mem_name):
 
 
 class SharedMemoryGeneticAlgorithm:
-
     def __init__(
         self,
         population_size: int,
@@ -39,7 +37,6 @@ class SharedMemoryGeneticAlgorithm:
         replace_func,
         workers_num: int = mp.cpu_count(),
     ) -> None:
-
         # setup
         self.population_size = population_size
         self.chromosome_length = chromosome_length
@@ -77,7 +74,6 @@ class SharedMemoryGeneticAlgorithm:
         }
 
     def generation(self):
-
         # generate a new population
         start = time.perf_counter()
         population = []
@@ -150,7 +146,6 @@ class SharedMemoryGeneticAlgorithm:
         self.timings["replacement"] += time.perf_counter() - start
 
     def start_workers(self):
-
         self.workers = [
             mp.Process(
                 target=self.parallel_work,
@@ -180,7 +175,6 @@ class SharedMemoryGeneticAlgorithm:
         barrier: sync.Barrier,
         stop: st.Synchronized,
     ):
-
         population_memory = sm.SharedMemory(name="population_mem")
         population = np.ndarray(
             shape=shapes[0],
@@ -261,7 +255,7 @@ class SharedMemoryGeneticAlgorithm:
             self.population_memory.unlink()
             self.offsprings_memory.unlink()
             self.offsprings_scores_memory.unlink()
-        except:
+        except FileNotFoundError:
             print("shared memory exception")
 
     def run(self, max_generations: int) -> None:
@@ -303,10 +297,10 @@ class SharedMemoryGeneticAlgorithm:
 
             # convergence check
             # if self.best_score <= self.average_fitness[-1]:
-                # print(f"stop at generation {g+1}")
-                # print(f"best score: {self.best_score}")
-                # print(f"average fitness: {self.average_fitness[-1]}")
-                # break
+            # print(f"stop at generation {g+1}")
+            # print(f"best score: {self.best_score}")
+            # print(f"average fitness: {self.average_fitness[-1]}")
+            # break
 
         for i in range(self.workers_num):
             with self.stops[i]:
@@ -337,7 +331,7 @@ class SharedMemoryGeneticAlgorithm:
             + self.timings["mutation"]
             + self.timings["evaluation"]
         )
-        # print(f"parallel time: {self.parallel_time} seconds")
-        # print(
-        #     f"parallel sync time: {self.parallel_time - genetic_parallel_time} seconds"
-        # )
+        print(f"parallel time: {self.parallel_time} seconds")
+        print(
+            f"parallel sync time: {self.parallel_time - genetic_parallel_time} seconds"
+        )

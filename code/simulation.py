@@ -1,10 +1,11 @@
 import sys
 import time
 
+from colorama import Fore
+
 import pipe
 import sequential
 import shared
-from colorama import Fore
 
 if __name__ == "__main__":
     if len(sys.argv) != 7:

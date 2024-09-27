@@ -2,10 +2,11 @@ import sys
 import time
 from functools import partial
 
+import numpy as np
 import pandas as pd
 
+import tsp
 from pipe_genetic import PipeGeneticAlgorithm
-from tsp import *
 from utils import plotting
 
 
@@ -31,8 +32,8 @@ def main(argv):
     W = int(argv[5])
 
     # partial functions to fix the arguments
-    generate_func = partial(generate, len(towns))
-    fitness_func = partial(fitness, towns)
+    generate_func = partial(tsp.generate, len(towns))
+    fitness_func = partial(tsp.fitness, towns)
 
     start = time.perf_counter()
     ga = PipeGeneticAlgorithm(
@@ -40,31 +41,31 @@ def main(argv):
         len(towns),
         generate_func,
         fitness_func,
-        tournament,
-        one_point_no_rep,
-        rotation,
+        tsp.tournament,
+        tsp.one_point_no_rep,
+        tsp.rotation,
         mutation_rate,
-        merge_replace,
+        tsp.merge_replace,
         workers_num=W,
     )
     ga.run(G)
-    # print(f"algorithm total time: {time.perf_counter() - start} seconds")
+    print(f"algorithm total time: {time.perf_counter() - start} seconds")
 
-    # print(f"best score: {ga.best_score:.3f}")
+    print(f"best score: {ga.best_score:.3f}")
 
     # drawing the graph
-    # plotting.draw_graph(data, ga.best)
+    plotting.draw_graph(data, ga.best)
 
     # statistics data
-    # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
-    # plotting.biodiversity_trend(ga.biodiversity)
+    plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
+    plotting.biodiversity_trend(ga.biodiversity)
 
     # timing
-    # plotting.timing(ga.timings)
+    plotting.timing(ga.timings)
 
-    # for k in ga.timings.keys():
-    #     print(f"{k}: {ga.timings[k]:.3f} seconds")
-    # print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")
+    for k in ga.timings.keys():
+        print(f"{k}: {ga.timings[k]:.3f} seconds")
+    print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")
 
     data = pd.read_csv("stats/tsp_stats.csv")
     stats = {

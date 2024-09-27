@@ -8,7 +8,6 @@ import numpy as np
 
 
 class PipeGeneticAlgorithm:
-
     def __init__(
         self,
         population_size: int,
@@ -22,7 +21,6 @@ class PipeGeneticAlgorithm:
         replace_func,
         workers_num: int = mp.cpu_count(),
     ) -> None:
-
         # setup
         self.population_size = population_size
         self.chromosome_length = chromosome_length
@@ -60,7 +58,6 @@ class PipeGeneticAlgorithm:
         }
 
     def generation(self) -> None:
-
         # generate a new population
         start = time.perf_counter()
         self.population = []
@@ -131,7 +128,6 @@ class PipeGeneticAlgorithm:
         }
 
         while True:
-
             couples = pipe.recv()
             if couples is None:
                 break
@@ -177,7 +173,6 @@ class PipeGeneticAlgorithm:
         self.timings["replacement"] += time.perf_counter() - start
 
     def run(self, max_generations: int) -> None:
-
         self.generation()
 
         self.best = self.population[0]
@@ -210,10 +205,10 @@ class PipeGeneticAlgorithm:
 
             # convergence check
             # if self.best_score <= self.average_fitness[-1]:
-                # print(f"stop at generation {g+1}")
-                # print(f"best score: {self.best_score}")
-                # print(f"average fitness: {self.average_fitness[-1]}")
-                # break
+            # print(f"stop at generation {g+1}")
+            # print(f"best score: {self.best_score}")
+            # print(f"average fitness: {self.average_fitness[-1]}")
+            # break
 
         for i in range(self.workers_num):
             self.pipes[i][0].send(None)
@@ -236,7 +231,7 @@ class PipeGeneticAlgorithm:
             + self.timings["mutation"]
             + self.timings["evaluation"]
         )
-        # print(f"parallel time: {self.parallel_time} seconds")
-        # print(
-        #     f"parallel sync time: {self.parallel_time - genetic_parallel_time} seconds"
-        # )
+        print(f"parallel time: {self.parallel_time} seconds")
+        print(
+            f"parallel sync time: {self.parallel_time - genetic_parallel_time} seconds"
+        )

@@ -73,7 +73,6 @@ def merge_replace(
     offsprings: np.ndarray,
     scores2: np.ndarray,
 ) -> tuple:
-
     sort_indices = np.flip(np.argsort(scores1))
     population = np.array([population[i] for i in sort_indices])
     scores1 = scores1[sort_indices]

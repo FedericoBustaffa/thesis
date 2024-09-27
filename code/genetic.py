@@ -5,7 +5,6 @@ import numpy as np
 
 
 class GeneticAlgorithm:
-
     def __init__(
         self,
         population_size: int,
@@ -44,7 +43,6 @@ class GeneticAlgorithm:
         }
 
     def generation(self) -> None:
-
         self.population = []
         self.scores = np.zeros(self.population_size)
 
@@ -117,7 +115,6 @@ class GeneticAlgorithm:
         self.timings["replacement"] += time.perf_counter() - start
 
     def run(self, generations: int) -> None:
-
         self.generation()
 
         self.best = self.population[0]
