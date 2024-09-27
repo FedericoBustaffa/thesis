@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) != 6:
         print(
-            f"USAGE: py {sys.argv[0]} <stats_filename> <cities> <population_size> <generations>"
+            f"USAGE: py {sys.argv[0]} <stats_filename> <cities> <population_size> <generations> <workers>"
         )
         exit(1)
 
