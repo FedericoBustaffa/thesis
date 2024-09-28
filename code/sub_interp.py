@@ -1,65 +1,66 @@
-import sys
-import time
-from functools import partial
+# import sys
+# import time
+# from functools import partial
 
-import pandas as pd
-from sub_interp_genetic import SubInterpGeneticAlgorithm
-from tsp import *
-from utils import plotting
+# import pandas as pd
 
-if __name__ == "__main__":
-    if len(sys.argv) != 6:
-        print(
-            f"USAGE: py {sys.argv[0]} <town_file> <populations_size> <generations> <mutation_rate> <workers>"
-        )
-        exit(1)
+# import tsp
+# from sub_interp_genetic import SubInterpGeneticAlgorithm
+# from utils import plotting
 
-    data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
-    distances = compute_distances(data)
+# if __name__ == "__main__":
+#     if len(sys.argv) != 6:
+#         print(
+#             f"USAGE: py {sys.argv[0]} <town_file> <populations_size> <generations> <mutation_rate> <workers>"
+#         )
+#         exit(1)
 
-    # Initial population size
-    N = int(sys.argv[2])
+#     data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
+#     distances = tsp.compute_distances(data)
 
-    # Max generations
-    G = int(sys.argv[3])
+#     # Initial population size
+#     N = int(sys.argv[2])
 
-    mutation_rate = float(sys.argv[4])
+#     # Max generations
+#     G = int(sys.argv[3])
 
-    # number of workers
-    W = int(sys.argv[5])
+#     mutation_rate = float(sys.argv[4])
 
-    # partial functions to fix the arguments
-    generate_func = partial(generate, len(distances))
-    fitness_func = partial(fitness, distances)
+#     # number of workers
+#     W = int(sys.argv[5])
 
-    start = time.perf_counter()
-    ga = SubInterpGeneticAlgorithm(
-        N,
-        len(data),
-        generate_func,
-        fitness_func,
-        tournament,
-        one_point_no_rep,
-        rotation,
-        mutation_rate,
-        merge_replace,
-        workers_num=W,
-    )
-    ga.run(G)
-    print(f"algorithm total time: {time.perf_counter() - start} seconds")
+#     # partial functions to fix the arguments
+#     generate_func = partial(generate, len(distances))
+#     fitness_func = partial(fitness, distances)
 
-    print(f"best score: {ga.best_score:.3f}")
+#     start = time.perf_counter()
+#     ga = SubInterpGeneticAlgorithm(
+#         N,
+#         len(data),
+#         generate_func,
+#         fitness_func,
+#         tournament,
+#         one_point_no_rep,
+#         rotation,
+#         mutation_rate,
+#         merge_replace,
+#         workers_num=W,
+#     )
+#     ga.run(G)
+#     print(f"algorithm total time: {time.perf_counter() - start} seconds")
 
-    # drawing the graph
-    plotting.draw_graph(data, ga.best)
+#     print(f"best score: {ga.best_score:.3f}")
 
-    # statistics data
-    plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
-    plotting.biodiversity_trend(ga.biodiversity)
+#     # drawing the graph
+#     plotting.draw_graph(data, ga.best)
 
-    # timing
-    plotting.timing(ga.timings)
+#     # statistics data
+#     plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
+#     plotting.biodiversity_trend(ga.biodiversity)
 
-    for k in ga.timings.keys():
-        print(f"{k}: {ga.timings[k]:.3f} seconds")
-    print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")
+#     # timing
+#     plotting.timing(ga.timings)
+
+#     for k in ga.timings.keys():
+#         print(f"{k}: {ga.timings[k]:.3f} seconds")
+#     print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")
