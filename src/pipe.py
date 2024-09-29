@@ -67,19 +67,19 @@ def main(argv):
         print(f"{k}: {ga.timings[k]:.3f} seconds")
     print(f"pure computation total time: {sum(ga.timings.values()):.3f} seconds")
 
-    data = pd.read_csv("stats/tsp_stats.csv")
-    stats = {
-        "implementation": "pipe",
-        "workers": W,
-        "cities": [int(argv[1])],
-        "population_size": [N],
-        "generations": [G],
-        "mutation_rate": [mutation_rate],
-        "time": [ga.parallel_time],
-    }
-
-    data = pd.concat([data, pd.DataFrame.from_dict(stats)], ignore_index=True)
-    data.to_csv("stats/tsp_stats.csv", index=False)
+    # data = pd.read_csv("stats/tsp_stats.csv")
+    # stats = {
+    #     "implementation": "pipe",
+    #     "workers": W,
+    #     "cities": [int(argv[1])],
+    #     "population_size": [N],
+    #     "generations": [G],
+    #     "mutation_rate": [mutation_rate],
+    #     "time": [ga.parallel_time],
+    # }
+    #
+    # data = pd.concat([data, pd.DataFrame.from_dict(stats)], ignore_index=True)
+    # data.to_csv("stats/tsp_stats.csv", index=False)
 
 
 if __name__ == "__main__":
