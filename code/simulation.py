@@ -25,13 +25,13 @@ if __name__ == "__main__":
         sequential.main(sys.argv[1:])
         print(Fore.GREEN + f"sequential: {time.perf_counter() - start}")
 
-        for w in range(2, workers + 1, 1):
+        for w in range(workers + 1):
             sys.argv[-1] = str(w)
             start = time.perf_counter()
             pipe.main(sys.argv[1:])
             print(Fore.GREEN + f"pipe with {w} workers: {time.perf_counter() - start}")
 
-        for w in range(2, workers + 1, 1):
+        for w in range(workers + 1):
             sys.argv[-1] = str(w)
             start = time.perf_counter()
             shared.main(sys.argv[1:])
