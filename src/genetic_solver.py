@@ -2,7 +2,6 @@ import modules
 
 
 class GeneticSolver:
-
     def __init__(
         self,
         population_size: int,
@@ -29,7 +28,6 @@ class GeneticSolver:
         self.scores = self.evaluator.perform(self.population)
 
         for g in range(max_generations):
-
             chosen = self.selector.perform(self.population, self.scores)
             couples = self.mater.perform(chosen)
             offsprings = self.crossoverator.perform(couples)
@@ -47,19 +45,19 @@ class GeneticSolver:
 
 
 if __name__ == "__main__":
-
     import sys
     import time
     from functools import partial
 
     import numpy as np
     import pandas as pd
+    from loguru import logger
 
     import tsp
     from utils import plotting
 
     if len(sys.argv) < 6:
-        print(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M>")
+        logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M>")
         exit(1)
 
     data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
