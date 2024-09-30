@@ -91,14 +91,6 @@ if __name__ == "__main__":
     import tsp
     from utils import plotting
 
-    logger.remove()
-    logger.add(
-        sink=sys.stdout,
-        colorize=True,
-        level="INFO",
-        format="<level>{level}: {message}</level>",
-    )
-
     if len(sys.argv) < 7:
         logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M> <W>")
         exit(1)

@@ -61,14 +61,6 @@ if __name__ == "__main__":
     import tsp
     from utils import plotting
 
-    logger.remove()
-    logger.add(
-        sink=sys.stdout,
-        colorize=True,
-        level="INFO",
-        format="<level>{level}: {message}</level>",
-    )
-
     if len(sys.argv) < 6:
         logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M>")
         exit(1)
@@ -105,8 +97,11 @@ if __name__ == "__main__":
         mutation_rate=MR,
         replace_func=tsp.merge_replace,
     )
+
+    logger.debug("solver created")
+
     ga.run(G)
-    logger.success(f"algorithm total time: {time.perf_counter() - start} seconds")
+    logger.info(f"algorithm total time: {time.perf_counter() - start} seconds")
 
     best, best_score = ga.get()
     logger.success(f"best score: {best_score:.3f}")
