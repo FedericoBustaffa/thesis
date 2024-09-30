@@ -24,24 +24,29 @@ class GeneticSolver:
         self._replacer = modules.Replacer(replace_func)
 
     def run(self, max_generations: int):
-        self.__population = self._generator.perform()
-        self.__scores = self._evaluator.perform(self.__population)
+        self._population = self._generator.perform()
+        self._scores = self._evaluator.perform(self._population)
 
+        timing = 0.0
         for g in range(max_generations):
-            chosen = self._selector.perform(self.__population, self.__scores)
+            chosen = self._selector.perform(self._population, self._scores)
             couples = self._mater.perform(chosen)
+            start = time.perf_counter()
             offsprings = self._crossoverator.perform(couples)
             offsprings = self._mutator.perform(offsprings)
             offsprings_scores = self._evaluator.perform(offsprings)
-            self.__population, self.__scores = self._replacer.perform(
-                self.__population, self.__scores, offsprings, offsprings_scores
+            timing += time.perf_counter() - start
+            self._population, self._scores = self._replacer.perform(
+                self._population, self._scores, offsprings, offsprings_scores
             )
+
+        logger.info(f"{timing}")
 
     def get(self, k: int = 1):
         if k > 1:
-            return self.__population[:k], self.__scores[:k]
+            return self._population[:k], self._scores[:k]
         else:
-            return self.__population[0], self.__scores[0]
+            return self._population[0], self._scores[0]
 
 
 if __name__ == "__main__":

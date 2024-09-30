@@ -1,4 +1,4 @@
-import os
+import math
 import time
 
 import numpy as np
@@ -20,7 +20,7 @@ class PipeGeneticSolver(GeneticSolver):
         mutation_func,
         mutation_rate: float,
         replace_func,
-        workers_num: int = os.cpu_count(),
+        workers_num: int,
     ) -> None:
         super().__init__(
             population_size,
@@ -43,17 +43,22 @@ class PipeGeneticSolver(GeneticSolver):
             w.start()
 
     def run(self, max_generations: int):
-        self.__population = self._generator.perform()
-        self.__scores = self._evaluator.perform(self.__population)
+        self._population = self._generator.perform()
+        self._scores = self._evaluator.perform(self._population)
 
+        timing = 0.0
         for g in range(max_generations):
             logger.debug(f"generation: {g + 1}")
-            chosen = self._selector.perform(self.__population, self.__scores)
+            chosen = self._selector.perform(self._population, self._scores)
             couples = self._mater.perform(chosen)
 
             # parallel work
-            for w in self.__workers:
-                w.send(couples)
+            start = time.perf_counter()
+            chunksize = math.ceil(len(couples) / len(self.__workers))
+            for i in range(len(self.__workers)):
+                self.__workers[i].send(
+                    couples[i * chunksize : i * chunksize + chunksize]
+                )
 
             offsprings = []
             offsprings_scores = []
@@ -61,10 +66,13 @@ class PipeGeneticSolver(GeneticSolver):
                 offsprings_chunk, offsprings_scores_chunk = w.recv()
                 offsprings.extend(offsprings_chunk)
                 offsprings_scores.extend(offsprings_scores_chunk)
+            timing += time.perf_counter() - start
 
-            self.__population, self.__scores = self._replacer.perform(
-                self.__population, self.__scores, offsprings, offsprings_scores
+            self._population, self._scores = self._replacer.perform(
+                self._population, self._scores, offsprings, offsprings_scores
             )
+            
+        logger.info(f"{timing}")
 
         for w in self.__workers:
             w.send(None)
@@ -131,12 +139,11 @@ if __name__ == "__main__":
         replace_func=tsp.merge_replace,
         workers_num=W,
     )
-    logger.success("solver ready")
     ga.run(G)
-    logger.success(f"algorithm total time: {time.perf_counter() - start} seconds")
+    logger.info(f"algorithm total time: {time.perf_counter() - start} seconds")
 
     best, best_score = ga.get()
-    logger.success(f"best score: {best_score:.3f}")
+    logger.info(f"best score: {best_score:.3f}")
 
     # drawing the graph
     plotting.draw_graph(data, best)
