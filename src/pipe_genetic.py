@@ -48,7 +48,7 @@ class PipeGeneticSolver(GeneticSolver):
 
         timing = 0.0
         for g in range(max_generations):
-            logger.debug(f"generation: {g + 1}")
+            logger.trace(f"generation: {g + 1}")
             chosen = self._selector.perform(self._population, self._scores)
             couples = self._mater.perform(chosen)
 
@@ -71,12 +71,12 @@ class PipeGeneticSolver(GeneticSolver):
             self._population, self._scores = self._replacer.perform(
                 self._population, self._scores, offsprings, offsprings_scores
             )
-            
-        logger.info(f"{timing}")
 
         for w in self.__workers:
             w.send(None)
             w.join()
+
+        logger.info(f"parallel time: {timing}")
 
 
 if __name__ == "__main__":
@@ -91,9 +91,12 @@ if __name__ == "__main__":
     import tsp
     from utils import plotting
 
-    if len(sys.argv) < 7:
-        logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M> <W>")
+    if len(sys.argv) < 8:
+        logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M> <W> <log_level>")
         exit(1)
+
+    logger.remove()
+    logger.add(sys.stderr, level=sys.argv[7].upper())
 
     data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
     towns = np.array([[data["x"].iloc[i], data["y"].iloc[i]] for i in range(len(data))])
@@ -117,7 +120,6 @@ if __name__ == "__main__":
     generate_func = partial(tsp.generate, len(towns))
     fitness_func = partial(tsp.fitness, towns)
 
-    start = time.perf_counter()
     ga = PipeGeneticSolver(
         population_size=N,
         generation_func=generate_func,
@@ -131,11 +133,12 @@ if __name__ == "__main__":
         replace_func=tsp.merge_replace,
         workers_num=W,
     )
+    start = time.perf_counter()
     ga.run(G)
-    logger.info(f"algorithm total time: {time.perf_counter() - start} seconds")
+    logger.info(f"algorithm total time: {time.perf_counter() - start:.6f} seconds")
 
     best, best_score = ga.get()
-    logger.info(f"best score: {best_score:.3f}")
+    logger.info(f"best score: {best_score:.6f}")
 
     # drawing the graph
     plotting.draw_graph(data, best)

@@ -12,6 +12,7 @@ def task(
     mutator: Mutator,
     evaluator: Evaluator,
 ):
+    logger.debug(f"{mp.current_process().name} started")
     while True:
         couples = pipe.recv()
         if couples is None:
@@ -49,11 +50,4 @@ class Worker:
 
 
 if __name__ == "__main__":
-
-    w = Worker(None, None, None)
-    w.start()
-
-    w.send(input())
-    print(f"received: {w.recv()}")
-
-    w.join()
+    pass

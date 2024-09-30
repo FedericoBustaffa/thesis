@@ -1,4 +1,5 @@
 import modules
+from loguru import logger
 
 
 class GeneticSolver:
@@ -29,6 +30,8 @@ class GeneticSolver:
 
         timing = 0.0
         for g in range(max_generations):
+            logger.trace(f"generation: {g + 1}")
+
             chosen = self._selector.perform(self._population, self._scores)
             couples = self._mater.perform(chosen)
             start = time.perf_counter()
@@ -40,7 +43,7 @@ class GeneticSolver:
                 self._population, self._scores, offsprings, offsprings_scores
             )
 
-        logger.info(f"{timing}")
+        logger.debug("execution terminated")
 
     def get(self, k: int = 1):
         if k > 1:
@@ -56,14 +59,16 @@ if __name__ == "__main__":
 
     import numpy as np
     import pandas as pd
-    from loguru import logger
 
     import tsp
     from utils import plotting
 
-    if len(sys.argv) < 6:
-        logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M>")
+    if len(sys.argv) < 7:
+        logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M> <log_level>")
         exit(1)
+
+    logger.remove()
+    logger.add(sys.stderr, level=sys.argv[6].upper())
 
     data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
     towns = np.array([[data["x"].iloc[i], data["y"].iloc[i]] for i in range(len(data))])
@@ -84,7 +89,6 @@ if __name__ == "__main__":
     generate_func = partial(tsp.generate, len(towns))
     fitness_func = partial(tsp.fitness, towns)
 
-    start = time.perf_counter()
     ga = GeneticSolver(
         population_size=N,
         generation_func=generate_func,
@@ -98,13 +102,12 @@ if __name__ == "__main__":
         replace_func=tsp.merge_replace,
     )
 
-    logger.debug("solver created")
-
+    start = time.perf_counter()
     ga.run(G)
-    logger.info(f"algorithm total time: {time.perf_counter() - start} seconds")
+    logger.info(f"total time: {time.perf_counter() - start:.6f}")
 
     best, best_score = ga.get()
-    logger.success(f"best score: {best_score:.3f}")
+    logger.info(f"best score: {best_score:.6f}")
 
     # drawing the graph
     plotting.draw_graph(data, best)
