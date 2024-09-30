@@ -15,33 +15,33 @@ class GeneticSolver:
         mutation_rate: float,
         replace_func,
     ) -> None:
-        self.generator = modules.Generator(population_size, generation_func)
-        self.evaluator = modules.Evaluator(fitness_func)
-        self.selector = modules.Selector(selection_func)
-        self.mater = modules.Mater(mating_func)
-        self.crossoverator = modules.Crossoverator(crossover_func, crossover_rate)
-        self.mutator = modules.Mutator(mutation_func, mutation_rate)
-        self.replacer = modules.Replacer(replace_func)
+        self._generator = modules.Generator(population_size, generation_func)
+        self._evaluator = modules.Evaluator(fitness_func)
+        self._selector = modules.Selector(selection_func)
+        self._mater = modules.Mater(mating_func)
+        self._crossoverator = modules.Crossoverator(crossover_func, crossover_rate)
+        self._mutator = modules.Mutator(mutation_func, mutation_rate)
+        self._replacer = modules.Replacer(replace_func)
 
     def run(self, max_generations: int):
-        self.population = self.generator.perform()
-        self.scores = self.evaluator.perform(self.population)
+        self.__population = self._generator.perform()
+        self.__scores = self._evaluator.perform(self.__population)
 
         for g in range(max_generations):
-            chosen = self.selector.perform(self.population, self.scores)
-            couples = self.mater.perform(chosen)
-            offsprings = self.crossoverator.perform(couples)
-            offsprings = self.mutator.perform(offsprings)
-            offsprings_scores = self.evaluator.perform(offsprings)
-            self.population, self.scores = self.replacer.perform(
-                self.population, self.scores, offsprings, offsprings_scores
+            chosen = self._selector.perform(self.__population, self.__scores)
+            couples = self._mater.perform(chosen)
+            offsprings = self._crossoverator.perform(couples)
+            offsprings = self._mutator.perform(offsprings)
+            offsprings_scores = self._evaluator.perform(offsprings)
+            self.__population, self.__scores = self._replacer.perform(
+                self.__population, self.__scores, offsprings, offsprings_scores
             )
 
     def get(self, k: int = 1):
         if k > 1:
-            return self.population[:k], self.scores[:k]
+            return self.__population[:k], self.__scores[:k]
         else:
-            return self.population[0], self.scores[0]
+            return self.__population[0], self.__scores[0]
 
 
 if __name__ == "__main__":
@@ -55,6 +55,14 @@ if __name__ == "__main__":
 
     import tsp
     from utils import plotting
+
+    logger.remove()
+    logger.add(
+        sink=sys.stdout,
+        colorize=True,
+        level="INFO",
+        format="<level>{level}: {message}</level>",
+    )
 
     if len(sys.argv) < 6:
         logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M>")
@@ -93,11 +101,10 @@ if __name__ == "__main__":
         replace_func=tsp.merge_replace,
     )
     ga.run(G)
-    print(f"algorithm total time: {time.perf_counter() - start} seconds")
+    logger.success(f"algorithm total time: {time.perf_counter() - start} seconds")
 
     best, best_score = ga.get()
-
-    print(f"best score: {best_score:.3f}")
+    logger.success(f"best score: {best_score:.3f}")
 
     # drawing the graph
     plotting.draw_graph(data, best)
