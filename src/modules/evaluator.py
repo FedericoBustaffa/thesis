@@ -14,6 +14,21 @@ class Evaluator:
 
 
 if __name__ == "__main__":
+    import random
+    import sys
 
-    def fitness(chromosome):
-        return sum(chromosome)
+    from generator import Generator
+
+    if len(sys.argv) != 2:
+        logger.error(f"USAGE: py {sys.argv[0]} <size>")
+        exit(1)
+
+    size = int(sys.argv[1])
+    generator = Generator(size, lambda: [random.randint(0, 1) for _ in range(size)])
+    population = generator.perform()
+
+    evaluator = Evaluator(lambda x: sum(x))
+    scores = evaluator.perform(population)
+
+    for i in range(size):
+        print(f"{population[i]}: {scores[i]}")

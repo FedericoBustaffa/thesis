@@ -22,7 +22,7 @@ def fitness(towns: np.ndarray, chromosome: np.ndarray):
     return 1.0 / total_distance
 
 
-def tournament(scores: np.ndarray) -> list[int]:
+def tournament(population, scores):
     selected = []
     indices = [i for i in range(len(scores))]
 
@@ -32,13 +32,25 @@ def tournament(scores: np.ndarray) -> list[int]:
             first, second = random.choices(indices, k=2)
 
         if scores[first] > scores[second]:
-            selected.append(first)
+            selected.append(population[first])
             indices.remove(first)
         else:
-            selected.append(second)
+            selected.append(population[second])
             indices.remove(second)
 
     return selected
+
+
+def couples_mating(chosen):
+    indices = [i for i in range(len(chosen))]
+    couples = []
+    for _ in range(len(chosen) // 2):
+        father, mother = random.sample(indices, k=2)
+        couples.append([chosen[father], chosen[mother]])
+        indices.remove(father)
+        indices.remove(mother)
+
+    return couples
 
 
 def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
@@ -67,12 +79,13 @@ def rotation(offspring: np.ndarray) -> np.ndarray:
     return offspring
 
 
-def merge_replace(
-    population: np.ndarray,
-    scores1: np.ndarray,
-    offsprings: np.ndarray,
-    scores2: np.ndarray,
-) -> tuple:
+def merge_replace(population, scores1, offsprings, scores2) -> tuple:
+
+    population = np.array(population)
+    scores1 = np.array(scores1)
+    offsprings = np.array(offsprings)
+    scores2 = np.array(scores2)
+
     sort_indices = np.flip(np.argsort(scores1))
     population = np.array([population[i] for i in sort_indices])
     scores1 = scores1[sort_indices]
