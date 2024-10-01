@@ -5,4 +5,5 @@ from modules.mater import Mater
 from modules.mutator import Mutator
 from modules.replacer import Replacer
 from modules.selector import Selector
+from modules.subinterp_worker import SubInterpWorker
 from modules.worker import Worker
