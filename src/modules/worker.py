@@ -12,7 +12,7 @@ def task(
     mutator: Mutator,
     evaluator: Evaluator,
 ):
-    logger.debug(f"{mp.current_process().name} started")
+    logger.trace(f"{mp.current_process().name} started")
     while True:
         couples = pipe.recv()
         if couples is None:
@@ -25,7 +25,7 @@ def task(
         pipe.send((offsprings, scores))
 
     pipe.close()
-    logger.debug(f"{mp.current_process().name} terminated")
+    logger.trace(f"{mp.current_process().name} terminated")
 
 
 class Worker:

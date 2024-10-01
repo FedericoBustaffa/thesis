@@ -68,7 +68,12 @@ if __name__ == "__main__":
         exit(1)
 
     logger.remove()
-    logger.add(sys.stderr, level=sys.argv[6].upper())
+    logger.add(
+        sys.stderr,
+        format="<green>{time:HH:mm:ss}</green> | {file}:{line} | <level>{level} - {message}</level>",
+        level=sys.argv[6].upper(),
+        enqueue=True,
+    )
 
     data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
     towns = np.array([[data["x"].iloc[i], data["y"].iloc[i]] for i in range(len(data))])

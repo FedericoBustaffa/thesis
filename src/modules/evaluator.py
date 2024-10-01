@@ -1,3 +1,5 @@
+import time
+
 from loguru import logger
 
 
@@ -7,8 +9,14 @@ class Evaluator:
 
     def perform(self, population):
         scores = [0.0 for _ in range(len(population))]
+
+        start = time.perf_counter()
         for i in range(len(population)):
             scores[i] = self.fitness_func(population[i])
+        end = time.perf_counter()
+        logger.trace(
+            f"evaluation of {len(population)} done in {end - start:.6f} seconds"
+        )
 
         return scores
 
