@@ -56,17 +56,25 @@ class SubInterpGeneticSolver(GeneticSolver):
             start = time.perf_counter()
             chunksize = math.ceil(len(couples) / len(self.__workers))
             for i in range(len(self.__workers)):
-                logger.trace("OK")
                 self.__workers[i].send(
                     couples[i * chunksize : i * chunksize + chunksize]
                 )
-            logger.trace("OK")
 
             offsprings = []
             offsprings_scores = []
             for w in self.__workers:
-                # offsprings_chunk, offsprings_scores_chunk = w.recv()
-                logger.trace(w.recv())
+                offsprings_chunk = w.recv()
+                logger.debug(f"offsprings chunk type {type(offsprings_chunk[0])}")
+                for o in offsprings_chunk:
+                    logger.trace(o)
+
+                offsprings_scores_chunk = w.recv()
+                logger.debug(
+                    f"offsprings score chunk type {type(offsprings_scores_chunk)}"
+                )
+                for s in offsprings_scores_chunk:
+                    logger.trace(s)
+
                 logger.trace("recv")
                 offsprings.extend(offsprings_chunk)
                 offsprings_scores.extend(offsprings_scores_chunk)
