@@ -56,35 +56,27 @@ class PipeGeneticSolver(GeneticSolver):
 
             # parallel work
             chunksize = math.ceil(len(couples) / len(self.__workers))
-            tasks = []
             offsprings = []
             offsprings_scores = []
 
             start = time.perf_counter()
             # sending couples chunks
-            async with asyncio.TaskGroup() as tg:
-                for i in range(len(self.__workers)):
-                    tasks.append(
-                        tg.create_task(
-                            self.__workers[i].send(
-                                couples[i * chunksize : i * chunksize + chunksize]
-                            )
-                        )
-                    )
-            for t in tasks:
-                await t
-
-            # receiving offsprings and scores
-            tasks.clear()
             send_start = time.perf_counter()
-            async with asyncio.TaskGroup() as tg:
-                for w in self.__workers:
-                    tasks.append(tg.create_task(w.recv()))
+            tasks = [
+                asyncio.create_task(
+                    self.__workers[i].send(
+                        couples[i * chunksize : i * chunksize + chunksize]
+                    )
+                )
+                for i in range(len(self.__workers))
+            ]
             for t in tasks:
                 await t
             send_time += time.perf_counter() - send_start
 
-            results = [t.result() for t in tasks]
+            # receiving offsprings and scores
+            tasks = [asyncio.create_task(w.recv()) for w in self.__workers]
+            results = [await t for t in tasks]
             for offsprings_chunk, scores_chunk in results:
                 offsprings.extend(offsprings_chunk)
                 offsprings_scores.extend(scores_chunk)

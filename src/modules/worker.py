@@ -7,7 +7,7 @@ from modules import Crossoverator, Evaluator, Mutator
 
 
 def task(
-    pipe: conn.Pipe,
+    pipe: conn.Connection,
     crossoverator: Crossoverator,
     mutator: Mutator,
     evaluator: Evaluator,
