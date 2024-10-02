@@ -41,7 +41,7 @@ class Worker:
     async def send(self, msg) -> None:
         self.__pipe.send(msg)
 
-    def recv(self):
+    async def recv(self):
         return self.__pipe.recv()
 
     def join(self) -> None:

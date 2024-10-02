@@ -54,25 +54,35 @@ class PipeGeneticSolver(GeneticSolver):
             couples = self._mater.perform(chosen)
 
             # parallel work
-            start = time.perf_counter()
             chunksize = math.ceil(len(couples) / len(self.__workers))
-            tasks = [
-                asyncio.create_task(
-                    self.__workers[i].send(
-                        couples[i * chunksize : i * chunksize + chunksize]
+            tasks = []
+            offsprings = []
+            offsprings_scores = []
+
+            start = time.perf_counter()
+            # sending couples chunks
+            async with asyncio.TaskGroup() as tg:
+                for i in range(len(self.__workers)):
+                    tasks.append(
+                        tg.create_task(
+                            self.__workers[i].send(
+                                couples[i * chunksize : i * chunksize + chunksize]
+                            )
+                        )
                     )
-                )
-                for i in range(len(self.__workers))
-            ]
             for t in tasks:
                 await t
 
-            offsprings = []
-            offsprings_scores = []
-            for w in self.__workers:
-                offsprings_chunk, offsprings_scores_chunk = w.recv()
+            # receiving offsprings and scores
+            tasks.clear()
+            async with asyncio.TaskGroup() as tg:
+                for w in self.__workers:
+                    tasks.append(tg.create_task(w.recv()))
+
+            results = [t.result() for t in tasks]
+            for offsprings_chunk, scores_chunk in results:
                 offsprings.extend(offsprings_chunk)
-                offsprings_scores.extend(offsprings_scores_chunk)
+                offsprings_scores.extend(scores_chunk)
             timing += time.perf_counter() - start
 
             self._population, self._scores = self._replacer.perform(
@@ -80,7 +90,7 @@ class PipeGeneticSolver(GeneticSolver):
             )
 
         for w in self.__workers:
-            w.send(None)
+            await asyncio.create_task(w.send(None))
             w.join()
 
         logger.info(f"parallel time: {timing}")
