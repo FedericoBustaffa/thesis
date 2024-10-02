@@ -1,3 +1,4 @@
+import asyncio
 import math
 import time
 
@@ -42,7 +43,7 @@ class PipeGeneticSolver(GeneticSolver):
         for w in self.__workers:
             w.start()
 
-    def run(self, max_generations: int):
+    async def solve(self, max_generations: int):
         self._population = self._generator.perform()
         self._scores = self._evaluator.perform(self._population)
 
@@ -55,10 +56,16 @@ class PipeGeneticSolver(GeneticSolver):
             # parallel work
             start = time.perf_counter()
             chunksize = math.ceil(len(couples) / len(self.__workers))
-            for i in range(len(self.__workers)):
-                self.__workers[i].send(
-                    couples[i * chunksize : i * chunksize + chunksize]
+            tasks = [
+                asyncio.create_task(
+                    self.__workers[i].send(
+                        couples[i * chunksize : i * chunksize + chunksize]
+                    )
                 )
+                for i in range(len(self.__workers))
+            ]
+            for t in tasks:
+                await t
 
             offsprings = []
             offsprings_scores = []
@@ -77,6 +84,9 @@ class PipeGeneticSolver(GeneticSolver):
             w.join()
 
         logger.info(f"parallel time: {timing}")
+
+    def run(self, max_generations):
+        asyncio.run(self.solve(max_generations))
 
 
 if __name__ == "__main__":

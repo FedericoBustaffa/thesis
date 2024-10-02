@@ -38,7 +38,7 @@ class Worker:
     def start(self) -> None:
         self.__process.start()
 
-    def send(self, msg) -> None:
+    async def send(self, msg) -> None:
         self.__pipe.send(msg)
 
     def recv(self):
