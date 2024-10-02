@@ -48,6 +48,7 @@ class PipeGeneticSolver(GeneticSolver):
         self._scores = self._evaluator.perform(self._population)
 
         timing = 0.0
+        send_time = 0.0
         for g in range(max_generations):
             logger.trace(f"generation: {g + 1}")
             chosen = self._selector.perform(self._population, self._scores)
@@ -75,9 +76,13 @@ class PipeGeneticSolver(GeneticSolver):
 
             # receiving offsprings and scores
             tasks.clear()
+            send_start = time.perf_counter()
             async with asyncio.TaskGroup() as tg:
                 for w in self.__workers:
                     tasks.append(tg.create_task(w.recv()))
+            for t in tasks:
+                await t
+            send_time += time.perf_counter() - send_start
 
             results = [t.result() for t in tasks]
             for offsprings_chunk, scores_chunk in results:
@@ -93,7 +98,8 @@ class PipeGeneticSolver(GeneticSolver):
             await asyncio.create_task(w.send(None))
             w.join()
 
-        logger.info(f"parallel time: {timing}")
+        logger.info(f"parallel time: {timing} seconds")
+        logger.info(f"send time: {send_time:.6f} seconds")
 
     def run(self, max_generations):
         asyncio.run(self.solve(max_generations))
