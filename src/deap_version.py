@@ -4,10 +4,11 @@ from functools import partial
 
 import numpy as np
 import pandas as pd
-from deap import base, creator, tools
+from deap import algorithms, base, creator, tools
 from loguru import logger
 
 import tsp
+from utils import plotting
 
 
 def main():
@@ -48,21 +49,26 @@ def main():
     )
 
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-    toolbox.population(n=N)
+    pop = toolbox.population(n=N)
 
     evaluate = partial(tsp.fitness, towns)
     toolbox.register("evaluate", evaluate)
-
     toolbox.register("select", tools.selTournament, tournsize=2)
-    ind1 = toolbox.individual()
-    ind2 = toolbox.individual()
+    toolbox.register("mate", tools.cxOrdered)
+    toolbox.register("mutate", tools.mutInversion)
+    hof = tools.HallOfFame(5)
 
-    logger.debug(f"ind1: {ind1}")
-    logger.debug(f"ind2: {ind2}")
-
-    tools.cxOrdered(ind1, ind2)
-    logger.debug(f"ind1: {ind1}")
-    logger.debug(f"ind2: {ind2}")
+    result, logbook = algorithms.eaSimple(
+        population=pop,
+        toolbox=toolbox,
+        cxpb=CR,
+        mutpb=MR,
+        ngen=G,
+        halloffame=hof,
+        verbose=True,
+    )
+    logger.debug(f"best solution: {type(result)}")
+    plotting.draw_graph(data, hof.items[-1])
 
 
 if __name__ == "__main__":
