@@ -142,7 +142,7 @@ if __name__ == "__main__":
     )
     start = time.perf_counter()
     ga.run(G)
-    logger.info(f"algorithm total time: {time.perf_counter() - start:.6f} seconds")
+    logger.info(f"total time: {time.perf_counter() - start:.6f} seconds")
 
     best, best_score = ga.get()
     logger.info(f"best score: {best_score:.6f}")

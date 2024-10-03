@@ -14,8 +14,10 @@ def qtask(
     evaluator: Evaluator,
 ):
     logger.trace(f"{mp.current_process().name} started")
+    couples = []
     while True:
         couples = rqueue.get()
+
         if couples is None:
             break
 

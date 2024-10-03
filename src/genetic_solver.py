@@ -1,5 +1,6 @@
-import modules
 from loguru import logger
+
+import modules
 
 
 class GeneticSolver:
@@ -42,8 +43,6 @@ class GeneticSolver:
             self._population, self._scores = self._replacer.perform(
                 self._population, self._scores, offsprings, offsprings_scores
             )
-
-        logger.debug("execution terminated")
 
     def get(self, k: int = 1):
         if k > 1:
@@ -109,7 +108,7 @@ if __name__ == "__main__":
 
     start = time.perf_counter()
     ga.run(G)
-    logger.info(f"total time: {time.perf_counter() - start:.6f}")
+    logger.info(f"total time: {time.perf_counter() - start:.6f} seconds")
 
     best, best_score = ga.get()
     logger.info(f"best score: {best_score:.6f}")

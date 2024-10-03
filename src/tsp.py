@@ -1,5 +1,6 @@
 import math
 import random
+import time
 
 
 def generate(length: int):
@@ -17,6 +18,8 @@ def fitness(towns, chromosome):
     total_distance = 0.0
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
+
+    time.sleep(0.00005)
 
     return 1.0 / total_distance
 
