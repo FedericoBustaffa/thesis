@@ -1,20 +1,19 @@
+import math
 import random
 
-import numpy as np
 
-
-def generate(length: int) -> np.ndarray:
+def generate(length: int):
     chromosome = [i for i in range(length)]
     random.shuffle(chromosome)
 
-    return np.array(chromosome)
+    return chromosome
 
 
 def distance(t1, t2) -> float:
-    return np.sqrt(np.pow(t1[0] - t2[0], 2) + np.pow(t1[1] - t2[1], 2))
+    return math.sqrt(math.pow(t1[0] - t2[0], 2) + math.pow(t1[1] - t2[1], 2))
 
 
-def fitness(towns: np.ndarray, chromosome: np.ndarray):
+def fitness(towns, chromosome):
     total_distance = 0.0
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
@@ -46,56 +45,53 @@ def couples_mating(chosen):
     couples = []
     for _ in range(len(chosen) // 2):
         father, mother = random.sample(indices, k=2)
-        couples.append([chosen[father], chosen[mother]])
+        couples.append((chosen[father], chosen[mother]))
         indices.remove(father)
         indices.remove(mother)
 
     return couples
 
 
-def one_point_no_rep(father: np.ndarray, mother: np.ndarray) -> tuple:
+def one_point_no_rep(father, mother) -> tuple:
     crossover_point = random.randint(1, len(father) - 2)
 
-    offspring1 = father[:crossover_point]
-    offspring2 = father[crossover_point:]
+    offspring1 = father[:crossover_point] + mother[crossover_point:]
+    offspring2 = father[crossover_point:] + mother[:crossover_point]
 
-    tail1 = mother[np.isin(mother, offspring2)]
-    tail2 = mother[np.isin(mother, offspring1)]
-
-    return np.append(offspring1, tail1), np.append(offspring2, tail2)
+    return offspring1, offspring2
 
 
-def rotation(offspring: np.ndarray) -> np.ndarray:
+def rotation(offspring):
     a = random.randint(0, len(offspring) - 1)
     b = random.randint(0, len(offspring) - 1)
 
     while a == b:
-        b = np.random.randint(0, len(offspring))
+        b = random.randint(0, len(offspring) - 1)
 
     first = a if a < b else b
     second = a if a > b else b
-    offspring[first:second] = np.flip(offspring[first:second])[:]
+    offspring[first:second] = reversed(offspring[first:second])
 
     return offspring
 
 
 def merge_replace(population, scores1, offsprings, scores2) -> tuple:
+    population, scores1 = (
+        list(t)
+        for t in zip(
+            *sorted(zip(population, scores1), key=lambda x: x[1], reverse=True)
+        )
+    )
 
-    population = np.array(population)
-    scores1 = np.array(scores1)
-    offsprings = np.array(offsprings)
-    scores2 = np.array(scores2)
+    offsprings, scores2 = (
+        list(t)
+        for t in zip(
+            *sorted(zip(offsprings, scores2), key=lambda x: x[1], reverse=True)
+        )
+    )
 
-    sort_indices = np.flip(np.argsort(scores1))
-    population = np.array([population[i] for i in sort_indices])
-    scores1 = scores1[sort_indices]
-
-    sort_indices = np.flip(np.argsort(scores2))
-    offsprings = np.array([offsprings[i] for i in sort_indices])
-    scores2 = scores2[sort_indices]
-
-    next_generation = np.zeros(population.shape, dtype=np.int64)
-    next_gen_scores = np.zeros(scores1.shape, dtype=np.float64)
+    next_generation = []
+    next_gen_scores = []
     index = 0
     index1 = 0
     index2 = 0
@@ -106,12 +102,12 @@ def merge_replace(population, scores1, offsprings, scores2) -> tuple:
         and index2 < len(offsprings)
     ):
         if scores1[index1] > scores2[index2]:
-            next_generation[index] = population[index1]
-            next_gen_scores[index] = scores1[index1]
+            next_generation.append(population[index1])
+            next_gen_scores.append(scores1[index1])
             index1 += 1
         else:
-            next_generation[index] = offsprings[index2]
-            next_gen_scores[index] = scores2[index2]
+            next_generation.append(offsprings[index2])
+            next_gen_scores.append(scores2[index2])
             index2 += 1
 
         index += 1
@@ -122,4 +118,4 @@ def merge_replace(population, scores1, offsprings, scores2) -> tuple:
         next_generation[index:] = population[index1 : len(population) - index2]
         next_gen_scores[index:] = scores1[index1 : len(scores1) - index2]
 
-    return np.array(next_generation), np.array(next_gen_scores)
+    return next_generation, next_gen_scores

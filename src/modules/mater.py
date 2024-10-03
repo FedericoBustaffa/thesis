@@ -5,7 +5,7 @@ class Mater:
     def __init__(self, mating_func):
         self.mating_func = mating_func
 
-    def perform(self, chosen) -> list[list[int]]:
+    def perform(self, chosen):
         return self.mating_func(chosen)
 
 
