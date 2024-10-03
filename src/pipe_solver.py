@@ -70,8 +70,7 @@ class PipeGeneticSolver(GeneticSolver):
                 )
                 for i in range(len(self.__workers))
             ]
-            for t in tasks:
-                await t
+            asyncio.as_completed(tasks)
             send_time += time.perf_counter() - send_start
 
             # receiving offsprings and scores
@@ -80,6 +79,7 @@ class PipeGeneticSolver(GeneticSolver):
             for offsprings_chunk, scores_chunk in results:
                 offsprings.extend(offsprings_chunk)
                 offsprings_scores.extend(scores_chunk)
+
             timing += time.perf_counter() - start
 
             self._population, self._scores = self._replacer.perform(
