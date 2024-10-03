@@ -35,14 +35,18 @@ class GeneticSolver:
 
             chosen = self._selector.perform(self._population, self._scores)
             couples = self._mater.perform(chosen)
+
             start = time.perf_counter()
             offsprings = self._crossoverator.perform(couples)
             offsprings = self._mutator.perform(offsprings)
             offsprings_scores = self._evaluator.perform(offsprings)
             timing += time.perf_counter() - start
+
             self._population, self._scores = self._replacer.perform(
                 self._population, self._scores, offsprings, offsprings_scores
             )
+
+        logger.info(f"to parallelize time: {timing:.6f} seconds")
 
     def get(self, k: int = 1):
         if k > 1:
