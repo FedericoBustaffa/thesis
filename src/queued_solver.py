@@ -54,27 +54,25 @@ class QueuedGeneticSolver(GeneticSolver):
             couples = self._mater.perform(chosen)
 
             # parallel work
-            start = time.perf_counter()
             offsprings = []
             offsprings_scores = []
             chunksize = math.ceil(len(couples) / len(self.__workers))
-            logger.debug(f"chunksize: {chunksize}")
 
             # sending couples chunks
+            start = time.perf_counter()
             send_start = time.perf_counter()
             for i in range(len(self.__workers)):
                 self.__workers[i].send(
                     couples[i * chunksize : i * chunksize + chunksize]
                 )
-
             send_time += time.perf_counter() - send_start
 
             # receiving offsprings and scores
-            # results = [w.recv() for w in self.__workers]
-            # for offsprings_chunk, scores_chunk in results:
-            #     offsprings.extend(offsprings_chunk)
-            #     offsprings_scores.extend(scores_chunk)
-            # timing += time.perf_counter() - start
+            results = [w.recv() for w in self.__workers]
+            for offsprings_chunk, scores_chunk in results:
+                offsprings.extend(offsprings_chunk)
+                offsprings_scores.extend(scores_chunk)
+            timing += time.perf_counter() - start
 
             self._population, self._scores = self._replacer.perform(
                 self._population, self._scores, offsprings, offsprings_scores
