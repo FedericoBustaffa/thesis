@@ -1,7 +1,8 @@
 import pickle
 
-# from loguru import logger
+import numpy as np
 
+# from loguru import logger
 from modules import Crossoverator, Evaluator, Mutator
 
 crossoverator = Crossoverator(pickle.loads(r_chann.recv()))

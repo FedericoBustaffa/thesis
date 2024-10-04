@@ -1,8 +1,8 @@
 import pickle
 import threading
-from test.support import interpreters
 
 from loguru import logger
+from test.support import interpreters
 
 from modules import Crossoverator, Evaluator, Mutator
 

@@ -6,5 +6,5 @@ from modules.mutator import Mutator
 from modules.qworker import QueueWorker
 from modules.replacer import Replacer
 from modules.selector import Selector
+from modules.subinterp_worker import SubInterpWorker
 from modules.worker import Worker
-# from modules.subinterp_worker import SubInterpWorker

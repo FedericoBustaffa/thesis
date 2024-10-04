@@ -1,8 +1,6 @@
 import math
 import time
 
-import numpy as np
-
 from genetic_solver import GeneticSolver
 from modules import SubInterpWorker
 
@@ -96,7 +94,6 @@ if __name__ == "__main__":
     import time
     from functools import partial
 
-    import numpy as np
     import pandas as pd
     from loguru import logger
 
@@ -111,7 +108,7 @@ if __name__ == "__main__":
     logger.add(sys.stderr, level=sys.argv[7].upper())
 
     data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
-    towns = np.array([[data["x"].iloc[i], data["y"].iloc[i]] for i in range(len(data))])
+    towns = [[data["x"].iloc[i], data["y"].iloc[i]] for i in range(len(data))]
 
     # Initial population size
     N = int(sys.argv[2])
