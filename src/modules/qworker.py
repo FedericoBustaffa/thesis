@@ -25,7 +25,7 @@ def qtask(
         offsprings = mutator.perform(offsprings)
         scores = evaluator.perform(offsprings)
 
-        squeue.put_nowait((offsprings, scores))
+        squeue.put((offsprings, scores))
 
     logger.trace(f"{mp.current_process().name} terminated")
 
@@ -43,7 +43,7 @@ class QueueWorker:
         self.__process.start()
 
     def send(self, msg) -> None:
-        self.__rqueue.put_nowait(msg)
+        self.__rqueue.put(msg)
 
     def recv(self):
         return self.__squeue.get()
