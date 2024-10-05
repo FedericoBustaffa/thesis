@@ -12,5 +12,9 @@ class Chromosome:
     def __eq__(self, other) -> bool:
         return self._chromosome == other.chromosome
 
-    # TODO implementare una logica per ordinare chromosomi
-    # con più valori di fitness anche
+    @property
+    def chromosome(self):
+        self._chromosome
+
+    def fitness(self):
+        return sum([fv * w for fv, w in zip(self._fitness_values, self._weights)])

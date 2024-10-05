@@ -3,6 +3,12 @@ import random
 import time
 
 
+class Town:
+    def __init__(self, x: float, y: float) -> None:
+        self.x = x
+        self.y = y
+
+
 def generate(length: int):
     chromosome = [i for i in range(length)]
     random.shuffle(chromosome)
@@ -10,18 +16,18 @@ def generate(length: int):
     return chromosome
 
 
-def distance(t1, t2) -> float:
-    return math.sqrt(math.pow(t1[0] - t2[0], 2) + math.pow(t1[1] - t2[1], 2))
+def distance(t1: Town, t2: Town) -> float:
+    return math.sqrt(math.pow(t1.x - t2.x, 2) + math.pow(t1.y - t2.y, 2))
 
 
-def fitness(towns, chromosome):
+def fitness(chromosome, towns: list[Town]):
     total_distance = 0.0
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
     time.sleep(0.00005)
 
-    return 1.0 / total_distance
+    return total_distance
 
 
 def tournament(population, scores):
@@ -84,7 +90,7 @@ def rotation(offspring):
     return offspring
 
 
-def merge_replace(population, scores1, offsprings, scores2) -> tuple:
+def merge(population, scores1, offsprings, scores2) -> tuple:
     population, scores1 = (
         list(t)
         for t in zip(

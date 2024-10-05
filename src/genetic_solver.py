@@ -4,26 +4,28 @@ import modules
 
 
 class GeneticSolver:
-    def __init__(
-        self,
-        population_size: int,
-        generation_func,
-        fitness_func,
-        selection_func,
-        mating_func,
-        crossover_func,
-        crossover_rate: float,
-        mutation_func,
-        mutation_rate: float,
-        replace_func,
-    ) -> None:
-        self._generator = modules.Generator(population_size, generation_func)
-        self._evaluator = modules.Evaluator(fitness_func)
-        self._selector = modules.Selector(selection_func)
-        self._mater = modules.Mater(mating_func)
-        self._crossoverator = modules.Crossoverator(crossover_func, crossover_rate)
-        self._mutator = modules.Mutator(mutation_func, mutation_rate)
-        self._replacer = modules.Replacer(replace_func)
+    def set_chromosome(self, attribute_type=int, structure=list):
+        self.attribute_type = attribute_type
+        self.chromosome_structure = structure
+
+    def set_fitness(self, weights: tuple):
+        self.weights = weights
+
+    def set_population(self, structure=list, *args, **kwargs):
+        self.pop_structure = structure
+        self.pop_args = args
+        self.pop_kwargs = kwargs
+
+    def set_generation(self, generation_func, *args, **kwargs):
+        self.generation_func = generation_func
+        self.generation_args = args
+        self.generation_kwargs = kwargs
+
+    def generate(self, population_size):
+        return [
+            self.generation_func(*self.generation_args, **self.generation_kwargs)
+            for _ in range(population_size)
+        ]
 
     def run(self, max_generations: int):
         self._population = self._generator.perform()
@@ -58,7 +60,6 @@ class GeneticSolver:
 if __name__ == "__main__":
     import sys
     import time
-    from functools import partial
 
     import numpy as np
     import pandas as pd
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     )
 
     data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
-    towns = np.array([[data["x"].iloc[i], data["y"].iloc[i]] for i in range(len(data))])
+    towns = [tsp.Town(data["x"].iloc[i], data["y"].iloc[i]) for i in range(len(data))]
 
     # Initial population size
     N = int(sys.argv[2])
@@ -93,32 +94,31 @@ if __name__ == "__main__":
     # mutation rate
     MR = float(sys.argv[5])
 
-    # partial functions to fix the arguments
-    generate_func = partial(tsp.generate, len(towns))
-    fitness_func = partial(tsp.fitness, towns)
+    solver = GeneticSolver()
+    solver.set_chromosome(attribute_type=int, structure=list)
+    solver.set_fitness(weights=(1.0,))
 
-    ga = GeneticSolver(
-        population_size=N,
-        generation_func=generate_func,
-        fitness_func=fitness_func,
-        selection_func=tsp.tournament,
-        mating_func=tsp.couples_mating,
-        crossover_func=tsp.one_point_no_rep,
-        crossover_rate=CR,
-        mutation_func=tsp.rotation,
-        mutation_rate=MR,
-        replace_func=tsp.merge_replace,
-    )
+    solver.set_generation(tsp.generate, len(towns))
 
-    start = time.perf_counter()
-    ga.run(G)
-    logger.info(f"total time: {time.perf_counter() - start:.6f} seconds")
+    population = solver.generate(N)
+    for i in population:
+        logger.trace(f"{i}")
 
-    best, best_score = ga.get()
-    logger.info(f"best score: {best_score:.6f}")
+    solver.set_fitness(tsp.fitness, towns)
+    # solver.set_selection(tsp.tournament)
+    # solver.set_mating(tsp.couples_mating)
+    # solver.set_crossover(tsp.one_point_no_rep, CR)
+    # solver.set_mutation(tsp.rotation, MR)
+    # solver.set_replacement(tsp.merge)
 
-    # drawing the graph
-    plotting.draw_graph(data, best)
+    # start = time.perf_counter()
+    # hall_of_fame = solver.run(G, 5)
+    # logger.info(f"total time: {time.perf_counter() - start:.6f} seconds")
+
+    # logger.info(f"best score: {best.fitness:.6f}")
+
+    # # drawing the graph
+    # plotting.draw_graph(data, best)
 
     # statistics data
     # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
