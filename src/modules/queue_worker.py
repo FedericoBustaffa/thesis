@@ -40,6 +40,11 @@ class QueueWorker(mp.Process):
     def recv(self):
         return self.__squeue.get()
 
+    def join(self):
+        self.__rqueue.close()
+        self.__squeue.close()
+        super().join()
+
 
 if __name__ == "__main__":
     pass

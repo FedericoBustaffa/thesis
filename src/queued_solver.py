@@ -14,8 +14,8 @@ class QueuedGeneticSolver(GeneticSolver):
     def run(
         self, toolbox: ToolBox, population_size: int, max_generations: int
     ) -> list[Individual]:
+        # start the parallel workers
         workers = [QueueWorker(toolbox) for _ in range(self.workers_num)]
-
         for w in workers:
             w.start()
 
@@ -31,8 +31,8 @@ class QueuedGeneticSolver(GeneticSolver):
             couples = toolbox.mate(chosen)
 
             # parallel work
-            offsprings = []
             chunksize = math.ceil(len(couples) / len(workers))
+            offsprings = []
 
             # sending couples chunks
             start = time.perf_counter()
