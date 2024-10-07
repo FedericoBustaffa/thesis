@@ -11,27 +11,42 @@ class GeneticSolver:
     def run(
         self, toolbox: ToolBox, stats: Statistics, population_size, max_generations: int
     ) -> tuple[list[Individual], Statistics]:
+        start = time.perf_counter()
         population = toolbox.generate(population_size)
-        population = toolbox.evaluate(population)
+        stats.add_time("generation", start)
 
-        parallel_time = 0.0
+        start = time.perf_counter()
+        population = toolbox.evaluate(population)
+        stats.add_time("evaluation", start)
+
         for g in range(max_generations):
             logger.trace(f"generation: {g + 1}")
 
+            start = time.perf_counter()
             chosen = toolbox.select(population)
+            stats.add_time("selection", start)
+
+            start = time.perf_counter()
             couples = toolbox.mate(chosen)
+            stats.add_time("mating", start)
 
             start = time.perf_counter()
             offsprings = toolbox.crossover(couples)
-            offsprings = toolbox.mutate(offsprings)
-            offsprings = toolbox.evaluate(offsprings)
-            parallel_time += time.perf_counter() - start
+            stats.add_time("crossover", start)
 
+            start = time.perf_counter()
+            offsprings = toolbox.mutate(offsprings)
+            stats.add_time("mutation", start)
+
+            start = time.perf_counter()
+            offsprings = toolbox.evaluate(offsprings)
+            stats.add_time("evaluation", start)
+
+            start = time.perf_counter()
             population = toolbox.replace(population, offsprings)
+            stats.add_time("replacement", start)
 
             stats.push_best(population[0].fitness.fitness)
             stats.push_worst(population[-1].fitness.fitness)
-
-        stats.add_time("parallel", parallel_time)
 
         return population, stats

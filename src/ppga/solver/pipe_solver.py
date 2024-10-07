@@ -57,16 +57,24 @@ class PipeGeneticSolver(GeneticSolver):
         for w in workers:
             w.start()
 
+        start = time.perf_counter()
         population = toolbox.generate(population_size)
-        population = toolbox.evaluate(population)
+        stats.add_time("generation", start)
 
-        parallel_time = 0.0
-        send_time = 0.0
+        start = time.perf_counter()
+        population = toolbox.evaluate(population)
+        stats.add_time("evaluation", start)
+
         for g in range(max_generations):
             logger.trace(f"generation: {g + 1}")
 
+            start = time.perf_counter()
             chosen = toolbox.select(population)
+            stats.add_time("selection", start)
+
+            start = time.perf_counter()
             couples = toolbox.mate(chosen)
+            stats.add_time("mating", start)
 
             # parallel work
             chunksize = math.ceil(len(couples) / len(workers))
@@ -74,7 +82,6 @@ class PipeGeneticSolver(GeneticSolver):
 
             # sending couples chunks
             start = time.perf_counter()
-            send_start = time.perf_counter()
             tasks = [
                 asyncio.create_task(
                     workers[i].send(couples[i * chunksize : i * chunksize + chunksize])
@@ -82,26 +89,25 @@ class PipeGeneticSolver(GeneticSolver):
                 for i in range(len(workers))
             ]
             asyncio.as_completed(tasks)
-            send_time += time.perf_counter() - send_start
+            stats.add_time("synchronization", start)
 
             # receiving offsprings and scores
             tasks = [asyncio.create_task(w.recv()) for w in workers]
             results = [await t for t in tasks]
             for offsprings_chunk in results:
                 offsprings.extend(offsprings_chunk)
+            stats.add_time("parallel", start)
 
-            parallel_time += time.perf_counter() - start
-
+            start = time.perf_counter()
             population = toolbox.replace(population, offsprings)
+            stats.add_time("replacement", time.perf_counter() - start)
+
             stats.push_best(population[0].fitness.fitness)
             stats.push_worst(population[-1].fitness.fitness)
 
         for w in workers:
             await asyncio.create_task(w.send(None))
             w.join()
-
-        stats.add_time("parallel", parallel_time)
-        stats.add_time("synchronization", send_time)
 
         return population, stats
 

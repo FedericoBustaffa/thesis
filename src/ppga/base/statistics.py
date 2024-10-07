@@ -1,3 +1,6 @@
+import time
+
+
 class Statistics:
     def __init__(self):
         self.timings = {
@@ -15,8 +18,8 @@ class Statistics:
         self.best = []
         self.worst = []
 
-    def add_time(self, field: str, time: float) -> None:
-        self.timings[field] += time
+    def add_time(self, field: str, start: float) -> None:
+        self.timings[field] += time.perf_counter() - start
 
     def push_best(self, fitness: float) -> None:
         self.best.append(fitness)
