@@ -35,7 +35,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    # time.sleep(0.0005)
+    time.sleep(0.00005)
 
     return (total_distance,)
 
@@ -196,16 +196,24 @@ if __name__ == "__main__":
     logger.success(f"best score: {best[0].fitness}")
     plotting.draw_graph(data, best[0].chromosome)
 
-    logger.info(f"total sequential time: {sequential_time:.6f} seconds")
-    logger.info(f"total queue time: {queue_time:.6f} seconds")
-    logger.info(f"queue solver true speed up: {seq_t / queue_t:.5f}")
-    logger.info(f"queue solver speed up: {sequential_time / queue_time:.5f} seconds")
-    logger.info(f"total pipe time: {pipe_time:.6f} seconds")
-    logger.info(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
-    logger.info(
-        f"pipe solver total speed up: {sequential_time / pipe_time:.5f} seconds"
-    )
+    logger.info(f"total sequential time: {sequential_time:.5f} seconds")
+    logger.info(f"to parallelize time: {seq_t:.5f} seconds")
 
+    logger.info(f"total queue time: {queue_time:.5f} seconds")
+    if seq_t / queue_t > 1.0:
+        logger.success(f"queue solver true speed up: {seq_t / queue_t:.5f}")
+        logger.success(f"queue solver speed up: {sequential_time / queue_time:.5f}")
+    else:
+        logger.warning(f"queue solver true speed up: {seq_t / queue_t:.5f}")
+        logger.warning(f"queue solver speed up: {sequential_time / queue_time:.5f}")
+
+    logger.info(f"total pipe time: {pipe_time:.6f} seconds")
+    if seq_t / pipe_t > 1.0:
+        logger.success(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
+        logger.success(f"pipe solver total speed up: {sequential_time / pipe_time:.5f}")
+    else:
+        logger.warning(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
+        logger.warning(f"pipe solver total speed up: {sequential_time / pipe_time:.5f}")
     # # statistics data
     # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
     # plotting.biodiversity_trend(ga.biodiversity)
