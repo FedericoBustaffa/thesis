@@ -18,16 +18,16 @@ def draw_graph(towns: pd.DataFrame, best: list[int]):
     plt.show()
 
 
-def fitness_trend(average: list[float], best: list[float]):
-    generations = [g for g in range(len(average))]
+def fitness_trend(best: list[float], worst: list[float]):
+    generations = [g for g in range(len(best))]
 
     plt.figure(figsize=(12, 6))
     plt.title("Fitness trend")
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
 
-    plt.plot(generations, average, label="Average fitness")
-    plt.plot(generations, best, label="Best fitness")
+    plt.plot(generations, best, label="Best fitness", c="g")
+    plt.plot(generations, worst, label="Worst fitness", c="r")
 
     plt.grid()
     plt.legend()

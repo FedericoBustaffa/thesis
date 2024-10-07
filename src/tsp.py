@@ -6,10 +6,7 @@ import time
 import pandas as pd
 from loguru import logger
 
-from ppga import Individual, ToolBox
-from ppga.genetic_solver import GeneticSolver
-from ppga.pipe_solver import PipeGeneticSolver
-from ppga.queued_solver import QueuedGeneticSolver
+from ppga import base, solver
 from utils import plotting
 
 
@@ -40,7 +37,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
     return (total_distance,)
 
 
-def tournament(population: list[Individual]):
+def tournament(population: list[base.Individual]):
     selected = []
     indices = [i for i in range(len(population))]
 
@@ -59,7 +56,7 @@ def tournament(population: list[Individual]):
     return selected
 
 
-def couples_mating(population: list[Individual]) -> list[tuple]:
+def couples_mating(population: list[base.Individual]) -> list[tuple]:
     indices = [i for i in range(len(population))]
     couples = []
     for _ in range(len(population) // 2):
@@ -101,8 +98,8 @@ def mut_rotation(chromosome: list[int]):
 
 
 def merge(
-    population: list[Individual], offsprings: list[Individual]
-) -> list[Individual]:
+    population: list[base.Individual], offsprings: list[base.Individual]
+) -> list[base.Individual]:
     population = sorted(population, reverse=True)
     offsprings = sorted(offsprings, reverse=True)
 
@@ -163,7 +160,7 @@ if __name__ == "__main__":
     # number of workers
     W = int(sys.argv[6])
 
-    toolbox = ToolBox()
+    toolbox = base.ToolBox()
     toolbox.set_fitness_weights(weights=(-1.0,))
     toolbox.set_generation(generate, len(towns))
     toolbox.set_selection(tournament)
@@ -173,26 +170,30 @@ if __name__ == "__main__":
     toolbox.set_evaluation(evaluate, towns)
     toolbox.set_replacement(merge)
 
-    solver = GeneticSolver()
+    genetic_solver = solver.GeneticSolver()
     start = time.perf_counter()
-    best, seq_t = solver.run(toolbox, N, G)
+    best, seq_stats = genetic_solver.run(toolbox, base.Statistics(), N, G)
     sequential_time = time.perf_counter() - start
     logger.success(f"best score: {best[0].fitness}")
     plotting.draw_graph(data, best[0].chromosome)
 
-    queued_solver = QueuedGeneticSolver(W)
+    queued_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
-    best, queue_t = queued_solver.run(toolbox, N, G)
+    best, queue_stats = queued_solver.run(toolbox, base.Statistics(), N, G)
     queue_time = time.perf_counter() - start
     logger.success(f"best score: {best[0].fitness}")
     plotting.draw_graph(data, best[0].chromosome)
 
-    pipe_solver = PipeGeneticSolver(W)
+    pipe_solver = solver.PipeGeneticSolver(W)
     start = time.perf_counter()
-    best, pipe_t = pipe_solver.run(toolbox, N, G)
+    best, pipe_stats = pipe_solver.run(toolbox, N, G, base.Statistics())
     pipe_time = time.perf_counter() - start
     logger.success(f"best score: {best[0].fitness}")
     plotting.draw_graph(data, best[0].chromosome)
+
+    seq_t = seq_stats.timings["parallel"]
+    queue_t = queue_stats.timings["parallel"]
+    pipe_t = pipe_stats.timings["parallel"]
 
     logger.info(f"total sequential time: {sequential_time:.5f} seconds")
     logger.info(f"to parallelize time: {seq_t:.5f} seconds")
@@ -212,10 +213,19 @@ if __name__ == "__main__":
     else:
         logger.warning(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
         logger.warning(f"pipe solver total speed up: {sequential_time / pipe_time:.5f}")
+
     # # statistics data
-    # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
+    plotting.fitness_trend(seq_stats.best, seq_stats.worst)
+    plotting.fitness_trend(queue_stats.best, queue_stats.worst)
+    plotting.fitness_trend(pipe_stats.best, pipe_stats.worst)
     # plotting.biodiversity_trend(ga.biodiversity)
 
+    # # timing
+    # plotting.timing(ga.timings)
+
+    # for k in ga.timings.keys():
+    #     print(f"{k}: {ga.timings[k]:.3f} seconds")
+    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
     # # timing
     # plotting.timing(ga.timings)
 

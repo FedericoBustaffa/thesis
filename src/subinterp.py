@@ -2,7 +2,7 @@ import math
 import time
 
 from ppga import SubInterpWorker
-from ppga.genetic_solver import GeneticSolver
+from ppga.solver.genetic_solver import GeneticSolver
 
 
 class SubInterpGeneticSolver(GeneticSolver):

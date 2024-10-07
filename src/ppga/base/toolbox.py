@@ -1,12 +1,9 @@
 import random
 
-from ppga import Fitness, Individual
+from ppga.base.individual import Fitness, Individual
 
 
 class ToolBox:
-    def __init__(self) -> None:
-        pass
-
     def set_fitness_weights(self, weights: tuple) -> None:
         self.weights = weights
 

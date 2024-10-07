@@ -2,17 +2,19 @@ import time
 
 from loguru import logger
 
-from ppga import Individual, ToolBox
+from ppga.base.individual import Individual
+from ppga.base.statistics import Statistics
+from ppga.base.toolbox import ToolBox
 
 
 class GeneticSolver:
     def run(
-        self, toolbox: ToolBox, population_size, max_generations: int
-    ) -> tuple[list[Individual], float]:
+        self, toolbox: ToolBox, stats: Statistics, population_size, max_generations: int
+    ) -> tuple[list[Individual], Statistics]:
         population = toolbox.generate(population_size)
         population = toolbox.evaluate(population)
 
-        timing = 0.0
+        parallel_time = 0.0
         for g in range(max_generations):
             logger.trace(f"generation: {g + 1}")
 
@@ -23,8 +25,13 @@ class GeneticSolver:
             offsprings = toolbox.crossover(couples)
             offsprings = toolbox.mutate(offsprings)
             offsprings = toolbox.evaluate(offsprings)
-            timing += time.perf_counter() - start
+            parallel_time += time.perf_counter() - start
 
             population = toolbox.replace(population, offsprings)
 
-        return population, timing
+            stats.push_best(population[0].fitness.fitness)
+            stats.push_worst(population[-1].fitness.fitness)
+
+        stats.add_time("parallel", parallel_time)
+
+        return population, stats
