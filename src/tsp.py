@@ -1,4 +1,5 @@
 import math
+import os
 import random
 import sys
 import time
@@ -7,7 +8,8 @@ import pandas as pd
 from loguru import logger
 
 from genetic_solver import GeneticSolver
-from modules import Individual
+from modules import Individual, ToolBox
+from queued_solver import QueuedGeneticSolver
 from utils import plotting
 
 
@@ -47,7 +49,7 @@ def tournament(population: list[Individual]):
         while first == second:
             first, second = random.choices(indices, k=2)
 
-        if population[first] < population[second]:
+        if population[first] > population[second]:
             selected.append(population[first])
             indices.remove(first)
         else:
@@ -102,8 +104,8 @@ def merge(
     population: list[Individual], offsprings: list[Individual]
 ) -> list[Individual]:
 
-    population = sorted(population)
-    offsprings = sorted(offsprings)
+    population = sorted(population, reverse=True)
+    offsprings = sorted(offsprings, reverse=True)
 
     next_generation = []
     index = 0
@@ -115,7 +117,7 @@ def merge(
         and index1 < len(population)
         and index2 < len(offsprings)
     ):
-        if population[index1] < offsprings[index2]:
+        if population[index1] > offsprings[index2]:
             next_generation.append(population[index1])
             index1 += 1
         else:
@@ -160,27 +162,29 @@ if __name__ == "__main__":
     # mutation rate
     MR = float(sys.argv[5])
 
+    toolbox = ToolBox()
+    toolbox.set_fitness_weights(weights=(-1.0,))
+    toolbox.set_generation(generate, len(towns))
+    toolbox.set_selection(tournament)
+    toolbox.set_mating(couples_mating)
+    toolbox.set_crossover(cx_one_point_ordered, CR)
+    toolbox.set_mutation(mut_rotation, MR)
+    toolbox.set_evaluation(evaluate, towns)
+    toolbox.set_replacement(merge)
+
     solver = GeneticSolver()
-    solver.create_individual(attribute_type=int, structure=list)
-    solver.create_fitness(weights=(-1.0,))
-    solver.set_population(list)
-
-    solver.set_generation(generate, len(towns))
-    solver.set_selection(tournament)
-    solver.set_mating(couples_mating)
-    solver.set_crossover(cx_one_point_ordered, CR)
-    solver.set_mutation(mut_rotation, MR)
-    solver.set_evaluation(evaluate, towns)
-    solver.set_replacement(merge)
-
     start = time.perf_counter()
-    best = solver.run(N, G)
-    logger.info(f"total time: {time.perf_counter() - start:.6f} seconds")
+    best = solver.run(toolbox, N, G)
+    logger.info(f"total sequential time: {time.perf_counter() - start:.6f} seconds")
+    logger.info(f"best score: {best[0].fitness}")
+    # plotting.draw_graph(data, best[0].chromosome)
 
-    logger.info(f"best score: {best[0]}")
-
-    # # drawing the graph
-    plotting.draw_graph(data, best[0].chromosome)
+    queued_solver = QueuedGeneticSolver(os.cpu_count())
+    start = time.perf_counter()
+    best = queued_solver.run(toolbox, N, G)
+    logger.info(f"total queue time: {time.perf_counter() - start:.6f} seconds")
+    logger.info(f"best score: {best[0].fitness}")
+    # plotting.draw_graph(data, best[0].chromosome)
 
     # # statistics data
     # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
@@ -191,6 +195,7 @@ if __name__ == "__main__":
 
     # for k in ga.timings.keys():
     #     print(f"{k}: {ga.timings[k]:.3f} seconds")
+    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
     # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
     # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
     # print(f"total time: {sum(ga.timings.values()):.3f} seconds")

@@ -3,15 +3,13 @@ import multiprocessing.queues as mpq
 
 from loguru import logger
 
-from modules import Crossoverator, Evaluator, Mutator
+from modules.toolbox import ToolBox
 
 
-def qtask(
+def task(
     rqueue: mpq.Queue,
     squeue: mpq.Queue,
-    crossoverator: Crossoverator,
-    mutator: Mutator,
-    evaluator: Evaluator,
+    toolbox: ToolBox,
 ):
     logger.trace(f"{mp.current_process().name} started")
     couples = []
@@ -21,26 +19,20 @@ def qtask(
         if couples is None:
             break
 
-        offsprings = crossoverator.perform(couples)
-        offsprings = mutator.perform(offsprings)
-        scores = evaluator.perform(offsprings)
+        offsprings = toolbox.crossover(couples)
+        offsprings = toolbox.mutate(offsprings)
+        offsprings = toolbox.evaluate(offsprings)
 
-        squeue.put((offsprings, scores))
+        squeue.put(offsprings)
 
     logger.trace(f"{mp.current_process().name} terminated")
 
 
-class QueueWorker:
-    def __init__(self, crossoverator, mutator, evaluator) -> None:
+class QueueWorker(mp.Process):
+    def __init__(self, toolbox: ToolBox) -> None:
         self.__rqueue = mp.Queue()
         self.__squeue = mp.Queue()
-        self.__process = mp.Process(
-            target=qtask,
-            args=[self.__rqueue, self.__squeue, crossoverator, mutator, evaluator],
-        )
-
-    def start(self) -> None:
-        self.__process.start()
+        super().__init__(target=task, args=[self.__rqueue, self.__squeue, toolbox])
 
     def send(self, msg) -> None:
         self.__rqueue.put(msg)
@@ -48,11 +40,8 @@ class QueueWorker:
     def recv(self):
         return self.__squeue.get()
 
-    def join(self) -> None:
-        self.__rqueue.close()
-        self.__squeue.close()
-        self.__process.join()
-
 
 if __name__ == "__main__":
+    pass
+    pass
     pass
