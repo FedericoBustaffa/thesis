@@ -61,7 +61,7 @@ class PipeGeneticSolver(GeneticSolver):
         logger.info(f"parallel time: {timing} seconds")
         logger.info(f"send time: {send_time:.6f} seconds")
 
-        return population
+        return population, timing
 
     def run(self, toolbox: ToolBox, population_size: int, max_generations: int):
         return asyncio.run(self.solve(toolbox, population_size, max_generations))

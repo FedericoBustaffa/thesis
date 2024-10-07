@@ -9,7 +9,8 @@ class GeneticSolver:
 
     def run(
         self, toolbox: ToolBox, population_size, max_generations: int
-    ) -> list[Individual]:
+    ) -> tuple[list[Individual], float]:
+
         population = toolbox.generate(population_size)
         population = toolbox.evaluate(population)
 
@@ -30,4 +31,4 @@ class GeneticSolver:
 
         logger.info(f"to parallelize time: {timing:.6f} seconds")
 
-        return population
+        return population, timing

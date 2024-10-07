@@ -4,7 +4,7 @@ import time
 
 from loguru import logger
 
-from ppga import Individual, QueueWorker, ToolBox
+from ppga import QueueWorker, ToolBox
 from ppga.genetic_solver import GeneticSolver
 
 
@@ -12,9 +12,7 @@ class QueuedGeneticSolver(GeneticSolver):
     def __init__(self, workers_num: int) -> None:
         self.workers_num = workers_num
 
-    async def solve(
-        self, toolbox: ToolBox, population_size: int, max_generations: int
-    ) -> list[Individual]:
+    async def solve(self, toolbox: ToolBox, population_size: int, max_generations: int):
         # start the parallel workers
         workers = [QueueWorker(toolbox) for _ in range(self.workers_num)]
         for w in workers:
@@ -66,7 +64,7 @@ class QueuedGeneticSolver(GeneticSolver):
         logger.info(f"parallel time: {timing} seconds")
         logger.info(f"send time: {send_time:.6f} seconds")
 
-        return population
+        return population, timing
 
     def run(self, toolbox: ToolBox, population_size: int, max_generations: int):
         return asyncio.run(self.solve(toolbox, population_size, max_generations))

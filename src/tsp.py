@@ -1,5 +1,4 @@
 import math
-import os
 import random
 import sys
 import time
@@ -36,7 +35,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    time.sleep(0.0001)
+    # time.sleep(0.0005)
 
     return (total_distance,)
 
@@ -137,14 +136,14 @@ def merge(
 if __name__ == "__main__":
 
     if len(sys.argv) < 7:
-        logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M> <log_level>")
+        logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M> <W> <log_level>")
         exit(1)
 
     logger.remove()
     logger.add(
         sys.stderr,
         format="<green>{time:HH:mm:ss}</green> | {file}:{line} | <level>{level} - {message}</level>",
-        level=sys.argv[6].upper(),
+        level=sys.argv[7].upper(),
         enqueue=True,
     )
 
@@ -163,6 +162,9 @@ if __name__ == "__main__":
     # mutation rate
     MR = float(sys.argv[5])
 
+    # number of workers
+    W = int(sys.argv[6])
+
     toolbox = ToolBox()
     toolbox.set_fitness_weights(weights=(-1.0,))
     toolbox.set_generation(generate, len(towns))
@@ -175,29 +177,34 @@ if __name__ == "__main__":
 
     solver = GeneticSolver()
     start = time.perf_counter()
-    best = solver.run(toolbox, N, G)
+    best, seq_t = solver.run(toolbox, N, G)
     sequential_time = time.perf_counter() - start
-    logger.info(f"total sequential time: {sequential_time:.6f} seconds")
     logger.success(f"best score: {best[0].fitness}")
     plotting.draw_graph(data, best[0].chromosome)
 
-    queued_solver = QueuedGeneticSolver(os.cpu_count())
+    queued_solver = QueuedGeneticSolver(W)
     start = time.perf_counter()
-    best = queued_solver.run(toolbox, N, G)
+    best, queue_t = queued_solver.run(toolbox, N, G)
     queue_time = time.perf_counter() - start
-    logger.info(f"total queue time: {queue_time:.6f} seconds")
-    logger.info(f"queue solver speed up: {sequential_time / queue_time:.5f} seconds")
     logger.success(f"best score: {best[0].fitness}")
     plotting.draw_graph(data, best[0].chromosome)
 
-    pipe_solver = PipeGeneticSolver(os.cpu_count())
+    pipe_solver = PipeGeneticSolver(W)
     start = time.perf_counter()
-    best = pipe_solver.run(toolbox, N, G)
+    best, pipe_t = pipe_solver.run(toolbox, N, G)
     pipe_time = time.perf_counter() - start
-    logger.info(f"total pipe time: {pipe_time:.6f} seconds")
-    logger.info(f"pipe solver speed up: {sequential_time / pipe_time:.5f} seconds")
     logger.success(f"best score: {best[0].fitness}")
     plotting.draw_graph(data, best[0].chromosome)
+
+    logger.info(f"total sequential time: {sequential_time:.6f} seconds")
+    logger.info(f"total queue time: {queue_time:.6f} seconds")
+    logger.info(f"queue solver true speed up: {seq_t / queue_t:.5f}")
+    logger.info(f"queue solver speed up: {sequential_time / queue_time:.5f} seconds")
+    logger.info(f"total pipe time: {pipe_time:.6f} seconds")
+    logger.info(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
+    logger.info(
+        f"pipe solver total speed up: {sequential_time / pipe_time:.5f} seconds"
+    )
 
     # # statistics data
     # plotting.fitness_trend(ga.average_fitness, ga.best_fitness)
@@ -208,9 +215,4 @@ if __name__ == "__main__":
 
     # for k in ga.timings.keys():
     #     print(f"{k}: {ga.timings[k]:.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
     # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
