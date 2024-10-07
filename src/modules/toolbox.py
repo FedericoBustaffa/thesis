@@ -47,7 +47,7 @@ class ToolBox:
         self.mating_args = args
         self.mating_kwargs = kwargs
 
-    def mate(self, population: list[Individual]) -> list[tuple[Individual]]:
+    def mate(self, population: list[Individual]) -> list[tuple]:
         return self.mating_func(population, *self.mating_args, **self.mating_kwargs)
 
     def set_crossover(self, func, rate: float = 0.8, *args, **kwargs) -> None:
@@ -56,7 +56,7 @@ class ToolBox:
         self.crossover_args = args
         self.crossover_kwargs = kwargs
 
-    def crossover(self, couples: list[tuple[Individual]]) -> list[Individual]:
+    def crossover(self, couples: list[tuple]) -> list[Individual]:
         offsprings = []
         for c in couples:
             if random.random() < self.crossover_rate:
@@ -92,7 +92,7 @@ class ToolBox:
         self.evaluation_args = args
         self.evaluation_kwargs = kwargs
 
-    def evaluate(self, population: list[Individual]) -> None:
+    def evaluate(self, population: list[Individual]) -> list[Individual]:
         for i in population:
             i.fitness.values = self.evaluation_func(
                 i.chromosome, *self.evaluation_args, **self.evaluation_kwargs
@@ -108,7 +108,4 @@ class ToolBox:
     def replace(
         self, population: list[Individual], offsprings: list[Individual]
     ) -> list[Individual]:
-        return self.replacement_func(population, offsprings)
-        return self.replacement_func(population, offsprings)
-        return self.replacement_func(population, offsprings)
         return self.replacement_func(population, offsprings)

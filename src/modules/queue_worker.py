@@ -40,10 +40,10 @@ class QueueWorker(mp.Process):
     def recv(self):
         return self.__squeue.get()
 
-    def join(self):
+    def join(self, timeout: float | None = None):
         self.__rqueue.close()
         self.__squeue.close()
-        super().join()
+        super().join(timeout)
 
 
 if __name__ == "__main__":

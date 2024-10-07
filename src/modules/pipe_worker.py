@@ -34,9 +34,9 @@ class PipeWorker(mp.Process):
     async def recv(self):
         return self.__pipe.recv()
 
-    def join(self):
+    def join(self, timeout: float | None = None):
         self.__pipe.close()
-        super().join()
+        super().join(timeout)
 
 
 if __name__ == "__main__":
