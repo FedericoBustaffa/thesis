@@ -2,7 +2,7 @@ import time
 
 from loguru import logger
 
-from modules import Individual, ToolBox
+from ppga import Individual, ToolBox
 
 
 class GeneticSolver:

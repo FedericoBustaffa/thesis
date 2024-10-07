@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 
 # from loguru import logger
-from modules import Crossoverator, Evaluator, Mutator
+from ppga import Crossoverator, Evaluator, Mutator
 
 crossoverator = Crossoverator(pickle.loads(r_chann.recv()))
 mutator = Mutator(pickle.loads(r_chann.recv()))

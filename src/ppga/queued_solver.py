@@ -4,8 +4,8 @@ import time
 
 from loguru import logger
 
-from genetic_solver import GeneticSolver
-from modules import Individual, QueueWorker, ToolBox
+from ppga import Individual, QueueWorker, ToolBox
+from ppga.genetic_solver import GeneticSolver
 
 
 class QueuedGeneticSolver(GeneticSolver):

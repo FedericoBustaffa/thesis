@@ -4,7 +4,7 @@ import threading
 from loguru import logger
 from test.support import interpreters
 
-from modules import Crossoverator, Evaluator, Mutator
+from ppga import Crossoverator, Evaluator, Mutator
 
 
 def task(

@@ -2,7 +2,7 @@ import math
 import sysconfig
 import threading
 
-from genetic_solver import GeneticSolver
+from ppga.genetic_solver import GeneticSolver
 
 
 class ThreadedGeneticSolver(GeneticSolver):

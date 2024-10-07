@@ -1,6 +1,6 @@
 import random
 
-from modules import Fitness, Individual
+from ppga import Fitness, Individual
 
 
 class ToolBox:

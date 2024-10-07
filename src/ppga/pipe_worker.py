@@ -3,7 +3,7 @@ import multiprocessing.connection as conn
 
 from loguru import logger
 
-from modules.toolbox import ToolBox
+from ppga.toolbox import ToolBox
 
 
 def task(pipe: conn.Connection, toolbox: ToolBox):

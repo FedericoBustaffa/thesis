@@ -4,8 +4,8 @@ import time
 
 from loguru import logger
 
-from genetic_solver import GeneticSolver
-from modules import PipeWorker, ToolBox
+from ppga import PipeWorker, ToolBox
+from ppga.genetic_solver import GeneticSolver
 
 
 class PipeGeneticSolver(GeneticSolver):

@@ -1,8 +1,8 @@
 import math
 import time
 
-from genetic_solver import GeneticSolver
-from modules import SubInterpWorker
+from ppga import SubInterpWorker
+from ppga.genetic_solver import GeneticSolver
 
 
 class SubInterpGeneticSolver(GeneticSolver):

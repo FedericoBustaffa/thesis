@@ -3,7 +3,7 @@ import multiprocessing.queues as mpq
 
 from loguru import logger
 
-from modules.toolbox import ToolBox
+from ppga.toolbox import ToolBox
 
 
 def task(

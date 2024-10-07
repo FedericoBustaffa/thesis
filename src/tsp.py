@@ -7,10 +7,10 @@ import time
 import pandas as pd
 from loguru import logger
 
-from genetic_solver import GeneticSolver
-from modules import Individual, ToolBox
-from pipe_solver import PipeGeneticSolver
-from queued_solver import QueuedGeneticSolver
+from ppga import Individual, ToolBox
+from ppga.genetic_solver import GeneticSolver
+from ppga.pipe_solver import PipeGeneticSolver
+from ppga.queued_solver import QueuedGeneticSolver
 from utils import plotting
 
 
