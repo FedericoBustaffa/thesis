@@ -34,10 +34,10 @@ class QueueWorker(mp.Process):
         self.__squeue = mp.Queue()
         super().__init__(target=task, args=[self.__rqueue, self.__squeue, toolbox])
 
-    def send(self, msg) -> None:
+    async def send(self, msg) -> None:
         self.__rqueue.put(msg)
 
-    def recv(self):
+    async def recv(self):
         return self.__squeue.get()
 
     def join(self, timeout: float | None = None):
@@ -47,6 +47,4 @@ class QueueWorker(mp.Process):
 
 
 if __name__ == "__main__":
-    pass
-    pass
     pass

@@ -1,3 +1,4 @@
+import asyncio
 import math
 import time
 
@@ -11,7 +12,7 @@ class QueuedGeneticSolver(GeneticSolver):
     def __init__(self, workers_num: int) -> None:
         self.workers_num = workers_num
 
-    def run(
+    async def solve(
         self, toolbox: ToolBox, population_size: int, max_generations: int
     ) -> list[Individual]:
         # start the parallel workers
@@ -37,12 +38,21 @@ class QueuedGeneticSolver(GeneticSolver):
             # sending couples chunks
             start = time.perf_counter()
             send_start = time.perf_counter()
-            for i in range(len(workers)):
-                workers[i].send(couples[i * chunksize : i * chunksize + chunksize])
+            tasks = [
+                asyncio.create_task(
+                    workers[i].send(couples[i * chunksize : i * chunksize + chunksize])
+                )
+                for i in range(len(workers))
+            ]
+            asyncio.as_completed(tasks)
+            # for i in range(len(workers)):
+            #     workers[i].send(couples[i * chunksize : i * chunksize + chunksize])
             send_time += time.perf_counter() - send_start
 
             # receiving offsprings and scores
-            results = [w.recv() for w in workers]
+            tasks = [asyncio.create_task(w.recv()) for w in workers]
+            results = [await t for t in tasks]
+            # results = [w.recv() for w in workers]
             for offsprings_chunk in results:
                 offsprings.extend(offsprings_chunk)
             timing += time.perf_counter() - start
@@ -50,10 +60,13 @@ class QueuedGeneticSolver(GeneticSolver):
             population = toolbox.replace(population, offsprings)
 
         for w in workers:
-            w.send(None)
+            await asyncio.create_task(w.send(None))
             w.join()
 
         logger.info(f"parallel time: {timing} seconds")
         logger.info(f"send time: {send_time:.6f} seconds")
 
         return population
+
+    def run(self, toolbox: ToolBox, population_size: int, max_generations: int):
+        return asyncio.run(self.solve(toolbox, population_size, max_generations))
