@@ -58,7 +58,6 @@ class PipeGeneticSolver(GeneticSolver):
             await asyncio.create_task(w.send(None))
             w.join()
 
-        logger.info(f"parallel time: {timing} seconds")
         logger.info(f"send time: {send_time:.6f} seconds")
 
         return population, timing

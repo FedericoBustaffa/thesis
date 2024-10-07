@@ -103,7 +103,6 @@ def mut_rotation(chromosome: list[int]):
 def merge(
     population: list[Individual], offsprings: list[Individual]
 ) -> list[Individual]:
-
     population = sorted(population, reverse=True)
     offsprings = sorted(offsprings, reverse=True)
 
@@ -134,7 +133,6 @@ def merge(
 
 
 if __name__ == "__main__":
-
     if len(sys.argv) < 7:
         logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M> <W> <log_level>")
         exit(1)
