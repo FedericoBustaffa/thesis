@@ -19,7 +19,7 @@ def task(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
 
         while parents is not None:
             start = time.perf_counter()
-            offsprings = toolbox.crossover([parents])
+            offsprings = toolbox.crossover(parents)
             stats.add_time("crossover", start)
 
             start = time.perf_counter()
@@ -46,8 +46,9 @@ class QueueWorker(mp.Process):
 
     async def send(self, chunk: list | None = None) -> None:
         if isinstance(chunk, list):
-            for single in chunk:
-                self.__rqueue.put(single)
+            size = len(chunk) // 8
+            for i in range(8):
+                self.__rqueue.put(chunk[i * size : i * size + size])
         self.__rqueue.put(None)
 
     async def recv(self):
