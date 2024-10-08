@@ -1,4 +1,5 @@
 asyncio
+tqdm
 numpy
 matplotlib
 pandas

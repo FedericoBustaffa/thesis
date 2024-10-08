@@ -5,6 +5,7 @@ import multiprocessing.queues as mpq
 import time
 
 from loguru import logger
+from tqdm import tqdm
 
 from ppga.base.statistics import Statistics
 from ppga.base.toolbox import ToolBox
@@ -94,8 +95,8 @@ class QueuedGeneticSolver(GeneticSolver):
         population = toolbox.evaluate(population)
         # stats.add_time("evaluation", start)
 
-        for g in range(max_generations):
-            logger.trace(f"generation: {g + 1}")
+        for g in tqdm(range(max_generations)):
+            # logger.trace(f"generation: {g + 1}")
 
             start = time.perf_counter()
             chosen = toolbox.select(population)
