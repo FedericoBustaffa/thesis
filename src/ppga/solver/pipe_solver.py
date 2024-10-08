@@ -4,7 +4,7 @@ import multiprocessing as mp
 import multiprocessing.connection as conn
 import time
 
-from loguru import logger
+from tqdm import tqdm
 
 from ppga.base.statistics import Statistics
 from ppga.base.toolbox import ToolBox
@@ -65,9 +65,7 @@ class PipeGeneticSolver(GeneticSolver):
         population = toolbox.evaluate(population)
         stats.add_time("evaluation", start)
 
-        for g in range(max_generations):
-            logger.trace(f"generation: {g + 1}")
-
+        for g in tqdm(range(max_generations), desc="generations", ncols=80, ascii=True):
             start = time.perf_counter()
             chosen = toolbox.select(population)
             stats.add_time("selection", start)
