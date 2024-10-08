@@ -32,7 +32,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    # time.sleep(0.00005)
+    time.sleep(0.00005)
 
     return (total_distance,)
 
