@@ -172,24 +172,16 @@ if __name__ == "__main__":
 
     genetic_solver = solver.GeneticSolver()
     start = time.perf_counter()
-    best, seq_stats = genetic_solver.run(toolbox, base.Statistics(), N, G)
+    seq_best, seq_stats = genetic_solver.run(toolbox, base.Statistics(), N, G)
     sequential_time = time.perf_counter() - start
-    logger.success(f"best score: {best[0].fitness}")
-    # plotting.draw_graph(data, best[0].chromosome)
 
     queued_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
-    best, queue_stats = queued_solver.run(toolbox, base.Statistics(), N, G)
+    queue_best, queue_stats = queued_solver.run(toolbox, base.Statistics(), N, G)
     queue_time = time.perf_counter() - start
-    logger.success(f"best score: {best[0].fitness}")
-    # plotting.draw_graph(data, best[0].chromosome)
 
-    pipe_solver = solver.PipeGeneticSolver(W)
-    start = time.perf_counter()
-    best, pipe_stats = pipe_solver.run(toolbox, N, G, base.Statistics())
-    pipe_time = time.perf_counter() - start
-    logger.success(f"best score: {best[0].fitness}")
-    # plotting.draw_graph(data, best[0].chromosome)
+    logger.success(f"best score: {seq_best[0].fitness}")
+    logger.success(f"best score: {queue_best[0].fitness}")
 
     seq_t = sum(
         [
@@ -199,17 +191,19 @@ if __name__ == "__main__":
         ]
     )
     queue_t = queue_stats.timings["parallel"]
-    pipe_t = pipe_stats.timings["parallel"]
 
     logger.info(f"total sequential time: {sequential_time:.5f} seconds")
     logger.info(f"to parallelize time: {seq_t:.5f} seconds")
-
     logger.info(f"total queue time: {queue_time:.5f} seconds")
+
     if seq_t / queue_t > 1.0:
         logger.success(f"queue solver true speed up: {seq_t / queue_t:.5f}")
-        logger.success(f"queue solver speed up: {sequential_time / queue_time:.5f}")
     else:
         logger.warning(f"queue solver true speed up: {seq_t / queue_t:.5f}")
+
+    if sequential_time / queue_time > 1.0:
+        logger.success(f"queue solver speed up: {sequential_time / queue_time:.5f}")
+    else:
         logger.warning(f"queue solver speed up: {sequential_time / queue_time:.5f}")
 
     queue_sync_time = queue_stats.timings["parallel"] - sum(
@@ -222,30 +216,9 @@ if __name__ == "__main__":
     logger.info(f"queue solver sync time: {queue_sync_time}")
     logger.info(f"queue parallel time: {queue_stats.timings["parallel"]}")
 
-    logger.info(f"total pipe time: {pipe_time:.6f} seconds")
-    if seq_t / pipe_t > 1.0:
-        logger.success(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
-        logger.success(f"pipe solver total speed up: {sequential_time / pipe_time:.5f}")
-    else:
-        logger.warning(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
-        logger.warning(f"pipe solver total speed up: {sequential_time / pipe_time:.5f}")
-
-    # # statistics data
+    # statistics data
+    plotting.draw_graph(data, seq_best[0].chromosome)
     plotting.fitness_trend(seq_stats.best, seq_stats.worst)
+
+    plotting.draw_graph(data, queue_best[0].chromosome)
     plotting.fitness_trend(queue_stats.best, queue_stats.worst)
-    plotting.fitness_trend(pipe_stats.best, pipe_stats.worst)
-
-    # plotting.biodiversity_trend(ga.biodiversity)
-
-    # # timing
-    # plotting.timing(ga.timings)
-
-    # for k in ga.timings.keys():
-    #     print(f"{k}: {ga.timings[k]:.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
-    # # timing
-    # plotting.timing(ga.timings)
-
-    # for k in ga.timings.keys():
-    #     print(f"{k}: {ga.timings[k]:.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
