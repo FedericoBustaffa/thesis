@@ -15,9 +15,9 @@ class GeneticSolver:
         population = toolbox.generate(population_size)
         stats.add_time("generation", start)
 
-        start = time.perf_counter()
+        # start = time.perf_counter()
         population = toolbox.evaluate(population)
-        stats.add_time("evaluation", start)
+        # stats.add_time("evaluation", start)
 
         for g in tqdm(range(max_generations), desc="generations", ncols=80):
             start = time.perf_counter()
