@@ -78,7 +78,7 @@ class QueuedGeneticSolver(GeneticSolver):
         population = toolbox.evaluate(population)
         # stats.add_time("evaluation", start)
 
-        for g in tqdm(range(max_generations), desc="generations", ncols=80, ascii=True):
+        for g in tqdm(range(max_generations), desc="generations", ncols=80):
             start = time.perf_counter()
             chosen = toolbox.select(population)
             stats.add_time("selection", start)
