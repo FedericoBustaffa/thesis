@@ -217,8 +217,8 @@ if __name__ == "__main__":
     logger.info(f"queue parallel time: {queue_stats.timings["parallel"]}")
 
     # statistics data
-    plotting.draw_graph(data, seq_best[0].chromosome)
-    plotting.fitness_trend(seq_stats.best, seq_stats.worst)
+    # plotting.draw_graph(data, seq_best[0].chromosome)
+    # plotting.fitness_trend(seq_stats.best, seq_stats.worst)
 
-    plotting.draw_graph(data, queue_best[0].chromosome)
-    plotting.fitness_trend(queue_stats.best, queue_stats.worst)
+    # plotting.draw_graph(data, queue_best[0].chromosome)
+    # plotting.fitness_trend(queue_stats.best, queue_stats.worst)

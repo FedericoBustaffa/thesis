@@ -90,6 +90,7 @@ class QueuedGeneticSolver(GeneticSolver):
         population = toolbox.generate(population_size)
         stats.add_time("generation", start)
 
+        # this one should not be timed
         # start = time.perf_counter()
         population = toolbox.evaluate(population)
         # stats.add_time("evaluation", start)
