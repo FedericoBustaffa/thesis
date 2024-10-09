@@ -9,7 +9,11 @@ from ppga.base.toolbox import ToolBox
 
 class GeneticSolver:
     def run(
-        self, toolbox: ToolBox, stats: Statistics, population_size, max_generations: int
+        self,
+        toolbox: ToolBox,
+        population_size: int,
+        max_generations: int,
+        stats: Statistics,
     ) -> tuple[list[Individual], Statistics]:
         start = time.perf_counter()
         population = toolbox.generate(population_size)

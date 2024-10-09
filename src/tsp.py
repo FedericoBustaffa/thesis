@@ -32,7 +32,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    time.sleep(0.0005)
+    time.sleep(0.005)
 
     return (total_distance,)
 
@@ -172,12 +172,12 @@ if __name__ == "__main__":
 
     genetic_solver = solver.GeneticSolver()
     start = time.perf_counter()
-    seq_best, seq_stats = genetic_solver.run(toolbox, base.Statistics(), N, G)
+    seq_best, seq_stats = genetic_solver.run(toolbox, N, G, base.Statistics())
     sequential_time = time.perf_counter() - start
 
     queued_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
-    queue_best, queue_stats = queued_solver.run(toolbox, base.Statistics(), N, G)
+    queue_best, queue_stats = queued_solver.run(toolbox, N, G, base.Statistics())
     queue_time = time.perf_counter() - start
 
     # logger.success(f"sequential best score: {seq_best[0].fitness}")
@@ -220,8 +220,8 @@ if __name__ == "__main__":
     logger.info(f"queue parallel time: {queue_stats.timings["parallel"]} seconds")
 
     # statistics data
-    # plotting.draw_graph(data, seq_best[0].chromosome)
-    # plotting.fitness_trend(seq_stats.best, seq_stats.worst)
+    plotting.draw_graph(data, seq_best[0].chromosome)
+    plotting.fitness_trend(seq_stats.best, seq_stats.worst)
 
-    # plotting.draw_graph(data, queue_best[0].chromosome)
-    # plotting.fitness_trend(queue_stats.best, queue_stats.worst)
+    plotting.draw_graph(data, queue_best[0].chromosome)
+    plotting.fitness_trend(queue_stats.best, queue_stats.worst)

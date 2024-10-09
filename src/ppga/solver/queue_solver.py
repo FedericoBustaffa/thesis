@@ -47,8 +47,8 @@ class QueueWorker(mp.Process):
 
     async def send(self, chunk: list | None = None) -> None:
         if isinstance(chunk, list):
-            size = len(chunk) // 8
-            for i in range(8):
+            size = len(chunk) // 4
+            for i in range(4):
                 self.__rqueue.put(chunk[i * size : i * size + size])
         self.__rqueue.put(None)
 
@@ -79,9 +79,9 @@ class QueuedGeneticSolver(GeneticSolver):
     async def solve(
         self,
         toolbox: ToolBox,
-        stats: Statistics,
         population_size: int,
         max_generations: int,
+        stats: Statistics,
     ):
         # start the parallel workers
         workers = [QueueWorker(toolbox, stats) for _ in range(self.workers_num)]
@@ -108,7 +108,6 @@ class QueuedGeneticSolver(GeneticSolver):
 
             # parallel crossover + mutation + evaluation
             chunksize = math.ceil(len(couples) / len(workers))
-            offsprings = []
 
             # sending couples chunks
             start = time.perf_counter()
@@ -125,6 +124,7 @@ class QueuedGeneticSolver(GeneticSolver):
             results = [await t for t in tasks]
 
             # keep only the worst time for each worker
+            offsprings = []
             crossover_time = 0.0
             mutation_time = 0.0
             evaluation_time = 0.0
@@ -161,8 +161,8 @@ class QueuedGeneticSolver(GeneticSolver):
     def run(
         self,
         toolbox: ToolBox,
-        stats: Statistics,
         population_size: int,
         max_generations: int,
+        stats: Statistics,
     ):
-        return asyncio.run(self.solve(toolbox, stats, population_size, max_generations))
+        return asyncio.run(self.solve(toolbox, population_size, max_generations, stats))
