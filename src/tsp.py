@@ -3,6 +3,7 @@ import random
 import sys
 import time
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 
@@ -174,11 +175,17 @@ if __name__ == "__main__":
     start = time.perf_counter()
     seq_best, seq_stats = genetic_solver.run(toolbox, N, G, base.Statistics())
     sequential_time = time.perf_counter() - start
+    mean_eval_time = np.mean(toolbox.timings)
 
     queued_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
     queue_best, queue_stats = queued_solver.run(toolbox, N, G, base.Statistics())
     queue_time = time.perf_counter() - start
+
+    logger.trace(f"evaluation mean time: {mean_eval_time} seconds")
+    logger.trace(f"evaluation total time: {np.sum(toolbox.timings)} seconds")
+    logger.trace(f"evaluation max time: {max(toolbox.timings)}")
+    logger.trace(f"evaluation max time: {min(toolbox.timings)}")
 
     # logger.success(f"sequential best score: {seq_best[0].fitness}")
     seq_t = sum(

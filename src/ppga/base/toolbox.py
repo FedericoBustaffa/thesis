@@ -1,9 +1,13 @@
 import random
+import time
 
 from ppga.base.individual import Fitness, Individual
 
 
 class ToolBox:
+    def __init__(self):
+        self.timings = []
+
     def set_fitness_weights(self, weights: tuple) -> None:
         self.weights = weights
 
@@ -91,9 +95,11 @@ class ToolBox:
 
     def evaluate(self, population: list[Individual]) -> list[Individual]:
         for i in population:
+            start = time.perf_counter()
             i.fitness.values = self.evaluation_func(
                 i.chromosome, *self.evaluation_args, **self.evaluation_kwargs
             )
+            self.timings.append(time.perf_counter() - start)
 
         return population
 

@@ -124,8 +124,22 @@ inserirlo nella coda sono necessari in media
 $0.9 \; \mu s$. Per inserirne $10.000$ sono stati
 necessari circa $15 \; ms$.
 
-Per elaborare un individuo mediamente sono necessari
-$0.6 \; ms$ secondi ed è quindi
+Per elaborare un individuo mediamente sono
+necessari $0.8 \; ms$, sono stati necessari
+invece circa $19$ secondi per valutarne $10.000$.
+
+I risultati ottenuti quando si prende in
+considerazione l'intera popolazione non sono
+diversi da quello che ci si potrebbe aspettare,
+per esempio
+
+$$\text{tempo medio singolo individuo} * 10.000$$
+
+dato che in Python ci sono diversi meccanismi che
+possono variare anche di molto il tempo di
+esecuzione tra un'iterazione e l'altra, ad esempio
+ottimizzazione del bytecode, compilazione JIT e
+garbage collection.
 
 <!-- Ricontrollare gli ordini di grandezza -->
 Se la valutazione della fitness di ogni individuo è
