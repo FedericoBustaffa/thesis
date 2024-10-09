@@ -32,7 +32,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    time.sleep(0.0005)
+    # time.sleep(0.0005)
 
     return (total_distance,)
 
@@ -180,9 +180,7 @@ if __name__ == "__main__":
     queue_best, queue_stats = queued_solver.run(toolbox, base.Statistics(), N, G)
     queue_time = time.perf_counter() - start
 
-    logger.success(f"best score: {seq_best[0].fitness}")
-    logger.success(f"best score: {queue_best[0].fitness}")
-
+    logger.success(f"sequential best score: {seq_best[0].fitness}")
     seq_t = sum(
         [
             seq_stats.timings["evaluation"],
@@ -194,8 +192,10 @@ if __name__ == "__main__":
 
     logger.info(f"total sequential time: {sequential_time:.5f} seconds")
     logger.info(f"to parallelize time: {seq_t:.5f} seconds")
-    logger.info(f"total queue time: {queue_time:.5f} seconds")
 
+    logger.info("-" * 50)
+    logger.success(f"queue best score: {queue_best[0].fitness}")
+    logger.info(f"total queue time: {queue_time:.5f} seconds")
     if seq_t / queue_t > 1.0:
         logger.success(f"queue solver true speed up: {seq_t / queue_t:.5f}")
     else:
@@ -206,15 +206,18 @@ if __name__ == "__main__":
     else:
         logger.warning(f"queue solver speed up: {sequential_time / queue_time:.5f}")
 
-    queue_sync_time = queue_stats.timings["parallel"] - sum(
+    pure_work_time = sum(
         [
             queue_stats.timings["crossover"],
             queue_stats.timings["mutation"],
             queue_stats.timings["evaluation"],
         ]
     )
-    logger.info(f"queue solver sync time: {queue_sync_time}")
-    logger.info(f"queue parallel time: {queue_stats.timings["parallel"]}")
+    logger.info(f"pure work time: {pure_work_time} seconds")
+
+    queue_sync_time = queue_stats.timings["parallel"] - pure_work_time
+    logger.info(f"queue solver sync time: {queue_sync_time} seconds")
+    logger.info(f"queue parallel time: {queue_stats.timings["parallel"]} seconds")
 
     # statistics data
     # plotting.draw_graph(data, seq_best[0].chromosome)

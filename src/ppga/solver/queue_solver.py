@@ -17,6 +17,7 @@ def task(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
         if parents is None:
             break
 
+        stats.reset()
         while parents is not None:
             start = time.perf_counter()
             offsprings = toolbox.crossover(parents)
@@ -122,17 +123,27 @@ class QueuedGeneticSolver(GeneticSolver):
             # receiving offsprings and scores
             tasks = [asyncio.create_task(w.recv()) for w in workers]
             results = [await t for t in tasks]
-            stats.add_time("parallel", start)
 
             # keep only the worst time for each worker
+            crossover_time = 0.0
+            mutation_time = 0.0
+            evaluation_time = 0.0
             for offsprings_chunk, timings in results:
                 offsprings.extend(offsprings_chunk)
-                if stats.timings["crossover"] < timings["crossover"]:
-                    stats.timings["crossover"] += timings["crossover"]
-                if stats.timings["mutation"] < timings["mutation"]:
-                    stats.timings["mutation"] += timings["mutation"]
-                if stats.timings["evaluation"] < timings["evaluation"]:
-                    stats.timings["evaluation"] += timings["evaluation"]
+
+                if crossover_time < timings["crossover"]:
+                    crossover_time = timings["crossover"]
+
+                if mutation_time < timings["mutation"]:
+                    mutation_time = timings["mutation"]
+
+                if evaluation_time < timings["evaluation"]:
+                    evaluation_time = timings["evaluation"]
+            stats.add_time("parallel", start)
+
+            stats.timings["crossover"] += crossover_time
+            stats.timings["mutation"] += mutation_time
+            stats.timings["evaluation"] += evaluation_time
 
             # replacement
             start = time.perf_counter()
