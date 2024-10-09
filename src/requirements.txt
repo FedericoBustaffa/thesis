@@ -4,5 +4,4 @@ numpy
 matplotlib
 pandas
 loguru
-joblib
 deap
