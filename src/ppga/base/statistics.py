@@ -21,6 +21,10 @@ class Statistics:
     def add_time(self, field: str, start: float) -> None:
         self.timings[field] += time.perf_counter() - start
 
+    def reset(self) -> None:
+        for k in self.timings.keys():
+            self.timings[k] = 0.0
+
     def push_best(self, fitness: float) -> None:
         self.best.append(fitness)
 

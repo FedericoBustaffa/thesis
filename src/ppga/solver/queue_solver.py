@@ -12,26 +12,29 @@ from ppga.solver.genetic_solver import GeneticSolver
 
 
 def task(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statistics):
-    couples = []
     while True:
-        couples = rqueue.get()
-
-        if couples is None:
+        parents = rqueue.get()
+        if parents is None:
             break
 
-        start = time.perf_counter()
-        offsprings = toolbox.crossover(couples)
-        stats.add_time("crossover", start)
+        stats.reset()
+        while parents is not None:
+            start = time.perf_counter()
+            offsprings = toolbox.crossover(parents)
+            stats.add_time("crossover", start)
 
-        start = time.perf_counter()
-        offsprings = toolbox.mutate(offsprings)
-        stats.add_time("mutation", start)
+            start = time.perf_counter()
+            offsprings = toolbox.mutate(offsprings)
+            stats.add_time("mutation", start)
 
-        start = time.perf_counter()
-        offsprings = toolbox.evaluate(offsprings)
-        stats.add_time("evaluation", start)
+            start = time.perf_counter()
+            offsprings = toolbox.evaluate(offsprings)
+            stats.add_time("evaluation", start)
 
-        squeue.put((offsprings, stats.timings))
+            squeue.put(offsprings)
+            parents = rqueue.get()
+
+        squeue.put(stats.timings)
 
 
 class QueueWorker(mp.Process):
@@ -42,15 +45,30 @@ class QueueWorker(mp.Process):
             target=task, args=[self.__rqueue, self.__squeue, toolbox, stats]
         )
 
-    async def send(self, msg) -> None:
-        self.__rqueue.put(msg)
+    async def send(self, chunk: list | None = None) -> None:
+        if isinstance(chunk, list):
+            size = len(chunk) // 4
+            for i in range(4):
+                self.__rqueue.put(chunk[i * size : i * size + size])
+        self.__rqueue.put(None)
 
     async def recv(self):
-        return self.__squeue.get()
+        obj = self.__squeue.get()
+        if isinstance(obj, list):
+            result = []
+            while not isinstance(obj, dict):
+                result.extend(obj)
+                obj = self.__squeue.get()
+            return (result, obj)
+        else:
+            return obj
 
     def join(self, timeout: float | None = None):
-        self.__rqueue.close()
         self.__squeue.close()
+        self.__rqueue.put(None)
+        while not self.__rqueue.empty():
+            pass
+        self.__rqueue.close()
         super().join(timeout)
 
 
@@ -61,9 +79,9 @@ class QueuedGeneticSolver(GeneticSolver):
     async def solve(
         self,
         toolbox: ToolBox,
-        stats: Statistics,
         population_size: int,
         max_generations: int,
+        stats: Statistics,
     ):
         # start the parallel workers
         workers = [QueueWorker(toolbox, stats) for _ in range(self.workers_num)]
@@ -74,6 +92,7 @@ class QueuedGeneticSolver(GeneticSolver):
         population = toolbox.generate(population_size)
         stats.add_time("generation", start)
 
+        # this one should not be timed
         # start = time.perf_counter()
         population = toolbox.evaluate(population)
         # stats.add_time("evaluation", start)
@@ -87,9 +106,8 @@ class QueuedGeneticSolver(GeneticSolver):
             couples = toolbox.mate(chosen)
             stats.add_time("mating", start)
 
-            # parallel work
+            # parallel crossover + mutation + evaluation
             chunksize = math.ceil(len(couples) / len(workers))
-            offsprings = []
 
             # sending couples chunks
             start = time.perf_counter()
@@ -104,16 +122,30 @@ class QueuedGeneticSolver(GeneticSolver):
             # receiving offsprings and scores
             tasks = [asyncio.create_task(w.recv()) for w in workers]
             results = [await t for t in tasks]
-            stats.add_time("parallel", start)
+
+            # keep only the worst time for each worker
+            offsprings = []
+            crossover_time = 0.0
+            mutation_time = 0.0
+            evaluation_time = 0.0
             for offsprings_chunk, timings in results:
                 offsprings.extend(offsprings_chunk)
-                if stats.timings["crossover"] < timings["crossover"]:
-                    stats.timings["crossover"] += timings["crossover"]
-                if stats.timings["mutation"] < timings["mutation"]:
-                    stats.timings["mutation"] += timings["mutation"]
-                if stats.timings["evaluation"] < timings["evaluation"]:
-                    stats.timings["evaluation"] += timings["evaluation"]
 
+                if crossover_time < timings["crossover"]:
+                    crossover_time = timings["crossover"]
+
+                if mutation_time < timings["mutation"]:
+                    mutation_time = timings["mutation"]
+
+                if evaluation_time < timings["evaluation"]:
+                    evaluation_time = timings["evaluation"]
+            stats.add_time("parallel", start)
+
+            stats.timings["crossover"] += crossover_time
+            stats.timings["mutation"] += mutation_time
+            stats.timings["evaluation"] += evaluation_time
+
+            # replacement
             start = time.perf_counter()
             population = toolbox.replace(population, offsprings)
             stats.add_time("replacement", start)
@@ -122,7 +154,6 @@ class QueuedGeneticSolver(GeneticSolver):
             stats.push_worst(population[-1].fitness.fitness)
 
         for w in workers:
-            await asyncio.create_task(w.send(None))
             w.join()
 
         return population, stats
@@ -134,4 +165,4 @@ class QueuedGeneticSolver(GeneticSolver):
         max_generations: int,
         stats: Statistics,
     ):
-        return asyncio.run(self.solve(toolbox, stats, population_size, max_generations))
+        return asyncio.run(self.solve(toolbox, population_size, max_generations, stats))

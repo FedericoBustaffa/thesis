@@ -9,8 +9,9 @@ if __name__ == "__main__":
         exit(1)
 
     T = int(sys.argv[1])
-    print(f"Generating {T} towns...")
 
+    # generate towns positions
+    print(f"generating {T} towns...")
     data = pd.DataFrame(
         {
             "x": [random.random() for _ in range(T)],
@@ -18,6 +19,5 @@ if __name__ == "__main__":
         }
     )
     print(f"{T} towns generated")
-
     data.to_csv(path_or_buf=f"datasets/towns_{T}.csv", sep=",", index=False)
     print(f"File generated: datasets/towns_{T}.csv")

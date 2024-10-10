@@ -3,11 +3,11 @@ import random
 import sys
 import time
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 
 from ppga import base, solver
-from utils import plotting
 
 
 class Town:
@@ -174,20 +174,19 @@ if __name__ == "__main__":
     start = time.perf_counter()
     seq_best, seq_stats = genetic_solver.run(toolbox, N, G, base.Statistics())
     sequential_time = time.perf_counter() - start
+    mean_eval_time = np.mean(toolbox.timings)
 
     queued_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
     queue_best, queue_stats = queued_solver.run(toolbox, N, G, base.Statistics())
     queue_time = time.perf_counter() - start
 
-    pipe_solver = solver.PipeGeneticSolver(W)
-    start = time.perf_counter()
-    pipe_best, pipe_stats = pipe_solver.run(toolbox, N, G, base.Statistics())
-    pipe_time = time.perf_counter() - start
-    logger.success(f"best score: {seq_best[0].fitness}")
-    logger.success(f"best score: {queue_best[0].fitness}")
-    logger.success(f"best score: {pipe_best[0].fitness}")
+    logger.trace(f"evaluation mean time: {mean_eval_time} seconds")
+    logger.trace(f"evaluation total time: {np.sum(toolbox.timings)} seconds")
+    logger.trace(f"evaluation max time: {max(toolbox.timings)}")
+    logger.trace(f"evaluation max time: {min(toolbox.timings)}")
 
+    # logger.success(f"sequential best score: {seq_best[0].fitness}")
     seq_t = sum(
         [
             seq_stats.timings["evaluation"],
@@ -196,60 +195,39 @@ if __name__ == "__main__":
         ]
     )
     queue_t = queue_stats.timings["parallel"]
-    pipe_t = pipe_stats.timings["parallel"]
 
-    logger.info(f"total sequential time: {sequential_time:.5f} seconds")
+    logger.info(f"sequential total time: {sequential_time:.5f} seconds")
     logger.info(f"to parallelize time: {seq_t:.5f} seconds")
 
-    logger.info(f"total queue time: {queue_time:.5f} seconds")
+    logger.info("-" * 50)
+    # logger.success(f"queue best score: {queue_best[0].fitness}")
+    logger.info(f"queue total time: {queue_time:.5f} seconds")
     if seq_t / queue_t > 1.0:
-        logger.success(f"queue solver true speed up: {seq_t / queue_t:.5f}")
-        logger.success(f"queue solver speed up: {sequential_time / queue_time:.5f}")
+        logger.success(f"queue solver core speed up: {seq_t / queue_t:.5f}")
     else:
-        logger.warning(f"queue solver true speed up: {seq_t / queue_t:.5f}")
-        logger.warning(f"queue solver speed up: {sequential_time / queue_time:.5f}")
+        logger.warning(f"queue solver core speed up: {seq_t / queue_t:.5f}")
 
-    queue_sync_time = queue_stats.timings["parallel"] - sum(
+    if sequential_time / queue_time > 1.0:
+        logger.success(f"queue total speed up: {sequential_time / queue_time:.5f}")
+    else:
+        logger.warning(f"queue total speed up: {sequential_time / queue_time:.5f}")
+
+    pure_work_time = sum(
         [
             queue_stats.timings["crossover"],
             queue_stats.timings["mutation"],
             queue_stats.timings["evaluation"],
         ]
     )
-    logger.info(f"queue solver sync time: {queue_sync_time}")
-    logger.info(f"queue parallel time: {queue_stats.timings["parallel"]}")
+    queue_sync_time = queue_stats.timings["parallel"] - pure_work_time
 
-    logger.info(f"total pipe time: {pipe_time:.6f} seconds")
-    if seq_t / pipe_t > 1.0:
-        logger.success(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
-        logger.success(f"pipe solver total speed up: {sequential_time / pipe_time:.5f}")
-    else:
-        logger.warning(f"pipe solver true speed up: {seq_t / pipe_t:.5f}")
-        logger.warning(f"pipe solver total speed up: {sequential_time / pipe_time:.5f}")
+    logger.info(f"queue pure work time: {pure_work_time} seconds")
+    logger.info(f"queue sync time: {queue_sync_time} seconds")
+    logger.info(f"queue parallel time: {queue_stats.timings["parallel"]} seconds")
 
-    # # sequential plotting
+    # statistics data
     # plotting.draw_graph(data, seq_best[0].chromosome)
     # plotting.fitness_trend(seq_stats.best, seq_stats.worst)
-
-    # # queue plotting
+    #
     # plotting.draw_graph(data, queue_best[0].chromosome)
     # plotting.fitness_trend(queue_stats.best, queue_stats.worst)
-
-    # # pipe plotting
-    # plotting.draw_graph(data, pipe_best[0].chromosome)
-    # plotting.fitness_trend(pipe_stats.best, pipe_stats.worst)
-
-    # plotting.biodiversity_trend(ga.biodiversity)
-
-    # # timing
-    # plotting.timing(ga.timings)
-
-    # for k in ga.timings.keys():
-    #     print(f"{k}: {ga.timings[k]:.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
-    # # timing
-    # plotting.timing(ga.timings)
-
-    # for k in ga.timings.keys():
-    #     print(f"{k}: {ga.timings[k]:.3f} seconds")
-    # print(f"total time: {sum(ga.timings.values()):.3f} seconds")
