@@ -160,11 +160,29 @@ Infine il tempo necessario ad inserire ed
 estrarre l'intera popolazione di $10.000$
 individui in un colpo solo.
 
-| tempo totale (ms) | 100 | 200 | 500 |
+| tempo (ms) | 100 | 200 | 500 |
 | :---: | :---: | :---: | :---: |
 | put | 0.0063 | 0.063 | 0.0072 |
 | get | 0.6508 | 0.4106 | 0.5223 |
 | put + get | 0.6571 | 0.4170 | 0.5296 |
+
+Come possiamo vedere è chiaro il vantaggio nel
+gestire più individui alla volta. Rimane ancora
+da valutare se abbia senso inviare al worker il suo
+chunk di popolazione tutto intero o diviso in più
+pezzi di modo da implementare una pipeline e riuscire
+ad iniziare il calcolo parallelo in anticipo.
+
+<!-- Valutazione chunk multipli -->
+
+### Calcolo parallelo
+
+La valutazione del calcolo parallelo dipende molto
+dal problema. Le fasi di crossover e mutazione sono in
+genere abbastanza leggere, soprattutto se paragonate
+alla valutazione della fitness di tutti gli individui.
+
+<!-- Effettuare test completo -->
 
 ### Valutazioni di gruppo
 
