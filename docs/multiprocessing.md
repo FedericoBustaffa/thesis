@@ -128,13 +128,16 @@ considerazione il tempo necessario a
 - effettuare le due operazioni precedenti ma per
   un gruppo di individui.
 
+I test svolti prendono in considerazione una
+popolazione di $10.000$ individui, tutti 
+identificati da cromosomi composti da $200$ interi,
+per una dimensione totale di 48 byte per cromosoma
+
 ### Inserimento in coda
+
 
 ### Valutazioni di gruppo
 
-I test svolti prendono come esempio una popolazione
-di $10.000$ individui, tutti identificati da
-cromosomi composti da $200$ interi.
 
 Ogni individuo occupa uno spazio di $48$ byte e per
 inserirlo nella coda sono necessari in media

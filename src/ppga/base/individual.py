@@ -1,3 +1,6 @@
+import sys
+
+
 class Fitness:
     def __init__(self, weights: tuple) -> None:
         self.weights = weights
@@ -20,6 +23,9 @@ class Fitness:
     def __gt__(self, other) -> bool:
         assert isinstance(other, Fitness)
         return self.fitness > other.fitness
+
+    def __sizeof__(self) -> int:
+        return sys.getsizeof(self.weights) + sys.getsizeof(self.values)
 
     def __str__(self) -> str:
         return str(self.fitness)
