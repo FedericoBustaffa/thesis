@@ -160,7 +160,11 @@ Infine il tempo necessario ad inserire ed
 estrarre l'intera popolazione di $10.000$
 individui in un colpo solo.
 
-<!-- tabella -->
+| tempo totale (ms) | 100 | 200 | 500 |
+| :---: | :---: | :---: | :---: |
+| put | 0.0063 | 0.063 | 0.0072 |
+| get | 0.6508 | 0.4106 | 0.5223 |
+| put + get | 0.6571 | 0.4170 | 0.5296 |
 
 ### Valutazioni di gruppo
 
