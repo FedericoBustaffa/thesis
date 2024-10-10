@@ -129,15 +129,40 @@ considerazione il tempo necessario a
   un gruppo di individui.
 
 I test svolti prendono in considerazione una
-popolazione di $10.000$ individui, tutti 
-identificati da cromosomi composti da $200$ interi,
-per una dimensione totale di 48 byte per cromosoma
+popolazione di $10.000$ individui, tutti
+identificati da cromosomi composti da $100$,
+$200$ e $500$ interi, per una dimensione totale
+di $1048$, $1784$ e $4344$ byte rispettivamente.
 
-### Inserimento in coda
+### Operazioni sulla coda
 
+Il primo test è stato effettuato sui tempi medi
+di inserimento ed estrazione di un singolo
+individuo nella coda.
+
+| tempo medio (ms) | 100 | 200 | 500 |
+| :---: | :---: | :---: | :---: |
+| put | 0.00345 | 0.00344 | 0.00373 |
+| get | 0.03291 | 0.03479 | 0.05174 |
+| put + get | 0.03636 | 0.03822 | 0.05547 |
+
+A seguire il tempo necessario ad inserire ed
+estrarre $10.000$ individui dalla coda (uno per
+volta).
+
+| tempo totale (ms) | 100 | 200 | 500 |
+| :---: | :---: | :---: | :---: |
+| put | 34.54 | 34.38 | 37.33 |
+| get | 329.09 | 347.85 | 517.37 |
+| put + get | 363.64 | 382.23 | 554.71 |
+
+Infine il tempo necessario ad inserire ed
+estrarre l'intera popolazione di $10.000$
+individui in un colpo solo.
+
+<!-- tabella -->
 
 ### Valutazioni di gruppo
-
 
 Ogni individuo occupa uno spazio di $48$ byte e per
 inserirlo nella coda sono necessari in media

@@ -53,3 +53,6 @@ class Individual:
     def __gt__(self, other) -> bool:
         assert isinstance(other, Individual)
         return self.fitness > other.fitness
+
+    def __sizeof__(self) -> int:
+        return sys.getsizeof(self.chromosome) + sys.getsizeof(self.fitness)
