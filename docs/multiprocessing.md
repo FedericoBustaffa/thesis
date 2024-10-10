@@ -89,6 +89,10 @@ basato su code (`multiprocessing.Queue`) di
 comunicazione. Ogni processo possiede due code, una
 per la ricezione dati, l'altra per l'invio.
 
+<center>
+<img src="images/queue.svg">
+</center>
+
 Le code permettono di implementare in modo molto
 semplice il paradigma _produttore-consumatore_,
 fornendo due metodi principali (`put` e `get`)
@@ -105,7 +109,7 @@ Per velocizzare ulteriormente l'invio e la
 ricezione dati ho fatto uso della libreria
 `asyncio`, la quale, tramite la sintassi
 `async`/`await` permette di effettuare operazioni
-I/O bound e modo asincrono.
+I/O bound in modo asincrono.
 
 ## Prestazioni
 
@@ -127,19 +131,6 @@ necessari circa $15 \; ms$.
 Per elaborare un individuo mediamente sono
 necessari $0.8 \; ms$, sono stati necessari
 invece circa $19$ secondi per valutarne $10.000$.
-
-I risultati ottenuti quando si prende in
-considerazione l'intera popolazione non sono
-diversi da quello che ci si potrebbe aspettare,
-per esempio
-
-$$\text{tempo medio singolo individuo} * 10.000$$
-
-dato che in Python ci sono diversi meccanismi che
-possono variare anche di molto il tempo di
-esecuzione tra un'iterazione e l'altra, ad esempio
-ottimizzazione del bytecode, compilazione JIT e
-garbage collection.
 
 <!-- Ricontrollare gli ordini di grandezza -->
 Se la valutazione della fitness di ogni individuo è
