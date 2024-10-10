@@ -119,6 +119,19 @@ comunque ci si avvicina molto) quando almeno una
 delle tre fasi parallelizzate rappresenta la parte
 più pesante dell'algoritmo.
 
+Per valutare la bontà del modello ho preso in
+considerazione il tempo necessario a
+
+- inserire un singolo individuo in coda.
+- effettuare le operazioni di crossover, mutazione
+  e valutazione per un singolo individuo.
+- effettuare le due operazioni precedenti ma per
+  un gruppo di individui.
+
+### Inserimento in coda
+
+### Valutazioni di gruppo
+
 I test svolti prendono come esempio una popolazione
 di $10.000$ individui, tutti identificati da
 cromosomi composti da $200$ interi.
