@@ -140,31 +140,31 @@ Il primo test è stato effettuato sui tempi medi
 di inserimento ed estrazione di un singolo
 individuo nella coda.
 
-| tempo medio (ms) | 100 | 200 | 500 |
-| :---: | :---: | :---: | :---: |
-| put | 0.00345 | 0.00344 | 0.00373 |
-| get | 0.03291 | 0.03479 | 0.05174 |
-| put + get | 0.03636 | 0.03822 | 0.05547 |
+| tempo medio (ms) |   100   |   200   |   500   |
+| :--------------: | :-----: | :-----: | :-----: |
+|       put        | 0.00345 | 0.00344 | 0.00373 |
+|       get        | 0.03291 | 0.03479 | 0.05174 |
+|    put + get     | 0.03636 | 0.03822 | 0.05547 |
 
 A seguire il tempo necessario ad inserire ed
 estrarre $10.000$ individui dalla coda (uno per
 volta).
 
-| tempo totale (ms) | 100 | 200 | 500 |
-| :---: | :---: | :---: | :---: |
-| put | 34.54 | 34.38 | 37.33 |
-| get | 329.09 | 347.85 | 517.37 |
-| put + get | 363.64 | 382.23 | 554.71 |
+| tempo totale (ms) |  100   |  200   |  500   |
+| :---------------: | :----: | :----: | :----: |
+|        put        | 34.54  | 34.38  | 37.33  |
+|        get        | 329.09 | 347.85 | 517.37 |
+|     put + get     | 363.64 | 382.23 | 554.71 |
 
 Infine il tempo necessario ad inserire ed
 estrarre l'intera popolazione di $10.000$
 individui in un colpo solo.
 
-| tempo (ms) | 100 | 200 | 500 |
-| :---: | :---: | :---: | :---: |
-| put | 0.0063 | 0.063 | 0.0072 |
-| get | 0.6508 | 0.4106 | 0.5223 |
-| put + get | 0.6571 | 0.4170 | 0.5296 |
+| tempo (ms) |  100   |  200   |  500   |
+| :--------: | :----: | :----: | :----: |
+|    put     | 0.0063 | 0.063  | 0.0072 |
+|    get     | 0.6508 | 0.4106 | 0.5223 |
+| put + get  | 0.6571 | 0.4170 | 0.5296 |
 
 Come possiamo vedere è chiaro il vantaggio nel
 gestire più individui alla volta. Rimane ancora
@@ -196,6 +196,7 @@ necessari $0.8 \; ms$, sono stati necessari
 invece circa $19$ secondi per valutarne $10.000$.
 
 <!-- Ricontrollare gli ordini di grandezza -->
+
 Se la valutazione della fitness di ogni individuo è
 abbastanza pesante da coprire l'overhead dovuto
 alla condivisione di quell'individuo con il worker
