@@ -45,10 +45,12 @@ class QueueWorker(mp.Process):
             target=task, args=[self.__rqueue, self.__squeue, toolbox, stats]
         )
 
+        self.chunksize = 16
+
     async def send(self, chunk: list | None = None) -> None:
         if isinstance(chunk, list):
-            size = len(chunk) // 4
-            for i in range(4):
+            size = len(chunk) // self.chunksize
+            for i in range(self.chunksize):
                 self.__rqueue.put(chunk[i * size : i * size + size])
         self.__rqueue.put(None)
 

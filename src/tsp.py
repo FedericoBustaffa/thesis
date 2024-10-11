@@ -184,7 +184,7 @@ if __name__ == "__main__":
     logger.trace(f"evaluation mean time: {mean_eval_time} seconds")
     logger.trace(f"evaluation total time: {np.sum(toolbox.timings)} seconds")
     logger.trace(f"evaluation max time: {max(toolbox.timings)}")
-    logger.trace(f"evaluation max time: {min(toolbox.timings)}")
+    logger.trace(f"evaluation min time: {min(toolbox.timings)}")
 
     # logger.success(f"sequential best score: {seq_best[0].fitness}")
     seq_t = sum(

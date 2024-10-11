@@ -18,7 +18,12 @@ def main(argv: list[str]):
 
     logger.debug(f"chromosome size: {sys.getsizeof(chromosome)} bytes")
     logger.debug(f"individual size: {sys.getsizeof(individual)} bytes")
-    logger.debug(f"population size: {sys.getsizeof(population)} bytes")
+
+    population_size = 0
+    for i in population:
+        population_size += sys.getsizeof(i)
+    population_size += sys.getsizeof(population)
+    logger.debug(f"population size: {population_size / 1024.0 / 1024.0:.2f} MB")
 
     buffer = mp.Queue()
 

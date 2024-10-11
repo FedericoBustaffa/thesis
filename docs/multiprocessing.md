@@ -89,9 +89,7 @@ basato su code (`multiprocessing.Queue`) di
 comunicazione. Ogni processo possiede due code, una
 per la ricezione dati, l'altra per l'invio.
 
-<center>
-<img src="images/queue.svg">
-</center>
+![queue](images/queue.svg)
 
 Le code permettono di implementare in modo molto
 semplice il paradigma _produttore-consumatore_,
@@ -131,7 +129,16 @@ considerazione il tempo necessario a
 I test svolti prendono in considerazione una
 popolazione di $10.000$ individui, tutti
 identificati da cromosomi composti da $100$,
-$200$ e $500$ interi, per una dimensione totale
+$200$ e $500$ interi. Di seguito una tabella che
+mostra le dimensioni degli oggetti.
+
+| cromosoma | individuo (byte) | popolazione (MB) |
+| :-------: | :--------------: | :--------------: |
+|    100    |       1048       |      10.08       |
+|    200    |       1784       |      17.09       |
+|    500    |       4344       |      41.51       |
+
+, per una dimensione totale
 di $1048$, $1784$ e $4344$ byte rispettivamente.
 
 ### Operazioni sulla coda
