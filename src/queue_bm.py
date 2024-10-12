@@ -6,7 +6,7 @@ import time
 import numpy as np
 from loguru import logger
 
-from ppga import base, solver
+from ppga import base
 
 
 def main(argv: list[str]):
@@ -59,6 +59,30 @@ def main(argv: list[str]):
     logger.debug(f"population: {(end - start) * 1000.0:.5f} ms")
     logger.debug(f"put population: {(put_end - start) * 1000.0:.5f} ms")
     logger.debug(f"get population: {(end - put_end) * 1000.0:.5f} ms")
+
+    # multiple chunks
+    chunksize = int(argv[2])
+    put_time = []
+    get_time = []
+
+    for i in range(0, len(population), chunksize):
+        start = time.perf_counter()
+        buffer.put(population[i : i + chunksize])
+        put_end = time.perf_counter()
+        chunk = buffer.get()
+        end = time.perf_counter()
+
+        put_time.append((put_end - start) * 1000.0)
+        get_time.append((end - put_end) * 1000.0)
+
+        assert len(chunk) <= chunksize
+
+    logger.debug(f"mean put chunk: {np.mean(put_time):.5f} ms")
+    logger.debug(f"mean get chunk: {np.mean(get_time):.5f} ms")
+
+    logger.debug(f"total put chunk: {np.sum(put_time):.5f}")
+    logger.debug(f"total get chunk: {np.sum(get_time):.5f}")
+    logger.debug(f"total chunk: {(np.sum(put_time) + np.sum(get_time)):.5f} ms")
 
 
 if __name__ == "__main__":

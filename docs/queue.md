@@ -113,9 +113,7 @@ I/O bound in modo asincrono.
 
 Il modello di calcolo, per quanto semplice, sotto
 le giuste ipotesi offre lo speed up sperato (o
-comunque ci si avvicina molto) quando almeno una
-delle tre fasi parallelizzate rappresenta la parte
-più pesante dell'algoritmo.
+comunque ci si avvicina molto).
 
 Per valutare la bontà del modello ho preso in
 considerazione il tempo necessario a
@@ -138,14 +136,15 @@ mostra le dimensioni degli oggetti.
 |    200    |       1784       |      17.09       |
 |    500    |       4344       |      41.51       |
 
-, per una dimensione totale
-di $1048$, $1784$ e $4344$ byte rispettivamente.
-
 ### Operazioni sulla coda
 
 Il primo test è stato effettuato sui tempi medi
 di inserimento ed estrazione di un singolo
-individuo nella coda.
+individuo nella coda. Ho scelto di considerare il
+tempo medio e non il peggiore dato che le una stessa
+operazione in Python potrebbe impiegare tempi anche
+molto differenti. Il tempo più frequente rimane
+comunque quello medio.
 
 | tempo medio (ms) |   100   |   200   |   500   |
 | :--------------: | :-----: | :-----: | :-----: |
@@ -154,8 +153,8 @@ individuo nella coda.
 |    put + get     | 0.03636 | 0.03822 | 0.05547 |
 
 A seguire il tempo necessario ad inserire ed
-estrarre $10.000$ individui dalla coda (uno per
-volta).
+estrarre uno per volta tutti e $10.000$ gli
+individui dalla coda.
 
 | tempo totale (ms) |  100   |  200   |  500   |
 | :---------------: | :----: | :----: | :----: |
@@ -169,9 +168,9 @@ individui in un colpo solo.
 
 | tempo (ms) |  100   |  200   |  500   |
 | :--------: | :----: | :----: | :----: |
-|    put     | 0.0063 | 0.063  | 0.0072 |
+|    put     | 0.0063 | 0.0071 | 0.0072 |
 |    get     | 0.6508 | 0.4106 | 0.5223 |
-| put + get  | 0.6571 | 0.4170 | 0.5296 |
+| put + get  | 0.6571 | 0.4177 | 0.5296 |
 
 Come possiamo vedere è chiaro il vantaggio nel
 gestire più individui alla volta. Rimane ancora
@@ -180,16 +179,18 @@ chunk di popolazione tutto intero o diviso in più
 pezzi di modo da implementare una pipeline e riuscire
 ad iniziare il calcolo parallelo in anticipo.
 
-<!-- Valutazione chunk multipli -->
+#### Sintesi
+
+Possiamo quindi concludere che, a parità di quantità
+di dati da inviare, sia più conveniente lavorare con
+blocchi di memoria più grandi possibile.
 
 ### Calcolo parallelo
 
-La valutazione del calcolo parallelo dipende molto
-dal problema. Le fasi di crossover e mutazione sono in
-genere abbastanza leggere, soprattutto se paragonate
-alla valutazione della fitness di tutti gli individui.
-
-<!-- Effettuare test completo -->
+La valutazione della fase di calcolo parallelo dipende
+molto dal problema. Le fasi di crossover e mutazione
+sono in genere abbastanza leggere, soprattutto se
+paragonate alla valutazione della fitness.
 
 ### Valutazioni di gruppo
 

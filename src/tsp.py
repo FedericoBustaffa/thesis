@@ -8,6 +8,7 @@ import pandas as pd
 from loguru import logger
 
 from ppga import base, solver
+from utils import plotting
 
 
 class Town:
@@ -129,36 +130,38 @@ def merge(
     return next_generation
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 7:
-        logger.error(f"USAGE: py {sys.argv[0]} <T> <N> <G> <C> <M> <W> <log_level>")
+def main(argv: list[str]):
+    if len(argv) < 7:
+        logger.error(f"USAGE: py {argv[0]} <T> <N> <G> <C> <M> <W> <log_level>")
         exit(1)
 
     logger.remove()
     logger.add(
         sys.stderr,
         format="<green>{time:HH:mm:ss}</green> | {file}:{line} | <level>{level} - {message}</level>",
-        level=sys.argv[7].upper(),
+        level=argv[7].upper(),
         enqueue=True,
     )
 
-    data = pd.read_csv(f"datasets/towns_{sys.argv[1]}.csv")
-    towns = [Town(data["x"].iloc[i], data["y"].iloc[i]) for i in range(len(data))]
+    data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
+    x_coords = data["x"]
+    y_coords = data["y"]
+    towns = [Town(x, y) for x, y in zip(x_coords, y_coords)]
 
     # Initial population size
-    N = int(sys.argv[2])
+    N = int(argv[2])
 
     # Max generations
-    G = int(sys.argv[3])
+    G = int(argv[3])
 
     # crossover rate
-    CR = float(sys.argv[4])
+    CR = float(argv[4])
 
     # mutation rate
-    MR = float(sys.argv[5])
+    MR = float(argv[5])
 
     # number of workers
-    W = int(sys.argv[6])
+    W = int(argv[6])
 
     toolbox = base.ToolBox()
     toolbox.set_fitness_weights(weights=(-1.0,))
@@ -226,8 +229,12 @@ if __name__ == "__main__":
     logger.info(f"queue parallel time: {queue_stats.timings["parallel"]} seconds")
 
     # statistics data
-    # plotting.draw_graph(data, seq_best[0].chromosome)
-    # plotting.fitness_trend(seq_stats.best, seq_stats.worst)
-    #
-    # plotting.draw_graph(data, queue_best[0].chromosome)
-    # plotting.fitness_trend(queue_stats.best, queue_stats.worst)
+    plotting.draw_graph(data, seq_best[0].chromosome)
+    plotting.fitness_trend(seq_stats.best, seq_stats.worst)
+
+    plotting.draw_graph(data, queue_best[0].chromosome)
+    plotting.fitness_trend(queue_stats.best, queue_stats.worst)
+
+
+if __name__ == "__main__":
+    main(sys.argv)
