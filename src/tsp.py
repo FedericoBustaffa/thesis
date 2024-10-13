@@ -33,7 +33,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    time.sleep(0.0005)
+    time.sleep(0.0)
 
     return (total_distance,)
 
@@ -184,8 +184,8 @@ def main(argv: list[str]):
     queue_best, queue_stats = queued_solver.run(toolbox, N, G, base.Statistics())
     queue_time = time.perf_counter() - start
 
-    logger.trace(f"evaluation mean time: {mean_eval_time} seconds")
     logger.trace(f"evaluation total time: {np.sum(toolbox.timings)} seconds")
+    logger.trace(f"evaluation mean time: {mean_eval_time} seconds")
     logger.trace(f"evaluation max time: {max(toolbox.timings)}")
     logger.trace(f"evaluation min time: {min(toolbox.timings)}")
 

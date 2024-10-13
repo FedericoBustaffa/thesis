@@ -2,6 +2,8 @@ import asyncio
 import math
 import multiprocessing as mp
 import multiprocessing.queues as mpq
+import queue
+import threading
 import time
 
 from tqdm import tqdm
@@ -11,9 +13,27 @@ from ppga.base.toolbox import ToolBox
 from ppga.solver.genetic_solver import GeneticSolver
 
 
-def task(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statistics):
+def get(rqueue: mpq.Queue, local_queue: queue.Queue):
     while True:
-        parents = rqueue.get()
+        chunk = rqueue.get()
+        local_queue.put(chunk)
+        if chunk is None:
+            break
+
+        while chunk is not None:
+            chunk = rqueue.get()
+            local_queue.put(chunk)
+
+
+def task(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statistics):
+    local_queue = queue.Queue()
+
+    # getter thread
+    getter = threading.Thread(target=get, args=[rqueue, local_queue])
+    getter.start()
+
+    while True:
+        parents = local_queue.get()
         if parents is None:
             break
 
@@ -32,9 +52,11 @@ def task(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
             stats.add_time("evaluation", start)
 
             squeue.put(offsprings)
-            parents = rqueue.get()
+            parents = local_queue.get()
 
         squeue.put(stats.timings)
+
+    getter.join()
 
 
 class QueueWorker(mp.Process):
@@ -45,12 +67,12 @@ class QueueWorker(mp.Process):
             target=task, args=[self.__rqueue, self.__squeue, toolbox, stats]
         )
 
-        self.chunksize = 16
+        self.subchunks = 16
 
     async def send(self, chunk: list | None = None) -> None:
         if isinstance(chunk, list):
-            size = len(chunk) // self.chunksize
-            for i in range(self.chunksize):
+            size = len(chunk) // self.subchunks
+            for i in range(self.subchunks):
                 self.__rqueue.put(chunk[i * size : i * size + size])
         self.__rqueue.put(None)
 

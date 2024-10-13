@@ -109,6 +109,22 @@ ricezione dati ho fatto uso della libreria
 `async`/`await` permette di effettuare operazioni
 I/O bound in modo asincrono.
 
+### Pipeline di ricezione
+
+Una prima implementazione consisteva semplicemente
+nell'inviare per intero il chunk di struttura dati
+al worker. Questo però potrebbe costituire un
+ostacolo alle performance nel momento in cui la fase
+di calcolo parallelo non è particolarmente pesante
+o quando la popolazione presa in esame risulta
+particolarmente grande.
+
+Per mitigare il problema è possibile suddividere
+ognuno dei chunk da inviare ai worker in ulteriori
+_sub-chunk_. In questo modo, il worker potrebbe
+ricevere i _sub-chunk_ asincronamente mentre
+elabora quelli già ricevuti.
+
 ## Prestazioni
 
 Il modello di calcolo, per quanto semplice, sotto
