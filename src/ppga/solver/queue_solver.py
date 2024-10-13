@@ -67,7 +67,7 @@ class QueueWorker(mp.Process):
             target=task, args=[self.__rqueue, self.__squeue, toolbox, stats]
         )
 
-        self.subchunks = 16
+        self.subchunks = 4
 
     async def send(self, chunk: list | None = None) -> None:
         if isinstance(chunk, list):
