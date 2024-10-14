@@ -114,10 +114,10 @@ I/O bound in modo asincrono.
 Una prima implementazione consisteva semplicemente
 nell'inviare per intero il chunk di struttura dati
 al worker. Questo però potrebbe costituire un
-ostacolo alle performance nel momento in cui la fase
-di calcolo parallelo non è particolarmente pesante
-o quando la popolazione presa in esame risulta
-particolarmente grande.
+ostacolo alle performance nel momento in cui la
+fase di calcolo parallelo non è particolarmente
+pesante o quando la popolazione presa in esame
+risulta particolarmente grande.
 
 Per mitigare il problema è possibile suddividere
 ognuno dei chunk da inviare ai worker in ulteriori
@@ -168,10 +168,10 @@ mostra le dimensioni degli oggetti.
 Il primo test è stato effettuato sui tempi medi
 di inserimento ed estrazione di un singolo
 individuo nella coda. Ho scelto di considerare il
-tempo medio e non il peggiore dato che le una stessa
-operazione in Python potrebbe impiegare tempi anche
-molto differenti. Il tempo più frequente rimane
-comunque quello medio.
+tempo medio e non il peggiore dato che le una
+stessa operazione in Python potrebbe impiegare
+tempi anche molto differenti. Il tempo più
+frequente rimane comunque quello medio.
 
 | tempo medio (ms) |   100   |   200   |   500   |
 | :--------------: | :-----: | :-----: | :-----: |
@@ -213,48 +213,52 @@ Di seguito due grafici rappresentanti
 1. Il tempo medio necessario ad inserire e
    rimuovere chunk di grandezza differente dalla
    coda.
-2. Il tempo totale necessario ad inserire e rimuovere
-   tutta la popolazione suddivisa in chunk.
+2. Il tempo totale necessario ad inserire e
+   rimuovere tutta la popolazione suddivisa in
+   chunk.
 
-Questo test è stato fatto con una popolazione di $50.000$
-individui con una lunghezza di $500$ attributi per
-cromosoma.
+Questo test è stato fatto con una popolazione di
+$50.000$ individui con una lunghezza di $500$
+attributi per cromosoma.
 
 ![chunks](images/queue_chunk.svg)
 
 Notiamo subito che in entrambi i casi il tempo di
-inserimento in coda rimane quasi costante, a prescindere
-dalla dimensione dei chunk. Probabilmente questo è
-dovuto al fatto che l'operazione viene svolta in modo
-asincrono.
+inserimento in coda rimane quasi costante, a
+prescindere dalla dimensione dei chunk.
+Probabilmente questo è dovuto al fatto che
+l'operazione viene svolta in modo asincrono.
 
-Per quanto riguarda invece il tempo medio di estrazione
-di chunk dalla coda, possiamo vedere come questo cresca
-con il crescere della dimensione del chunk.
+Per quanto riguarda invece il tempo medio di
+estrazione di chunk dalla coda, possiamo vedere
+come questo cresca con il crescere della dimensione
+del chunk.
 
-Come era invece possibile aspettarsi, il tempo totale
-di estrazione dell'intera popolazione risulta più
-rapido quando i chunk sono più grandi.
+Come era invece possibile aspettarsi, il tempo
+totale di estrazione dell'intera popolazione
+risulta più rapido quando i chunk sono più grandi.
 
 #### Sintesi
 
-Il tempo di inserimento in coda tende a rimanere molto
-basso in entrambi i casi, anche quando gli elementi
-inseriti sono grandi.
+Il tempo di inserimento in coda tende a rimanere
+molto basso in entrambi i casi, anche quando gli
+elementi inseriti sono grandi.
 
 Il **tempo medio** di estrazione dalla coda tende a
-salire quando gli elementi sono più grandi, mentre il
-**tempo totale** necessario ad estrarre tutti i chunk
-dalla coda tende a diminuire se questi sono più grandi.
+salire quando gli elementi sono più grandi, mentre
+il **tempo totale** necessario ad estrarre tutti i
+chunk dalla coda tende a diminuire se questi sono
+più grandi.
 
-Questo ci suggerisce che c'è un tempo minimo sotto il
-quale la coda non riesce a scendere in fase di
+Questo ci suggerisce che c'è un tempo minimo sotto
+il quale la coda non riesce a scendere in fase di
 estrazione. Tende tuttavia a rimanere stabile anche
 per elementi molto grandi.
 
-Vediamo infatti che, al fronte di un aumento esponenziale
-della dimensione del chunk, il tempo necessario ad
-estrarlo non aumenta proporzionalmente.
+Vediamo infatti che, al fronte di un aumento
+esponenziale della dimensione del chunk, il tempo
+necessario ad estrarlo non aumenta
+proporzionalmente.
 
 ### Calcolo parallelo
 
