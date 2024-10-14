@@ -125,6 +125,17 @@ _sub-chunk_. In questo modo, il worker potrebbe
 ricevere i _sub-chunk_ asincronamente mentre
 elabora quelli già ricevuti.
 
+![pipeline](images/recv_pipeline.svg)
+
+Come mostrato in figura, l'estrazione dei chunk di
+struttura dati viene delegata ad un thread del
+worker. Una volta che il thread estrae un elemento
+dalla coda lo mette a sua volta in una coda in
+memoria condivisa con il processo worker vero e
+proprio. A questo punto il worker può estrarre il
+chunk ed iniziare ad elaborarlo mentre il thread
+continua ad estrarre il resto dei dati.
+
 ## Prestazioni
 
 Il modello di calcolo, per quanto semplice, sotto
@@ -205,6 +216,10 @@ Di seguito due grafici rappresentanti
 2. Il tempo totale necessario ad inserire e rimuovere
    tutta la popolazione suddivisa in chunk.
 
+Questo test è stato fatto con una popolazione di $50.000$
+individui con una lunghezza di $500$ attributi per
+cromosoma.
+
 ![chunks](images/queue_chunk.svg)
 
 Notiamo subito che in entrambi i casi il tempo di
@@ -223,13 +238,23 @@ rapido quando i chunk sono più grandi.
 
 #### Sintesi
 
-Fare assunzioni sul tempo di inserimento ed
-estrazione su e dalla coda non ha molto senso dato
-che potrebbero entrare in gioco ottimizzazioni
-interne che non è possibile controllare.
+Il tempo di inserimento in coda tende a rimanere molto
+basso in entrambi i casi, anche quando gli elementi
+inseriti sono grandi.
 
-Sarebbe più ragionevole considerare tempi medi
-per riuscire ad ottimizzare
+Il **tempo medio** di estrazione dalla coda tende a
+salire quando gli elementi sono più grandi, mentre il
+**tempo totale** necessario ad estrarre tutti i chunk
+dalla coda tende a diminuire se questi sono più grandi.
+
+Questo ci suggerisce che c'è un tempo minimo sotto il
+quale la coda non riesce a scendere in fase di
+estrazione. Tende tuttavia a rimanere stabile anche
+per elementi molto grandi.
+
+Vediamo infatti che, al fronte di un aumento esponenziale
+della dimensione del chunk, il tempo necessario ad
+estrarlo non aumenta proporzionalmente.
 
 ### Calcolo parallelo
 
