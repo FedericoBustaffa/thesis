@@ -192,21 +192,52 @@ Come possiamo vedere è chiaro il vantaggio nel
 gestire più individui alla volta. Rimane ancora
 da valutare se abbia senso inviare al worker il suo
 chunk di popolazione tutto intero o diviso in più
-pezzi di modo da implementare una pipeline e riuscire
-ad iniziare il calcolo parallelo in anticipo.
+pezzi di modo da implementare una pipeline e
+riuscire ad iniziare il calcolo parallelo prima
+che ogni worker riceva il suo chunk di popolazione
+per intero.
+
+Di seguito due grafici rappresentanti
+
+1. Il tempo medio necessario ad inserire e
+   rimuovere chunk di grandezza differente dalla
+   coda.
+2. Il tempo totale necessario ad inserire e rimuovere
+   tutta la popolazione suddivisa in chunk.
+
+![chunks](images/queue_chunk.svg)
+
+Notiamo subito che in entrambi i casi il tempo di
+inserimento in coda rimane quasi costante, a prescindere
+dalla dimensione dei chunk. Probabilmente questo è
+dovuto al fatto che l'operazione viene svolta in modo
+asincrono.
+
+Per quanto riguarda invece il tempo medio di estrazione
+di chunk dalla coda, possiamo vedere come questo cresca
+con il crescere della dimensione del chunk.
+
+Come era invece possibile aspettarsi, il tempo totale
+di estrazione dell'intera popolazione risulta più
+rapido quando i chunk sono più grandi.
 
 #### Sintesi
 
-Possiamo quindi concludere che, a parità di quantità
-di dati da inviare, sia più conveniente lavorare con
-blocchi di memoria più grandi possibile.
+Fare assunzioni sul tempo di inserimento ed
+estrazione su e dalla coda non ha molto senso dato
+che potrebbero entrare in gioco ottimizzazioni
+interne che non è possibile controllare.
+
+Sarebbe più ragionevole considerare tempi medi
+per riuscire ad ottimizzare
 
 ### Calcolo parallelo
 
-La valutazione della fase di calcolo parallelo dipende
-molto dal problema. Le fasi di crossover e mutazione
-sono in genere abbastanza leggere, soprattutto se
-paragonate alla valutazione della fitness.
+La valutazione della fase di calcolo parallelo
+dipende molto dal problema. Le fasi di crossover e
+mutazione sono in genere abbastanza leggere,
+soprattutto se paragonate alla valutazione della
+fitness.
 
 ### Valutazioni di gruppo
 
