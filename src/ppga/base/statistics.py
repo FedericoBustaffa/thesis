@@ -18,6 +18,9 @@ class Statistics:
         self.best = []
         self.worst = []
 
+    def __getitem__(self, key: str):
+        return self.timings[key]
+
     def add_time(self, field: str, start: float) -> None:
         self.timings[field] += time.perf_counter() - start
 

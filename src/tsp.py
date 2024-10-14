@@ -3,7 +3,6 @@ import random
 import sys
 import time
 
-import numpy as np
 import pandas as pd
 from loguru import logger
 
@@ -33,7 +32,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    time.sleep(0.001)
+    time.sleep(0.0015)
 
     return (total_distance,)
 
@@ -177,27 +176,21 @@ def main(argv: list[str]):
     start = time.perf_counter()
     seq_best, seq_stats = genetic_solver.run(toolbox, N, G, base.Statistics())
     sequential_time = time.perf_counter() - start
-    mean_eval_time = np.mean(toolbox.timings)
 
     queued_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
     queue_best, queue_stats = queued_solver.run(toolbox, N, G, base.Statistics())
     queue_time = time.perf_counter() - start
 
-    logger.trace(f"evaluation total time: {np.sum(toolbox.timings)} seconds")
-    logger.trace(f"evaluation mean time: {mean_eval_time} seconds")
-    logger.trace(f"evaluation max time: {max(toolbox.timings)}")
-    logger.trace(f"evaluation min time: {min(toolbox.timings)}")
-
     # logger.success(f"sequential best score: {seq_best[0].fitness}")
     seq_t = sum(
         [
-            seq_stats.timings["evaluation"],
-            seq_stats.timings["crossover"],
-            seq_stats.timings["mutation"],
+            seq_stats["evaluation"],
+            seq_stats["crossover"],
+            seq_stats["mutation"],
         ]
     )
-    queue_t = queue_stats.timings["parallel"]
+    queue_t = queue_stats["parallel"]
 
     logger.info(f"sequential total time: {sequential_time:.5f} seconds")
     logger.info(f"to parallelize time: {seq_t:.5f} seconds")
@@ -217,16 +210,16 @@ def main(argv: list[str]):
 
     pure_work_time = sum(
         [
-            queue_stats.timings["crossover"],
-            queue_stats.timings["mutation"],
-            queue_stats.timings["evaluation"],
+            queue_stats["crossover"],
+            queue_stats["mutation"],
+            queue_stats["evaluation"],
         ]
     )
-    queue_sync_time = queue_stats.timings["parallel"] - pure_work_time
+    queue_sync_time = queue_stats["parallel"] - pure_work_time
 
     logger.info(f"queue pure work time: {pure_work_time} seconds")
     logger.info(f"queue sync time: {queue_sync_time} seconds")
-    logger.info(f"queue parallel time: {queue_stats.timings["parallel"]} seconds")
+    logger.info(f"queue parallel time: {queue_stats["parallel"]} seconds")
 
     # statistics data
     plotting.draw_graph(data, seq_best[0].chromosome)
@@ -234,6 +227,8 @@ def main(argv: list[str]):
 
     plotting.draw_graph(data, queue_best[0].chromosome)
     plotting.fitness_trend(queue_stats.best, queue_stats.worst)
+
+    # plotting.timing({"sync": queue_sync_time, "pure": pure_work_time})
 
 
 if __name__ == "__main__":
