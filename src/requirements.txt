@@ -2,6 +2,7 @@ asyncio
 pyarrow
 ipykernel
 notebook
+jupyterlab
 tqdm
 numpy
 matplotlib

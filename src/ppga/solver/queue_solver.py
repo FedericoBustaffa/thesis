@@ -189,4 +189,8 @@ class QueuedGeneticSolver(GeneticSolver):
         max_generations: int,
         stats: Statistics,
     ):
-        return asyncio.run(self.solve(toolbox, population_size, max_generations, stats))
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(self.solve(toolbox, population_size, max_generations, stats))
+        result = asyncio.as_completed(task)
+
+        return result.result()
