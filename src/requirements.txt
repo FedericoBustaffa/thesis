@@ -1,4 +1,7 @@
 asyncio
+pyarrow
+ipykernel
+notebook
 tqdm
 numpy
 matplotlib
