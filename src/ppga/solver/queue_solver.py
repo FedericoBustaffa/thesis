@@ -10,7 +10,6 @@ from tqdm import tqdm
 
 from ppga.base.statistics import Statistics
 from ppga.base.toolbox import ToolBox
-from ppga.solver.genetic_solver import GeneticSolver
 
 
 def get(rqueue: mpq.Queue, local_queue: queue.Queue):
@@ -96,7 +95,7 @@ class QueueWorker(mp.Process):
         super().join(timeout)
 
 
-class QueuedGeneticSolver(GeneticSolver):
+class QueuedGeneticSolver:
     def __init__(self, workers_num: int) -> None:
         self.workers_num = workers_num
 
@@ -189,8 +188,4 @@ class QueuedGeneticSolver(GeneticSolver):
         max_generations: int,
         stats: Statistics,
     ):
-        loop = asyncio.get_event_loop()
-        task = loop.create_task(self.solve(toolbox, population_size, max_generations, stats))
-        result = asyncio.as_completed(task)
-
-        return result.result()
+        return asyncio.run(self.solve(toolbox, population_size, max_generations, stats))
