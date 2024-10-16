@@ -140,7 +140,7 @@ class QueuedGeneticSolver:
                 )
                 for i in range(len(workers))
             ]
-            asyncio.as_completed(tasks)
+            # asyncio.as_completed(tasks)
 
             # receiving offsprings and scores
             tasks = [asyncio.create_task(w.recv()) for w in workers]
@@ -164,9 +164,9 @@ class QueuedGeneticSolver:
                     evaluation_time = timings["evaluation"]
             stats.add_time("parallel", start)
 
-            stats.timings["crossover"] += crossover_time
-            stats.timings["mutation"] += mutation_time
-            stats.timings["evaluation"] += evaluation_time
+            stats.add_time("crossover", crossover_time)
+            stats.add_time("mutation", mutation_time)
+            stats.add_time("evaluation", evaluation_time)
 
             # replacement
             start = time.perf_counter()
