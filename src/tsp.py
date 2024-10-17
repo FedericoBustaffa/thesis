@@ -33,8 +33,8 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
     # wasting time
-    for i in range(100000):
-        random.random()
+    # for i in range(500000):
+    #     random.random()
 
     return (total_distance,)
 
