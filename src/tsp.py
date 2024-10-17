@@ -221,7 +221,7 @@ def main(argv: list[str]):
 
     logger.info(f"queue pure work time: {pure_work_time} seconds")
     logger.info(f"queue sync time: {queue_sync_time} seconds")
-    logger.info(f"queue parallel time: {queue_stats["parallel"]} seconds")
+    logger.info(f"queue parallel time: {queue_stats['parallel']} seconds")
 
     # statistics data
     plotting.draw_graph(data, seq_best[0].chromosome)
