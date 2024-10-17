@@ -33,7 +33,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
     # wasting time
-    for i in range(100000):
+    for i in range(500000):
         random.random()
 
     return (total_distance,)
@@ -230,7 +230,7 @@ def main(argv: list[str]):
     plotting.draw_graph(data, queue_best[0].chromosome)
     plotting.fitness_trend(queue_stats.best, queue_stats.worst)
 
-    # plotting.timing({"sync": queue_sync_time, "pure": pure_work_time})
+    plotting.timing({"sync": queue_sync_time, "pure": pure_work_time})
 
 
 if __name__ == "__main__":
