@@ -60,28 +60,28 @@ class QueuedGeneticSolver:
         for handler in handlers:
             handler.start()
 
-        start = time.perf_counter()
+        start = time.process_time()
         population = toolbox.generate(population_size)
         stats.add_time("generation", start)
 
         # this one should not be timed
-        # start = time.perf_counter()
+        # start = time.process_time()
         population = toolbox.evaluate(population)
         # stats.add_time("evaluation", start)
 
         for g in tqdm(range(max_generations), desc="generations", ncols=80):
-            start = time.perf_counter()
+            start = time.process_time()
             chosen = toolbox.select(population)
             stats.add_time("selection", start)
 
-            start = time.perf_counter()
+            start = time.process_time()
             couples = toolbox.mate(chosen)
             stats.add_time("mating", start)
 
             # parallel crossover + mutation + evaluation
             chunksize = math.ceil(len(couples) / len(workers))
 
-            start = time.perf_counter()
+            start = time.process_time()
             for i in range(len(handlers)):
                 handlers[i].send(couples[i * chunksize : i * chunksize + chunksize])
 
@@ -111,7 +111,7 @@ class QueuedGeneticSolver:
             stats.add_time("parallel", start)
 
             # replacement
-            start = time.perf_counter()
+            start = time.process_time()
             population = toolbox.replace(population, offsprings)
             stats.add_time("replacement", start)
 

@@ -33,7 +33,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
     # wasting time
-    for i in range(500000):
+    for i in range(50000):
         random.random()
 
     return (total_distance,)
@@ -175,14 +175,14 @@ def main(argv: list[str]):
     toolbox.set_replacement(merge)
 
     genetic_solver = solver.GeneticSolver()
-    start = time.perf_counter()
-    seq_best, seq_stats = genetic_solver.run(toolbox, N, G, base.Statistics())
-    sequential_time = time.perf_counter() - start
+    start = time.process_time()
+    seq_best, seq_stats = genetic_solver.run(toolbox, N, G)
+    sequential_time = time.process_time() - start
 
     queued_solver = solver.QueuedGeneticSolver(W)
-    start = time.perf_counter()
+    start = time.process_time()
     queue_best, queue_stats = queued_solver.run(toolbox, N, G, base.Statistics())
-    queue_time = time.perf_counter() - start
+    queue_time = time.process_time() - start
 
     # logger.success(f"sequential best score: {seq_best[0].fitness}")
     seq_t = sum(

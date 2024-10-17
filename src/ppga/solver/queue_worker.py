@@ -33,15 +33,15 @@ def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
 
         stats.reset()
         while parents is not None:
-            start = time.perf_counter()
+            start = time.process_time()
             offsprings = toolbox.crossover(parents)
             stats.add_time("crossover", start)
 
-            start = time.perf_counter()
+            start = time.process_time()
             offsprings = toolbox.mutate(offsprings)
             stats.add_time("mutation", start)
 
-            start = time.perf_counter()
+            start = time.process_time()
             offsprings = toolbox.evaluate(offsprings)
             stats.add_time("evaluation", start)
 
