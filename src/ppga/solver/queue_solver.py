@@ -1,6 +1,4 @@
 import math
-import multiprocessing as mp
-import multiprocessing.queues as mpq
 import queue
 import threading
 import time
@@ -9,115 +7,39 @@ from tqdm import tqdm
 
 from ppga.base.statistics import Statistics
 from ppga.base.toolbox import ToolBox
+from ppga.solver.queue_worker import QueueWorker
 
 
-def get(rqueue: mpq.Queue, local_queue: queue.Queue):
-    while True:
-        chunk = rqueue.get()
-        local_queue.put(chunk)
-        if chunk is None:
-            break
-
-        while chunk is not None:
-            chunk = rqueue.get()
-            local_queue.put(chunk)
-
-
-def task(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statistics):
-    local_queue = queue.Queue()
-
-    # getter thread
-    getter = threading.Thread(target=get, args=[rqueue, local_queue])
-    getter.start()
-
-    while True:
-        parents = local_queue.get()
-        if parents is None:
-            break
-
-        stats.reset()
-        while parents is not None:
-            start = time.perf_counter()
-            offsprings = toolbox.crossover(parents)
-            stats.add_time("crossover", start)
-
-            start = time.perf_counter()
-            offsprings = toolbox.mutate(offsprings)
-            stats.add_time("mutation", start)
-
-            start = time.perf_counter()
-            offsprings = toolbox.evaluate(offsprings)
-            stats.add_time("evaluation", start)
-
-            squeue.put(offsprings)
-            parents = local_queue.get()
-
-        squeue.put(stats.timings)
-
-    getter.join()
-
-
-class QueueWorker(mp.Process):
-    def __init__(self, toolbox: ToolBox, stats: Statistics) -> None:
-        self.rqueue = mp.Queue()
-        self.squeue = mp.Queue()
-        super().__init__(target=task, args=[self.rqueue, self.squeue, toolbox, stats])
-
-        self.subchunks = 2
-
-    def send(self, chunk: list | None = None) -> None:
-        if isinstance(chunk, list):
-            size = len(chunk) // self.subchunks
-            for i in range(self.subchunks):
-                self.rqueue.put(chunk[i * size : i * size + size])
-        self.rqueue.put(None)
-
-    def recv(self):
-        obj = self.squeue.get()
-        if isinstance(obj, list):
-            result = []
-            while not isinstance(obj, dict):
-                result.extend(obj)
-                obj = self.squeue.get()
-            return (result, obj)
-        else:
-            return obj
-
-    def join(self, timeout: float | None = None):
-        self.squeue.close()
-        self.rqueue.put(None)
-        while not self.rqueue.empty():
-            pass
-        self.rqueue.close()
-        super().join(timeout)
-
-
-def handle_worker(buffer: queue.Queue, worker: QueueWorker):
+def handle_worker(
+    send_buffer: queue.Queue, recv_buffer: queue.Queue, worker: QueueWorker
+):
     worker.start()
     while True:
-        chunk = buffer.get()
+        chunk = send_buffer.get()
         if chunk is None:
             break
 
         worker.send(chunk)
-        result = worker.recv()
-        buffer.put(result[0])
-        buffer.put(result[1])
+        recv_buffer.put(worker.recv())
+    worker.join()
 
 
 class Handler(threading.Thread):
     def __init__(self, worker: QueueWorker):
-        self.buffer = queue.Queue()
-        super().__init__(target=handle_worker, args=[self.buffer, worker])
+        self.send_buffer = queue.Queue()
+        self.recv_buffer = queue.Queue()
+        super().__init__(
+            target=handle_worker, args=[self.send_buffer, self.recv_buffer, worker]
+        )
 
     def send(self, chunk):
-        self.buffer.put(chunk)
+        self.send_buffer.put(chunk)
 
     def recv(self):
-        return self.buffer.get()
+        return self.recv_buffer.get()
 
-    def join(self, timeout):
-        self.buffer.put(None)
+    def join(self, timeout: float | None = None) -> None:
+        self.send_buffer.put(None)
         super().join(timeout)
 
 
@@ -147,8 +69,7 @@ class QueuedGeneticSolver:
         population = toolbox.evaluate(population)
         # stats.add_time("evaluation", start)
 
-        # for g in tqdm(range(max_generations), desc="generations", ncols=80):
-        for g in range(max_generations):
+        for g in tqdm(range(max_generations), desc="generations", ncols=80):
             start = time.perf_counter()
             chosen = toolbox.select(population)
             stats.add_time("selection", start)
@@ -196,9 +117,6 @@ class QueuedGeneticSolver:
 
             stats.push_best(population[0].fitness.fitness)
             stats.push_worst(population[-1].fitness.fitness)
-
-        for w in workers:
-            w.join()
 
         for h in handlers:
             h.join()
