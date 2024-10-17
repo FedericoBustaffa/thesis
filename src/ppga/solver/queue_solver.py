@@ -106,9 +106,9 @@ class QueuedGeneticSolver:
                     evaluation_time = timings["evaluation"]
 
             stats.add_time("parallel", start)
-            stats.add_time("crossover", crossover_time)
-            stats.add_time("mutation", mutation_time)
-            stats.add_time("evaluation", evaluation_time)
+            stats.timings["crossover"] += crossover_time
+            stats.timings["mutation"] += mutation_time
+            stats.timings["evaluation"] += evaluation_time
 
             # replacement
             start = time.perf_counter()
