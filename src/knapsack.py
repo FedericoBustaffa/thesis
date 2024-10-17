@@ -167,9 +167,9 @@ def main(argv: list[str]):
     hall_of_fame = base.HallOfFame(5)
 
     genetic_solver = solver.GeneticSolver()
-    start = time.process_time()
+    start = time.perf_counter()
     seq_best, seq_stats = genetic_solver.run(toolbox, N, G, hall_of_fame)
-    sequential_time = time.process_time() - start
+    sequential_time = time.perf_counter() - start
     print(f"sequential time: {sequential_time} seconds")
     value, weight = show_solution(seq_best[0].chromosome, items)
     print(f"sequential best solution: ({value:.3f}, {weight:.3f})")
@@ -178,9 +178,9 @@ def main(argv: list[str]):
         print(f"hof: {i.fitness}")
 
     queue_solver = solver.QueuedGeneticSolver(W)
-    start = time.process_time()
+    start = time.perf_counter()
     queue_best, queue_stats = queue_solver.run(toolbox, N, G, base.Statistics())
-    queue_time = time.process_time() - start
+    queue_time = time.perf_counter() - start
     print(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)
     print(f"queue best solution: ({value:.3f}, {weight:.3f})")

@@ -22,7 +22,7 @@ class Statistics:
         return self.timings[key]
 
     def add_time(self, field: str, start: float) -> None:
-        self.timings[field] += time.process_time() - start
+        self.timings[field] += time.perf_counter() - start
 
     def reset(self) -> None:
         for k in self.timings.keys():
