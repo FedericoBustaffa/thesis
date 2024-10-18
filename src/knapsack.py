@@ -54,16 +54,16 @@ def show_solution(solution, items):
 
 
 def main(argv: list[str]):
-    if len(argv) < 6:
+    if len(argv) < 4:
         print(f"USAGE: py {argv[0]} <Items> <N> <G> <C> <M> <W>")
         exit(1)
 
     items_num = int(argv[1])
     N = int(argv[2])
     G = int(argv[3])
-    CP = float(argv[4])
-    MP = float(argv[5])
-    W = int(argv[6])
+    CP = 0.8
+    MP = 0.2
+    W = int(argv[4])
 
     items = [Item(random.random(), random.random()) for _ in range(items_num)]
     capacity = sum([i.weight for i in items]) * 0.7

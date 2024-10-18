@@ -41,15 +41,15 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
 
 
 def main(argv: list[str]):
-    if len(argv) < 7:
-        logger.error(f"USAGE: py {argv[0]} <T> <N> <G> <C> <M> <W> <log_level>")
+    if len(argv) < 5:
+        logger.error(f"USAGE: py {argv[0]} <T> <N> <G> <W> <log_level>")
         exit(1)
 
     logger.remove()
     logger.add(
         sys.stderr,
         format="<green>{time:HH:mm:ss}</green> | {file}:{line} | <level>{level} - {message}</level>",
-        level=argv[7].upper(),
+        level=argv[5].upper(),
         enqueue=True,
     )
 
@@ -65,13 +65,13 @@ def main(argv: list[str]):
     G = int(argv[3])
 
     # crossover rate
-    cxpb = float(argv[4])
+    cxpb = 0.8
 
     # mutation rate
-    mutpb = float(argv[5])
+    mutpb = 0.2
 
     # number of workers
-    W = int(argv[6])
+    W = int(argv[4])
 
     toolbox = base.ToolBox()
     toolbox.set_fitness((-1.0,))
