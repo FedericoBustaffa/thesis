@@ -104,7 +104,20 @@ def main(argv: list[str]):
     logger.info(f"sequential total time: {sequential_time:.5f} seconds")
     logger.info(f"to parallelize time: {seq_t:.5f} seconds")
 
+    pure_work_time = sum(
+        [
+            queue_stats["crossover"],
+            queue_stats["mutation"],
+            queue_stats["evaluation"],
+        ]
+    )
+    queue_sync_time = queue_stats["parallel"] - pure_work_time
+
     logger.info("-" * 50)
+    logger.info(f"queue pure work time: {pure_work_time} seconds")
+    logger.info(f"queue sync time: {queue_sync_time} seconds")
+    logger.info(f"queue parallel time: {queue_stats['parallel']} seconds")
+
     # logger.success(f"queue best score: {queue_best[0].fitness}")
     logger.info(f"queue total time: {queue_time:.5f} seconds")
     if seq_t / queue_t > 1.0:
@@ -116,19 +129,6 @@ def main(argv: list[str]):
         logger.success(f"queue total speed up: {sequential_time / queue_time:.5f}")
     else:
         logger.warning(f"queue total speed up: {sequential_time / queue_time:.5f}")
-
-    pure_work_time = sum(
-        [
-            queue_stats["crossover"],
-            queue_stats["mutation"],
-            queue_stats["evaluation"],
-        ]
-    )
-    queue_sync_time = queue_stats["parallel"] - pure_work_time
-
-    logger.info(f"queue pure work time: {pure_work_time} seconds")
-    logger.info(f"queue sync time: {queue_sync_time} seconds")
-    logger.info(f"queue parallel time: {queue_stats['parallel']} seconds")
 
     # statistics data
     plotting.draw_graph(data, seq_best[0].chromosome)
