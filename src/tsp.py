@@ -6,7 +6,8 @@ import time
 import pandas as pd
 from loguru import logger
 
-from ppga import base, solver
+from ppga import base
+from ppga.algorithms import parallel, sequential
 from ppga.tools import crossover, mutate, select
 from utils import plotting
 
@@ -76,19 +77,17 @@ def main(argv: list[str]):
     toolbox = base.ToolBox()
     toolbox.set_fitness((-1.0,))
     toolbox.set_generation(generate, len(towns))
-    toolbox.set_selection(select.tournament, tournsize=3)
+    toolbox.set_selection(select.tournament, tournsize=2)
     toolbox.set_crossover(crossover.one_point_ordered, cxpb=cxpb)
     toolbox.set_mutation(mutate.rotation, mutpb=mutpb)
     toolbox.set_evaluation(evaluate, towns)
 
-    genetic_solver = solver.GeneticSolver()
     start = time.perf_counter()
-    seq_best, seq_stats = genetic_solver.run(toolbox, N, G)
+    seq_best, seq_stats = sequential.generational(toolbox, N, G)
     sequential_time = time.perf_counter() - start
 
-    queued_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
-    queue_best, queue_stats = queued_solver.run(toolbox, N, G)
+    queue_best, queue_stats = parallel.generational(toolbox, N, G, W)
     queue_time = time.perf_counter() - start
 
     logger.success(f"sequential best score: {seq_best[0].fitness}")

@@ -1,1 +1,1 @@
-from ppga import base, solver, tools
+from ppga import algorithms, base, tools
