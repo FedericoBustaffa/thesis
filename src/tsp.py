@@ -91,39 +91,26 @@ def main(argv: list[str]):
     queue_best, queue_stats = queued_solver.run(toolbox, N, G, base.Statistics())
     queue_time = time.perf_counter() - start
 
-    # logger.success(f"sequential best score: {seq_best[0].fitness}")
-    seq_t = sum(
-        [
-            seq_stats["evaluation"],
-            seq_stats["crossover"],
-            seq_stats["mutation"],
-        ]
-    )
+    logger.success(f"sequential best score: {seq_best[0].fitness}")
+
     queue_t = queue_stats["parallel"]
-
     logger.info(f"sequential total time: {sequential_time:.5f} seconds")
-    logger.info(f"to parallelize time: {seq_t:.5f} seconds")
+    logger.info(f"to parallelize time: {seq_stats.cme():.5f} seconds")
 
-    pure_work_time = sum(
-        [
-            queue_stats["crossover"],
-            queue_stats["mutation"],
-            queue_stats["evaluation"],
-        ]
-    )
-    queue_sync_time = queue_stats["parallel"] - pure_work_time
-
+    # parallel results
     logger.info("-" * 50)
-    logger.info(f"queue pure work time: {pure_work_time} seconds")
+    logger.success(f"queue best score: {queue_best[0].fitness}")
+
+    queue_sync_time = queue_stats["parallel"] - queue_stats.cme()
+    logger.info(f"queue pure work time: {queue_stats.cme()} seconds")
     logger.info(f"queue sync time: {queue_sync_time} seconds")
     logger.info(f"queue parallel time: {queue_stats['parallel']} seconds")
 
-    # logger.success(f"queue best score: {queue_best[0].fitness}")
     logger.info(f"queue total time: {queue_time:.5f} seconds")
-    if seq_t / queue_t > 1.0:
-        logger.success(f"queue solver core speed up: {seq_t / queue_t:.5f}")
+    if seq_stats.cme() / queue_t > 1.0:
+        logger.success(f"queue solver core speed up: {seq_stats.cme() / queue_t:.5f}")
     else:
-        logger.warning(f"queue solver core speed up: {seq_t / queue_t:.5f}")
+        logger.warning(f"queue solver core speed up: {seq_stats.cme() / queue_t:.5f}")
 
     if sequential_time / queue_time > 1.0:
         logger.success(f"queue total speed up: {sequential_time / queue_time:.5f}")
@@ -137,7 +124,7 @@ def main(argv: list[str]):
     plotting.draw_graph(data, queue_best[0].chromosome)
     plotting.fitness_trend(queue_stats.best, queue_stats.worst)
 
-    plotting.timing({"sync": queue_sync_time, "pure": pure_work_time})
+    plotting.timing({"sync": queue_sync_time, "pure": queue_stats.cme()})
 
 
 if __name__ == "__main__":

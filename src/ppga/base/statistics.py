@@ -18,11 +18,20 @@ class Statistics:
         self.best = []
         self.worst = []
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> float:
         return self.timings[key]
 
     def add_time(self, field: str, start: float) -> None:
         self.timings[field] += time.perf_counter() - start
+
+    def cme(self) -> float:
+        return sum(
+            [
+                self.timings["crossover"],
+                self.timings["mutation"],
+                self.timings["evaluation"],
+            ]
+        )
 
     def reset(self) -> None:
         for k in self.timings.keys():
