@@ -3,6 +3,8 @@ import sys
 import time
 
 from ppga import base, solver
+from ppga.tools import crossover, mutate
+from ppga.tools.select import tournament
 
 
 class Item:
@@ -27,88 +29,6 @@ def evaluate(chromosome, items: list[Item], capacity: float) -> tuple:
         return -value, weight
     else:
         return value, weight
-
-
-def select(population: list[base.Individual]) -> list[base.Individual]:
-    selected = []
-    indices = [i for i in range(len(population))]
-
-    for _ in range(len(population) // 2):
-        first, second = random.choices(indices, k=2)
-        while first == second:
-            first, second = random.choices(indices, k=2)
-
-        if population[first] > population[second]:
-            selected.append(population[first])
-            indices.remove(first)
-        else:
-            selected.append(population[second])
-            indices.remove(second)
-
-    return selected
-
-
-def mate(population: list[base.Individual]) -> list[tuple]:
-    indices = [i for i in range(len(population))]
-    couples = []
-    for _ in range(len(population) // 2):
-        father, mother = random.sample(indices, k=2)
-        couples.append((population[father], population[mother]))
-        indices.remove(father)
-        indices.remove(mother)
-
-    return couples
-
-
-def cx_one_point(father: list[int], mother: list[int]) -> tuple:
-    crossover_point = random.randint(1, len(father) - 2)
-
-    offspring1 = father[:crossover_point] + mother[crossover_point:]
-    offspring2 = father[crossover_point:] + mother[:crossover_point]
-
-    return offspring1, offspring2
-
-
-def mut_bitswap(chromosome: list[int]) -> list[int]:
-    position = random.randint(0, len(chromosome) - 1)
-    if chromosome[position] == 0:
-        chromosome[position] = 1
-    else:
-        chromosome[position] = 0
-
-    return chromosome
-
-
-def merge(
-    population: list[base.Individual], offsprings: list[base.Individual]
-) -> list[base.Individual]:
-    population = sorted(population, reverse=True)
-    offsprings = sorted(offsprings, reverse=True)
-
-    next_generation = []
-    index = 0
-    index1 = 0
-    index2 = 0
-
-    while (
-        index < len(population)
-        and index1 < len(population)
-        and index2 < len(offsprings)
-    ):
-        if population[index1] > offsprings[index2]:
-            next_generation.append(population[index1])
-            index1 += 1
-        else:
-            next_generation.append(offsprings[index2])
-            index2 += 1
-        index += 1
-
-    if index1 >= len(population):
-        return next_generation
-    elif index2 >= len(offsprings):
-        next_generation[index:] = population[index1 : len(population) - index2]
-
-    return next_generation
 
 
 def greedy(items: list[Item], capacity: float) -> tuple[list[int], list[Item]]:
@@ -155,14 +75,12 @@ def main(argv: list[str]):
     print(f"greedy (value: {value:.3f}, weight: {weight:.3f})")
 
     toolbox = base.ToolBox()
-    toolbox.set_fitness_weights(weights=(2.0, -0.5))
+    toolbox.set_fitness(weights=(2.0, -0.5))
     toolbox.set_generation(generate, len(items))
-    toolbox.set_selection(select)
-    toolbox.set_mating(mate)
-    toolbox.set_crossover(cx_one_point, CP)
-    toolbox.set_mutation(mut_bitswap, MP)
+    toolbox.set_selection(tournament, tournsize=3)
+    toolbox.set_crossover(crossover.one_point, cxpb=CP)
+    toolbox.set_mutation(mutate.bitswap, mutpb=MP)
     toolbox.set_evaluation(evaluate, items, capacity)
-    toolbox.set_replacement(merge)
 
     hall_of_fame = base.HallOfFame(5)
 

@@ -1,10 +1,21 @@
 import random
 
 from ppga.base.individual import Fitness, Individual
+from ppga.tools.mate import couples_mating
+from ppga.tools.replace import merge
 
 
 class ToolBox:
-    def set_fitness_weights(self, weights: tuple) -> None:
+    def __init__(self):
+        self.mating_func = couples_mating
+        self.mating_args = ()
+        self.mating_kwargs = {}
+
+        self.replacement_func = merge
+        self.replacement_args = ()
+        self.replacement_kwargs = {}
+
+    def set_fitness(self, weights: tuple) -> None:
         self.weights = weights
 
     def set_generation(self, func, *args, **kwargs) -> None:
@@ -47,16 +58,16 @@ class ToolBox:
     def mate(self, population: list[Individual]) -> list[tuple]:
         return self.mating_func(population, *self.mating_args, **self.mating_kwargs)
 
-    def set_crossover(self, func, rate: float = 0.8, *args, **kwargs) -> None:
+    def set_crossover(self, func, cxpb: float = 0.8, *args, **kwargs) -> None:
         self.crossover_func = func
-        self.crossover_rate = rate
+        self.crossover_pb = cxpb
         self.crossover_args = args
         self.crossover_kwargs = kwargs
 
     def crossover(self, couples: list[tuple]) -> list[Individual]:
         offsprings = []
         for c in couples:
-            if random.random() < self.crossover_rate:
+            if random.random() < self.crossover_pb:
                 new_offsprings = list(
                     self.crossover_func(
                         c[0].chromosome,
@@ -69,15 +80,15 @@ class ToolBox:
 
         return [Individual(o, Fitness(self.weights)) for o in offsprings]
 
-    def set_mutation(self, func, rate: float = 0.2, *args, **kwargs):
+    def set_mutation(self, func, mutpb: float = 0.2, *args, **kwargs):
         self.mutation_func = func
-        self.mutation_rate = rate
+        self.mutation_pb = mutpb
         self.mutation_args = args
         self.mutation_kwargs = kwargs
 
     def mutate(self, population: list[Individual]) -> list[Individual]:
         for i in population:
-            if random.random() < self.mutation_rate:
+            if random.random() < self.mutation_pb:
                 i.chromosome = self.mutation_func(
                     i.chromosome, *self.mutation_args, **self.mutation_kwargs
                 )
