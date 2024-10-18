@@ -97,7 +97,7 @@ def main(argv: list[str]):
 
     queue_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
-    queue_best, queue_stats = queue_solver.run(toolbox, N, G, base.Statistics())
+    queue_best, queue_stats = queue_solver.run(toolbox, N, G)
     queue_time = time.perf_counter() - start
     print(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)

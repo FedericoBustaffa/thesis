@@ -52,8 +52,9 @@ class QueuedGeneticSolver:
         toolbox: ToolBox,
         population_size: int,
         max_generations: int,
-        stats: Statistics,
     ):
+        stats = Statistics()
+
         # start the parallel workers
         workers = [QueueWorker(toolbox, stats) for _ in range(self.workers_num)]
         handlers = [Handler(w) for w in workers]

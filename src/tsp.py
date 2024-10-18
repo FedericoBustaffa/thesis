@@ -88,7 +88,7 @@ def main(argv: list[str]):
 
     queued_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
-    queue_best, queue_stats = queued_solver.run(toolbox, N, G, base.Statistics())
+    queue_best, queue_stats = queued_solver.run(toolbox, N, G)
     queue_time = time.perf_counter() - start
 
     logger.success(f"sequential best score: {seq_best[0].fitness}")
