@@ -7,6 +7,7 @@ import pandas as pd
 from loguru import logger
 
 from ppga import base, solver
+from ppga.tools import crossover, mutate, select
 from utils import plotting
 
 
@@ -16,7 +17,7 @@ class Town:
         self.y = y
 
 
-def generate(length: int):
+def generate(length: int) -> list[int]:
     chromosome = [i for i in range(length)]
     random.shuffle(chromosome)
 
@@ -27,7 +28,7 @@ def distance(t1: Town, t2: Town) -> float:
     return math.sqrt(math.pow(t1.x - t2.x, 2) + math.pow(t1.y - t2.y, 2))
 
 
-def evaluate(chromosome, towns: list[Town]) -> tuple:
+def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
     total_distance = 0.0
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
@@ -37,98 +38,6 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
         random.random()
 
     return (total_distance,)
-
-
-def tournament(population: list[base.Individual]):
-    selected = []
-    indices = [i for i in range(len(population))]
-
-    for _ in range(len(population) // 2):
-        first, second = random.choices(indices, k=2)
-        while first == second:
-            first, second = random.choices(indices, k=2)
-
-        if population[first] > population[second]:
-            selected.append(population[first])
-            indices.remove(first)
-        else:
-            selected.append(population[second])
-            indices.remove(second)
-
-    return selected
-
-
-def couples_mating(population: list[base.Individual]) -> list[tuple]:
-    indices = [i for i in range(len(population))]
-    couples = []
-    for _ in range(len(population) // 2):
-        father, mother = random.sample(indices, k=2)
-        couples.append((population[father], population[mother]))
-        indices.remove(father)
-        indices.remove(mother)
-
-    return couples
-
-
-def cx_one_point_ordered(father: list[int], mother: list[int]) -> tuple:
-    crossover_point = random.randint(1, len(father) - 2)
-
-    offspring1 = father[:crossover_point]
-    offspring2 = father[crossover_point:]
-
-    for gene in mother:
-        if gene not in offspring1:
-            offspring1.append(gene)
-        else:
-            offspring2.append(gene)
-
-    return offspring1, offspring2
-
-
-def mut_rotation(chromosome: list[int]):
-    a = random.randint(0, len(chromosome) - 1)
-    b = random.randint(0, len(chromosome) - 1)
-
-    while a == b:
-        b = random.randint(0, len(chromosome) - 1)
-
-    first = a if a < b else b
-    second = a if a > b else b
-    chromosome[first:second] = reversed(chromosome[first:second])
-
-    return chromosome
-
-
-def merge(
-    population: list[base.Individual], offsprings: list[base.Individual]
-) -> list[base.Individual]:
-    population = sorted(population, reverse=True)
-    offsprings = sorted(offsprings, reverse=True)
-
-    next_generation = []
-    index = 0
-    index1 = 0
-    index2 = 0
-
-    while (
-        index < len(population)
-        and index1 < len(population)
-        and index2 < len(offsprings)
-    ):
-        if population[index1] > offsprings[index2]:
-            next_generation.append(population[index1])
-            index1 += 1
-        else:
-            next_generation.append(offsprings[index2])
-            index2 += 1
-        index += 1
-
-    if index1 >= len(population):
-        return next_generation
-    elif index2 >= len(offsprings):
-        next_generation[index:] = population[index1 : len(population) - index2]
-
-    return next_generation
 
 
 def main(argv: list[str]):
@@ -156,23 +65,21 @@ def main(argv: list[str]):
     G = int(argv[3])
 
     # crossover rate
-    CR = float(argv[4])
+    cxpb = float(argv[4])
 
     # mutation rate
-    MR = float(argv[5])
+    mutpb = float(argv[5])
 
     # number of workers
     W = int(argv[6])
 
     toolbox = base.ToolBox()
-    toolbox.set_fitness_weights(weights=(-1.0,))
+    toolbox.set_fitness((-1.0,))
     toolbox.set_generation(generate, len(towns))
-    toolbox.set_selection(tournament)
-    toolbox.set_mating(couples_mating)
-    toolbox.set_crossover(cx_one_point_ordered, CR)
-    toolbox.set_mutation(mut_rotation, MR)
+    toolbox.set_selection(select.tournament, tournsize=3)
+    toolbox.set_crossover(crossover.one_point_ordered, cxpb=cxpb)
+    toolbox.set_mutation(mutate.rotation, mutpb=mutpb)
     toolbox.set_evaluation(evaluate, towns)
-    toolbox.set_replacement(merge)
 
     genetic_solver = solver.GeneticSolver()
     start = time.perf_counter()
