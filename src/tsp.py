@@ -33,7 +33,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple:
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
     # wasting time
-    for i in range(100000):
+    for i in range(50000):
         random.random()
 
     return (total_distance,)
@@ -176,7 +176,7 @@ def main(argv: list[str]):
 
     genetic_solver = solver.GeneticSolver()
     start = time.perf_counter()
-    seq_best, seq_stats = genetic_solver.run(toolbox, N, G, base.Statistics())
+    seq_best, seq_stats = genetic_solver.run(toolbox, N, G)
     sequential_time = time.perf_counter() - start
 
     queued_solver = solver.QueuedGeneticSolver(W)
@@ -221,7 +221,7 @@ def main(argv: list[str]):
 
     logger.info(f"queue pure work time: {pure_work_time} seconds")
     logger.info(f"queue sync time: {queue_sync_time} seconds")
-    logger.info(f"queue parallel time: {queue_stats["parallel"]} seconds")
+    logger.info(f"queue parallel time: {queue_stats['parallel']} seconds")
 
     # statistics data
     plotting.draw_graph(data, seq_best[0].chromosome)
@@ -230,7 +230,7 @@ def main(argv: list[str]):
     plotting.draw_graph(data, queue_best[0].chromosome)
     plotting.fitness_trend(queue_stats.best, queue_stats.worst)
 
-    # plotting.timing({"sync": queue_sync_time, "pure": pure_work_time})
+    plotting.timing({"sync": queue_sync_time, "pure": pure_work_time})
 
 
 if __name__ == "__main__":

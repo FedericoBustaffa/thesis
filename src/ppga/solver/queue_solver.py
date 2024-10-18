@@ -1,7 +1,4 @@
-import asyncio
 import math
-import multiprocessing as mp
-import multiprocessing.queues as mpq
 import queue
 import threading
 import time
@@ -10,88 +7,39 @@ from tqdm import tqdm
 
 from ppga.base.statistics import Statistics
 from ppga.base.toolbox import ToolBox
+from ppga.solver.queue_worker import QueueWorker
 
 
-def get(rqueue: mpq.Queue, local_queue: queue.Queue):
+def handle_worker(
+    send_buffer: queue.Queue, recv_buffer: queue.Queue, worker: QueueWorker
+):
+    worker.start()
     while True:
-        chunk = rqueue.get()
-        local_queue.put(chunk)
+        chunk = send_buffer.get()
         if chunk is None:
             break
 
-        while chunk is not None:
-            chunk = rqueue.get()
-            local_queue.put(chunk)
+        worker.send(chunk)
+        recv_buffer.put(worker.recv())
+    worker.join()
 
 
-def task(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statistics):
-    local_queue = queue.Queue()
-
-    # getter thread
-    getter = threading.Thread(target=get, args=[rqueue, local_queue])
-    getter.start()
-
-    while True:
-        parents = local_queue.get()
-        if parents is None:
-            break
-
-        stats.reset()
-        while parents is not None:
-            start = time.perf_counter()
-            offsprings = toolbox.crossover(parents)
-            stats.add_time("crossover", start)
-
-            start = time.perf_counter()
-            offsprings = toolbox.mutate(offsprings)
-            stats.add_time("mutation", start)
-
-            start = time.perf_counter()
-            offsprings = toolbox.evaluate(offsprings)
-            stats.add_time("evaluation", start)
-
-            squeue.put(offsprings)
-            parents = local_queue.get()
-
-        squeue.put(stats.timings)
-
-    getter.join()
-
-
-class QueueWorker(mp.Process):
-    def __init__(self, toolbox: ToolBox, stats: Statistics) -> None:
-        self.__rqueue = mp.Queue()
-        self.__squeue = mp.Queue()
+class Handler(threading.Thread):
+    def __init__(self, worker: QueueWorker):
+        self.send_buffer = queue.Queue()
+        self.recv_buffer = queue.Queue()
         super().__init__(
-            target=task, args=[self.__rqueue, self.__squeue, toolbox, stats]
+            target=handle_worker, args=[self.send_buffer, self.recv_buffer, worker]
         )
 
-        self.subchunks = 2
+    def send(self, chunk):
+        self.send_buffer.put(chunk)
 
-    async def send(self, chunk: list | None = None) -> None:
-        if isinstance(chunk, list):
-            size = len(chunk) // self.subchunks
-            for i in range(self.subchunks):
-                self.__rqueue.put(chunk[i * size : i * size + size])
-        self.__rqueue.put(None)
+    def recv(self):
+        return self.recv_buffer.get()
 
-    async def recv(self):
-        obj = self.__squeue.get()
-        if isinstance(obj, list):
-            result = []
-            while not isinstance(obj, dict):
-                result.extend(obj)
-                obj = self.__squeue.get()
-            return (result, obj)
-        else:
-            return obj
-
-    def join(self, timeout: float | None = None):
-        self.__squeue.close()
-        self.__rqueue.put(None)
-        while not self.__rqueue.empty():
-            pass
-        self.__rqueue.close()
+    def join(self, timeout: float | None = None) -> None:
+        self.send_buffer.put(None)
         super().join(timeout)
 
 
@@ -99,7 +47,7 @@ class QueuedGeneticSolver:
     def __init__(self, workers_num: int) -> None:
         self.workers_num = workers_num
 
-    async def solve(
+    def run(
         self,
         toolbox: ToolBox,
         population_size: int,
@@ -108,8 +56,9 @@ class QueuedGeneticSolver:
     ):
         # start the parallel workers
         workers = [QueueWorker(toolbox, stats) for _ in range(self.workers_num)]
-        for w in workers:
-            w.start()
+        handlers = [Handler(w) for w in workers]
+        for handler in handlers:
+            handler.start()
 
         start = time.perf_counter()
         population = toolbox.generate(population_size)
@@ -132,26 +81,19 @@ class QueuedGeneticSolver:
             # parallel crossover + mutation + evaluation
             chunksize = math.ceil(len(couples) / len(workers))
 
-            # sending couples chunks
             start = time.perf_counter()
-            tasks = [
-                asyncio.create_task(
-                    workers[i].send(couples[i * chunksize : i * chunksize + chunksize])
-                )
-                for i in range(len(workers))
-            ]
-            asyncio.as_completed(tasks)
-
-            # receiving offsprings and scores
-            tasks = [asyncio.create_task(w.recv()) for w in workers]
-            results = [await t for t in tasks]
+            for i in range(len(handlers)):
+                handlers[i].send(couples[i * chunksize : i * chunksize + chunksize])
 
             # keep only the worst time for each worker
             offsprings = []
             crossover_time = 0.0
             mutation_time = 0.0
             evaluation_time = 0.0
-            for offsprings_chunk, timings in results:
+
+            for handler in handlers:
+                offsprings_chunk, timings = handler.recv()
+
                 offsprings.extend(offsprings_chunk)
 
                 if crossover_time < timings["crossover"]:
@@ -162,11 +104,11 @@ class QueuedGeneticSolver:
 
                 if evaluation_time < timings["evaluation"]:
                     evaluation_time = timings["evaluation"]
-            stats.add_time("parallel", start)
 
             stats.timings["crossover"] += crossover_time
             stats.timings["mutation"] += mutation_time
             stats.timings["evaluation"] += evaluation_time
+            stats.add_time("parallel", start)
 
             # replacement
             start = time.perf_counter()
@@ -176,16 +118,7 @@ class QueuedGeneticSolver:
             stats.push_best(population[0].fitness.fitness)
             stats.push_worst(population[-1].fitness.fitness)
 
-        for w in workers:
-            w.join()
+        for h in handlers:
+            h.join()
 
         return population, stats
-
-    def run(
-        self,
-        toolbox: ToolBox,
-        population_size: int,
-        max_generations: int,
-        stats: Statistics,
-    ):
-        return asyncio.run(self.solve(toolbox, population_size, max_generations, stats))

@@ -2,6 +2,7 @@ import time
 
 from tqdm import tqdm
 
+from ppga.base.hall_of_fame import HallOfFame
 from ppga.base.individual import Individual
 from ppga.base.statistics import Statistics
 from ppga.base.toolbox import ToolBox
@@ -13,8 +14,10 @@ class GeneticSolver:
         toolbox: ToolBox,
         population_size: int,
         max_generations: int,
-        stats: Statistics,
+        hall_of_fame: None | HallOfFame = None,
     ) -> tuple[list[Individual], Statistics]:
+        stats = Statistics()
+
         start = time.perf_counter()
         population = toolbox.generate(population_size)
         stats.add_time("generation", start)
@@ -50,5 +53,8 @@ class GeneticSolver:
 
             stats.push_best(population[0].fitness.fitness)
             stats.push_worst(population[-1].fitness.fitness)
+
+            if hall_of_fame is not None:
+                hall_of_fame.update(population)
 
         return population, stats
