@@ -66,7 +66,7 @@ def main(argv: list[str]):
     G = int(argv[3])
 
     # crossover rate
-    cxpb = 0.8
+    cxpb = 1.0
 
     # mutation rate
     mutpb = 0.2

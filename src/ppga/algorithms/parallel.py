@@ -1,4 +1,3 @@
-import math
 import queue
 import threading
 import time
@@ -11,8 +10,12 @@ from ppga.base.toolbox import ToolBox
 
 
 def handle_worker(
-    send_buffer: queue.Queue, recv_buffer: queue.Queue, worker: QueueWorker
+    send_buffer: queue.Queue,
+    recv_buffer: queue.Queue,
+    toolbox: ToolBox,
+    stats: Statistics,
 ):
+    worker = QueueWorker(toolbox, stats)
     worker.start()
     while True:
         chunk = send_buffer.get()
@@ -25,11 +28,12 @@ def handle_worker(
 
 
 class Handler(threading.Thread):
-    def __init__(self, worker: QueueWorker):
+    def __init__(self, toolbox, stats):
         self.send_buffer = queue.Queue()
         self.recv_buffer = queue.Queue()
         super().__init__(
-            target=handle_worker, args=[self.send_buffer, self.recv_buffer, worker]
+            target=handle_worker,
+            args=[self.send_buffer, self.recv_buffer, toolbox, stats],
         )
 
     def send(self, chunk):
@@ -52,8 +56,7 @@ def generational(
     stats = Statistics()
 
     # start the parallel workers
-    workers = [QueueWorker(toolbox, stats) for _ in range(workers_num)]
-    handlers = [Handler(w) for w in workers]
+    handlers = [Handler(toolbox, stats) for _ in range(workers_num)]
     for handler in handlers:
         handler.start()
 
@@ -63,7 +66,7 @@ def generational(
 
     # this one should not be timed
     # start = time.perf_counter()
-    population = toolbox.evaluate(population)
+    # population = toolbox.evaluate(population)
     # stats.add_time("evaluation", start)
 
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
@@ -80,12 +83,11 @@ def generational(
         carry = len(couples) % workers_num
 
         start = time.perf_counter()
-        for i in range(len(handlers)):
-            if carry > 0:
-                handlers[i].send(couples[i * chunksize : i * chunksize + chunksize + 1])
-                carry -= 1
-            else:
-                handlers[i].send(couples[i * chunksize : i * chunksize + chunksize])
+        for i in range(carry):
+            handlers[i].send(couples[i * chunksize : i * chunksize + chunksize + 1])
+
+        for i in range(carry, workers_num, 1):
+            handlers[i].send(couples[i * chunksize : i * chunksize + chunksize])
 
         # keep only the worst time for each worker
         offsprings = []
@@ -107,9 +109,9 @@ def generational(
             if evaluation_time < timings["evaluation"]:
                 evaluation_time = timings["evaluation"]
 
-        stats.timings["crossover"] += crossover_time
-        stats.timings["mutation"] += mutation_time
-        stats.timings["evaluation"] += evaluation_time
+        stats["crossover"] += crossover_time
+        stats["mutation"] += mutation_time
+        stats["evaluation"] += evaluation_time
         stats.add_time("parallel", start)
 
         # replacement

@@ -4,6 +4,8 @@ import queue
 import threading
 import time
 
+from loguru import logger
+
 from ppga.base import Statistics, ToolBox
 
 
@@ -31,6 +33,8 @@ def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
         if parents is None:
             break
 
+        logger.trace(len(parents))
+
         stats.reset()
         while parents is not None:
             start = time.perf_counter()
@@ -47,6 +51,8 @@ def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
 
             squeue.put(offsprings)
             parents = local_queue.get()
+            if parents is not None:
+                logger.trace(len(parents))
 
         squeue.put(stats.timings)
 

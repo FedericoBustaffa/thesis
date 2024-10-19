@@ -4,12 +4,10 @@ import sys
 class Fitness:
     def __init__(self, weights: tuple) -> None:
         self.weights = weights
-        self.values = None
+        self.values = (0.0 for _ in range(len(weights)))
 
     @property
     def fitness(self) -> float:
-        if self.values is None:
-            return 0.0
         return sum([v * w for v, w in zip(self.values, self.weights)])
 
     def __eq__(self, other) -> bool:

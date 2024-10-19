@@ -18,6 +18,9 @@ class Statistics:
         self.best = []
         self.worst = []
 
+    def __setitem__(self, key: str, value: float):
+        self.timings[key] = value
+
     def __getitem__(self, key: str) -> float:
         return self.timings[key]
 
