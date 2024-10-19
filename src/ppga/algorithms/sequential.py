@@ -38,14 +38,15 @@ def generational(
 
         start = time.perf_counter()
         offsprings = toolbox.evaluate(offsprings)
+        offsprings = toolbox.normalize_fitness(offsprings)
         stats.add_time("evaluation", start)
 
         start = time.perf_counter()
         population = toolbox.replace(population, offsprings)
         stats.add_time("replacement", start)
 
-        stats.push_best(population[0].fitness.fitness)
-        stats.push_worst(population[-1].fitness.fitness)
+        stats.push_best(population[0].fitness)
+        stats.push_worst(population[-1].fitness)
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)

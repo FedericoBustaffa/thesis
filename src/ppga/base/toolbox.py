@@ -1,6 +1,6 @@
 import random
 
-from ppga.base.individual import Fitness, Individual
+from ppga.base.individual import Individual
 from ppga.tools.mate import couples_mating
 from ppga.tools.replace import merge
 
@@ -15,7 +15,7 @@ class ToolBox:
         self.replacement_args = ()
         self.replacement_kwargs = {}
 
-    def set_fitness(self, weights: tuple) -> None:
+    def set_weights(self, weights: tuple) -> None:
         self.weights = weights
 
     def set_generation(self, func, *args, **kwargs) -> None:
@@ -38,7 +38,7 @@ class ToolBox:
                 self.generation_func(*self.generation_args, **self.generation_kwargs)
             )
 
-        return [Individual(c, Fitness(self.weights)) for c in population]
+        return [Individual(c) for c in population]
 
     def set_selection(self, func, *args, **kwargs) -> None:
         self.selection_func = func
@@ -78,7 +78,7 @@ class ToolBox:
                 )
                 offsprings.extend(new_offsprings)
 
-        return [Individual(o, Fitness(self.weights)) for o in offsprings]
+        return [Individual(o) for o in offsprings]
 
     def set_mutation(self, func, mutpb: float = 0.2, *args, **kwargs):
         self.mutation_func = func
@@ -102,9 +102,17 @@ class ToolBox:
 
     def evaluate(self, population: list[Individual]) -> list[Individual]:
         for i in population:
-            i.fitness.values = self.evaluation_func(
+            i.values = self.evaluation_func(
                 i.chromosome, *self.evaluation_args, **self.evaluation_kwargs
             )
+            i.fitness = sum([v * w for v, w in zip(i.values, self.weights)])
+
+        return population
+
+    def normalize_fitness(self, population: list[Individual]) -> list[Individual]:
+        total = sum([i.fitness for i in population])
+        for i in population:
+            i.fitness = i.fitness / total
 
         return population
 

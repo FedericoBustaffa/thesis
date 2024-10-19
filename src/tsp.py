@@ -75,7 +75,7 @@ def main(argv: list[str]):
     W = int(argv[4])
 
     toolbox = base.ToolBox()
-    toolbox.set_fitness((-1.0,))
+    toolbox.set_weights((-1.0,))
     toolbox.set_generation(generate, len(towns))
     toolbox.set_selection(select.tournament, tournsize=2)
     toolbox.set_crossover(crossover.one_point_ordered, cxpb=cxpb)
