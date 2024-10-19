@@ -64,11 +64,6 @@ def generational(
     population = toolbox.generate(population_size)
     stats.add_time("generation", start)
 
-    # this one should not be timed
-    # start = time.perf_counter()
-    # population = toolbox.evaluate(population)
-    # stats.add_time("evaluation", start)
-
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
         start = time.perf_counter()
         chosen = toolbox.select(population)

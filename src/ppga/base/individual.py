@@ -4,10 +4,12 @@ import sys
 class Fitness:
     def __init__(self, weights: tuple) -> None:
         self.weights = weights
-        self.values = (0.0 for _ in range(len(weights)))
+        self.values = None
 
     @property
-    def fitness(self) -> float:
+    def fitness(self) -> float | None:
+        if self.values is None:
+            return None
         return sum([v * w for v, w in zip(self.values, self.weights)])
 
     def __eq__(self, other) -> bool:
@@ -16,10 +18,18 @@ class Fitness:
 
     def __lt__(self, other) -> bool:
         assert isinstance(other, Fitness)
+        if self.fitness is None:
+            return True
+        if other.fitness is None:
+            return False
         return self.fitness < other.fitness
 
     def __gt__(self, other) -> bool:
         assert isinstance(other, Fitness)
+        if self.fitness is None:
+            return False
+        if other.fitness is None:
+            return True
         return self.fitness > other.fitness
 
     def __sizeof__(self) -> int:
