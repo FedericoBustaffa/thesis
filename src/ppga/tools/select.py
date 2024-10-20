@@ -27,5 +27,13 @@ def tournament(population: list[Individual], tournsize: int = 2) -> list[Individ
 
 def roulette(population: list[Individual]) -> list[Individual]:
     selected = []
+    total_fitness = sum([i.fitness for i in population])
+    try:
+        normalized_scores = [i.fitness / total_fitness for i in population]
+        selected = random.choices(
+            population, k=len(population) // 2, weights=normalized_scores
+        )
+    except ZeroDivisionError:
+        selected = population[: len(population) // 2]
 
     return selected
