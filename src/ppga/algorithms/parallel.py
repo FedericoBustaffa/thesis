@@ -104,8 +104,6 @@ def generational(
             if evaluation_time < timings["evaluation"]:
                 evaluation_time = timings["evaluation"]
 
-        offsprings = toolbox.normalize_fitness(offsprings)
-
         stats["crossover"] += crossover_time
         stats["mutation"] += mutation_time
         stats["evaluation"] += evaluation_time

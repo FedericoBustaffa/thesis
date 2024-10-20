@@ -25,7 +25,7 @@ def tournament(population: list[Individual], tournsize: int = 2) -> list[Individ
     return selected
 
 
-# def roulette(population: list[Individual]) -> list[Individual]:
-#     selected = []
+def roulette(population: list[Individual]) -> list[Individual]:
+    selected = []
 
-#     return selected
+    return selected

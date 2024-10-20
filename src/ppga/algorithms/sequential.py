@@ -38,7 +38,6 @@ def generational(
 
         start = time.perf_counter()
         offsprings = toolbox.evaluate(offsprings)
-        offsprings = toolbox.normalize_fitness(offsprings)
         stats.add_time("evaluation", start)
 
         start = time.perf_counter()

@@ -105,14 +105,12 @@ class ToolBox:
             i.values = self.evaluation_func(
                 i.chromosome, *self.evaluation_args, **self.evaluation_kwargs
             )
-            i.fitness = sum([v * w for v, w in zip(i.values, self.weights)])
-
-        return population
-
-    def normalize_fitness(self, population: list[Individual]) -> list[Individual]:
-        total = sum([i.fitness for i in population])
-        for i in population:
-            i.fitness = i.fitness / total
+            i.fitness = 0.0
+            for v, w in zip(i.values, self.weights):
+                if w < 0.0:
+                    i.fitness -= 1.0 / (v * w)
+                else:
+                    i.fitness += v * w
 
         return population
 
