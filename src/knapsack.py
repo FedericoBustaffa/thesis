@@ -4,7 +4,7 @@ import time
 
 from ppga import base
 from ppga.algorithms import parallel, sequential
-from ppga.tools import crossover, mutate, select
+from ppga.tools import crossover, mutate, replace, select
 
 
 class Item:
@@ -79,18 +79,15 @@ def main(argv: list[str]):
     toolbox.set_crossover(crossover.one_point, cxpb=0.8)
     toolbox.set_mutation(mutate.shuffle, mutpb=0.2)
     toolbox.set_evaluation(evaluate, items, capacity)
-
-    hall_of_fame = base.HallOfFame(5)
+    toolbox.set_replacement(replace.total)
 
     start = time.perf_counter()
-    seq_best, seq_stats = sequential.generational(toolbox, N, G, hall_of_fame)
+    seq_best, seq_stats = sequential.generational(toolbox, N, G)
     sequential_time = time.perf_counter() - start
     print(f"sequential time: {sequential_time} seconds")
     value, weight = show_solution(seq_best[0].chromosome, items)
     print(f"sequential best solution: ({value:.3f}, {weight:.3f})")
     print(f"sequential best fitnes: {seq_best[0].fitness}")
-    for i in hall_of_fame.hof:
-        print(f"hof: {i.fitness}")
 
     start = time.perf_counter()
     queue_best, queue_stats = parallel.generational(toolbox, N, G, W)
