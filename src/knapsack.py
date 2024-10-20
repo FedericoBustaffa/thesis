@@ -2,9 +2,9 @@ import random
 import sys
 import time
 
-from ppga import base, solver
-from ppga.tools import crossover, mutate
-from ppga.tools.select import tournament
+from ppga import base
+from ppga.algorithms import parallel, sequential
+from ppga.tools import crossover, mutate, select
 
 
 class Item:
@@ -61,8 +61,6 @@ def main(argv: list[str]):
     items_num = int(argv[1])
     N = int(argv[2])
     G = int(argv[3])
-    CP = 0.8
-    MP = 0.2
     W = int(argv[4])
 
     items = [Item(random.random(), random.random()) for _ in range(items_num)]
@@ -75,18 +73,17 @@ def main(argv: list[str]):
     print(f"greedy (value: {value:.3f}, weight: {weight:.3f})")
 
     toolbox = base.ToolBox()
-    toolbox.set_fitness(weights=(2.0, -0.5))
+    toolbox.set_weights(weights=(3.0, -1.0))
     toolbox.set_generation(generate, len(items))
-    toolbox.set_selection(tournament, tournsize=3)
-    toolbox.set_crossover(crossover.one_point, cxpb=CP)
-    toolbox.set_mutation(mutate.bitswap, mutpb=MP)
+    toolbox.set_selection(select.roulette)
+    toolbox.set_crossover(crossover.one_point, cxpb=0.8)
+    toolbox.set_mutation(mutate.bitswap, mutpb=0.2)
     toolbox.set_evaluation(evaluate, items, capacity)
 
     hall_of_fame = base.HallOfFame(5)
 
-    genetic_solver = solver.GeneticSolver()
     start = time.perf_counter()
-    seq_best, seq_stats = genetic_solver.run(toolbox, N, G, hall_of_fame)
+    seq_best, seq_stats = sequential.generational(toolbox, N, G, hall_of_fame)
     sequential_time = time.perf_counter() - start
     print(f"sequential time: {sequential_time} seconds")
     value, weight = show_solution(seq_best[0].chromosome, items)
@@ -95,9 +92,8 @@ def main(argv: list[str]):
     for i in hall_of_fame.hof:
         print(f"hof: {i.fitness}")
 
-    queue_solver = solver.QueuedGeneticSolver(W)
     start = time.perf_counter()
-    queue_best, queue_stats = queue_solver.run(toolbox, N, G)
+    queue_best, queue_stats = parallel.generational(toolbox, N, G, W)
     queue_time = time.perf_counter() - start
     print(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)
