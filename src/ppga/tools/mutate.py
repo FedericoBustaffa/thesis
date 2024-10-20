@@ -15,11 +15,20 @@ def rotation(chromosome):
     return chromosome
 
 
-def bitswap(chromosome):
-    position = random.randint(0, len(chromosome) - 1)
-    if chromosome[position] == 0:
-        chromosome[position] = 1
-    else:
-        chromosome[position] = 0
+def bit_flip(chromosome, pb: float = 0.5):
+    for gene in chromosome:
+        if random.random() < pb:
+            gene = not gene
+
+    return chromosome
+
+
+def shuffle(chromosome, pb: float = 0.5):
+    for i, gene in enumerate(chromosome):
+        if random.random() < pb:
+            new_pos = random.randint(0, len(chromosome) - 1)
+            while new_pos == i:
+                new_pos = random.randint(0, len(chromosome) - 1)
+            chromosome[i], chromosome[new_pos] = chromosome[new_pos], chromosome[i]
 
     return chromosome
