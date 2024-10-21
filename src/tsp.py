@@ -8,7 +8,7 @@ from loguru import logger
 
 from ppga import base
 from ppga.algorithms import parallel, sequential
-from ppga.tools import crossover, mutate, select
+from ppga.tools import crossover, mutation, replacement, selection
 from utils import plotting
 
 
@@ -35,8 +35,8 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
     # wasting time
-    for i in range(50000):
-        random.random()
+    # for i in range(50000):
+    #     random.random()
 
     return (total_distance,)
 
@@ -71,10 +71,11 @@ def main(argv: list[str]):
     toolbox = base.ToolBox()
     toolbox.set_weights((-1.0,))
     toolbox.set_generation(generate, len(towns))
-    toolbox.set_selection(select.tournament, tournsize=2)
-    toolbox.set_crossover(crossover.one_point_ordered, cxpb=0.8)
-    toolbox.set_mutation(mutate.rotation, mutpb=0.2)
+    toolbox.set_selection(selection.tournament, tournsize=2)
+    toolbox.set_crossover(crossover.one_point_ordered, cxpb=0.7)
+    toolbox.set_mutation(mutation.rotation, mutpb=0.3)
     toolbox.set_evaluation(evaluate, towns)
+    toolbox.set_replacement(replacement.merge)
 
     hall_of_fame = base.HallOfFame(5)
 
@@ -89,7 +90,7 @@ def main(argv: list[str]):
     queue_time = time.perf_counter() - start
 
     logger.success(f"sequential best score: {seq_best[0].fitness}")
-    logger.success(f"sequential best score: {hall_of_fame.hof[0].fitness}")
+    logger.success(f"sequential best score: {hall_of_fame[0].fitness}")
 
     queue_t = queue_stats["parallel"]
     logger.info(f"sequential total time: {sequential_time:.5f} seconds")

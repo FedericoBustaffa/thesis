@@ -10,6 +10,4 @@ def total(
 def merge(
     population: list[Individual], offsprings: list[Individual]
 ) -> list[Individual]:
-    next_generation = sorted(population + offsprings, reverse=True)
-
-    return next_generation[: len(population)]
+    return sorted(population + offsprings, reverse=True)[: len(population)]

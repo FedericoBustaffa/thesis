@@ -44,8 +44,8 @@ def generational(
         population = toolbox.replace(population, offsprings)
         stats.add_time("replacement", start)
 
-        stats.push_best(population[0].fitness)
-        stats.push_worst(population[-1].fitness)
+        stats.push_best(max(population).fitness)
+        stats.push_worst(min(population).fitness)
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)

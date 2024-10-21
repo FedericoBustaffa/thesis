@@ -7,6 +7,12 @@ class Individual:
         self.values = ()
         self.fitness = 0.0
 
+    def invalid(self) -> bool:
+        return self.values == ()
+
+    def __hash__(self) -> int:
+        return hash((tuple(self.chromosome), self.values, self.fitness))
+
     def __repr__(self) -> str:
         return f"{self.chromosome}: {self.fitness}"
 

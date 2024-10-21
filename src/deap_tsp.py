@@ -7,7 +7,6 @@ from functools import partial
 import pandas as pd
 from deap import algorithms, base, creator, tools
 
-from ppga.tools import crossover
 from utils import plotting
 
 
@@ -70,7 +69,7 @@ def main(argv: list[str]):
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("evaluate", partial(evaluate, towns))
     toolbox.register("mate", tools.cxOrdered)
-    toolbox.register("mutate", tools.mutInversion)
+    toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.01)
     toolbox.register("select", tools.selTournament, tournsize=2)
 
     start = time.perf_counter()

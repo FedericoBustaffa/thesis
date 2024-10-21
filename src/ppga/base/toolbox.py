@@ -1,8 +1,8 @@
 import random
 
 from ppga.base.individual import Individual
-from ppga.tools.mate import couples_mating
-from ppga.tools.replace import total
+from ppga.tools.coupling import couples_mating
+from ppga.tools.replacement import total
 
 
 class ToolBox:

@@ -4,7 +4,7 @@ import time
 
 from ppga import base
 from ppga.algorithms import parallel, sequential
-from ppga.tools import crossover, mutate, replace, select
+from ppga.tools import crossover, mutation, replacement, selection
 
 
 class Item:
@@ -75,11 +75,11 @@ def main(argv: list[str]):
     toolbox = base.ToolBox()
     toolbox.set_weights(weights=(3.0, -1.0))
     toolbox.set_generation(generate, len(items))
-    toolbox.set_selection(select.roulette)
-    toolbox.set_crossover(crossover.one_point, cxpb=0.8)
-    toolbox.set_mutation(mutate.shuffle, mutpb=0.2)
+    toolbox.set_selection(selection.roulette)
+    toolbox.set_crossover(crossover.shuffle, cxpb=0.8)
+    toolbox.set_mutation(mutation.shuffle, mutpb=0.2)
     toolbox.set_evaluation(evaluate, items, capacity)
-    toolbox.set_replacement(replace.total)
+    toolbox.set_replacement(replacement.merge)
 
     start = time.perf_counter()
     seq_best, seq_stats = sequential.generational(toolbox, N, G)
