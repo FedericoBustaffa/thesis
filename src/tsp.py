@@ -42,15 +42,15 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
 
 
 def main(argv: list[str]):
-    if len(argv) < 5:
-        logger.error(f"USAGE: py {argv[0]} <T> <N> <G> <W> <log_level>")
+    if len(argv) < 3:
+        logger.error(f"USAGE: py {argv[0]} <T> <N> <G>")
         exit(1)
 
     logger.remove()
     logger.add(
         sys.stderr,
         format="<green>{time:HH:mm:ss}</green> | {file}:{line} | <level>{level} - {message}</level>",
-        level=argv[5].upper(),
+        level="TRACE",
         enqueue=True,
     )
 
@@ -64,9 +64,6 @@ def main(argv: list[str]):
 
     # Max generations
     G = int(argv[3])
-
-    # number of workers
-    W = int(argv[4])
 
     toolbox = base.ToolBox()
     toolbox.set_weights((-1.0,))
