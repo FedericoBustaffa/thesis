@@ -2,7 +2,7 @@ import random
 
 from ppga.base.individual import Individual
 from ppga.tools.mate import couples_mating
-from ppga.tools.replace import merge
+from ppga.tools.replace import total
 
 
 class ToolBox:
@@ -11,7 +11,7 @@ class ToolBox:
         self.mating_args = ()
         self.mating_kwargs = {}
 
-        self.replacement_func = merge
+        self.replacement_func = total
         self.replacement_args = ()
         self.replacement_kwargs = {}
 
@@ -45,9 +45,11 @@ class ToolBox:
         self.selection_args = args
         self.selection_kwargs = kwargs
 
-    def select(self, population: list[Individual]) -> list[Individual]:
+    def select(
+        self, population: list[Individual], population_size: int
+    ) -> list[Individual]:
         return self.selection_func(
-            population, *self.selection_args, **self.selection_kwargs
+            population, population_size, *self.selection_args, **self.selection_kwargs
         )
 
     def set_mating(self, func, *args, **kwargs) -> None:
@@ -106,12 +108,6 @@ class ToolBox:
                 i.chromosome, *self.evaluation_args, **self.evaluation_kwargs
             )
             i.fitness = sum([v * w for v, w in zip(i.values, self.weights)])
-            # i.fitness = 0.0
-            # for v, w in zip(i.values, self.weights):
-            #     if w < 0.0:
-            #         i.fitness -= 1.0 / (v * w)
-            #     else:
-            #         i.fitness += v * w
 
         return population
 
