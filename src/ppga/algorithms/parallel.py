@@ -1,3 +1,4 @@
+import os
 import queue
 import threading
 import time
@@ -5,6 +6,7 @@ import time
 from tqdm import tqdm
 
 from ppga.algorithms.queue_worker import QueueWorker
+from ppga.base.hall_of_fame import HallOfFame
 from ppga.base.statistics import Statistics
 from ppga.base.toolbox import ToolBox
 
@@ -51,11 +53,14 @@ def generational(
     toolbox: ToolBox,
     population_size: int,
     max_generations: int,
-    workers_num: int,
+    hall_of_fame: None | HallOfFame = None,
 ):
     stats = Statistics()
 
     # start the parallel workers
+    workers_num = os.cpu_count()
+    assert workers_num is not None
+
     handlers = [Handler(toolbox, stats) for _ in range(workers_num)]
     for handler in handlers:
         handler.start()
@@ -116,6 +121,9 @@ def generational(
 
         stats.push_best(max(population).fitness)
         stats.push_worst(min(population).fitness)
+
+        if hall_of_fame is not None:
+            hall_of_fame.update(population)
 
     for h in handlers:
         h.join()
