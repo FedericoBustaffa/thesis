@@ -16,10 +16,18 @@ class Individual:
 
     def __lt__(self, other) -> bool:
         assert isinstance(other, Individual)
+        if self.values == ():
+            return True
+        elif other.values == ():
+            return False
         return self.fitness < other.fitness
 
     def __gt__(self, other) -> bool:
         assert isinstance(other, Individual)
+        if self.values == ():
+            return False
+        elif other.values == ():
+            return True
         return self.fitness > other.fitness
 
     def __sizeof__(self) -> int:
