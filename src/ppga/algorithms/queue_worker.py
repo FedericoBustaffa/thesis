@@ -12,6 +12,7 @@ def get(rqueue: mpq.Queue, local_queue: queue.Queue):
         chunk = rqueue.get()
         local_queue.put(chunk)
         if chunk is None:
+            local_queue.put(None)
             break
 
         while chunk is not None:
