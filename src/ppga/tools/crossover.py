@@ -23,3 +23,17 @@ def one_point_ordered(father, mother) -> tuple:
             offspring2.append(gene)
 
     return offspring1, offspring2
+
+
+def shuffle(father, mother) -> tuple:
+    offspring1 = []
+    offspring2 = []
+    for i in range(len(father)):
+        if random.random() < 0.5:
+            offspring1.append(father[i])
+            offspring2.append(mother[i])
+        else:
+            offspring1.append(mother[i])
+            offspring2.append(father[i])
+
+    return offspring1, offspring2
