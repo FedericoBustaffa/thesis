@@ -21,7 +21,7 @@ def generational(
 
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
         start = time.perf_counter()
-        chosen = toolbox.select(population)
+        chosen = toolbox.select(population, population_size)
         stats.add_time("selection", start)
 
         start = time.perf_counter()
