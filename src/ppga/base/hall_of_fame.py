@@ -11,4 +11,7 @@ class HallOfFame:
 
     def update(self, population: list[Individual]):
         uniques = sorted(list(set(population)), reverse=True)[: self.size]
-        self.best = sorted(self.best + uniques, reverse=True)[: self.size]
+        self.best = sorted(list(set(self.best + uniques)), reverse=True)[: self.size]
+
+    def clear(self):
+        self.best.clear()
