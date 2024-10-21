@@ -65,12 +65,6 @@ def main(argv: list[str]):
     # Max generations
     G = int(argv[3])
 
-    # crossover rate
-    cxpb = 0.8
-
-    # mutation rate
-    mutpb = 0.2
-
     # number of workers
     W = int(argv[4])
 
@@ -78,12 +72,16 @@ def main(argv: list[str]):
     toolbox.set_weights((-1.0,))
     toolbox.set_generation(generate, len(towns))
     toolbox.set_selection(select.tournament, tournsize=2)
-    toolbox.set_crossover(crossover.one_point_ordered, cxpb=cxpb)
-    toolbox.set_mutation(mutate.rotation, mutpb=mutpb)
+    toolbox.set_crossover(crossover.one_point_ordered, cxpb=0.8)
+    toolbox.set_mutation(mutate.rotation, mutpb=0.2)
     toolbox.set_evaluation(evaluate, towns)
 
+    hall_of_fame = base.HallOfFame(5)
+
     start = time.perf_counter()
-    seq_best, seq_stats = sequential.generational(toolbox, N, G)
+    seq_best, seq_stats = sequential.generational(
+        toolbox, N, G, hall_of_fame=hall_of_fame
+    )
     sequential_time = time.perf_counter() - start
 
     start = time.perf_counter()
@@ -91,6 +89,7 @@ def main(argv: list[str]):
     queue_time = time.perf_counter() - start
 
     logger.success(f"sequential best score: {seq_best[0].fitness}")
+    logger.success(f"sequential best score: {hall_of_fame.hof[0].fitness}")
 
     queue_t = queue_stats["parallel"]
     logger.info(f"sequential total time: {sequential_time:.5f} seconds")
@@ -118,6 +117,7 @@ def main(argv: list[str]):
 
     # statistics data
     plotting.draw_graph(data, seq_best[0].chromosome)
+    plotting.draw_graph(data, hall_of_fame[0].chromosome)
     plotting.fitness_trend(seq_stats.best, seq_stats.worst)
 
     plotting.draw_graph(data, queue_best[0].chromosome)
