@@ -4,11 +4,7 @@ from ppga.base import Individual
 def total(
     population: list[Individual], offsprings: list[Individual]
 ) -> list[Individual]:
-    next_generation = sorted(offsprings, reverse=True)
-    population = sorted(population)
-    next_generation.extend(population[len(offsprings) : len(population)])
-
-    return next_generation
+    return offsprings
 
 
 def merge(
