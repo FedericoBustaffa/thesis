@@ -120,7 +120,7 @@ def generational(
         stats.add_time("replacement", start)
 
         stats.push_best(max(population).fitness)
-        stats.push_worst(min(population).fitness)
+        stats.push_worst(min([i for i in population if not i.invalid()]).fitness)
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)

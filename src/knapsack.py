@@ -2,6 +2,8 @@ import random
 import sys
 import time
 
+from loguru import logger
+
 from ppga import base
 from ppga.algorithms import parallel, sequential
 from ppga.tools import crossover, mutation, replacement, selection
@@ -54,23 +56,30 @@ def show_solution(solution, items):
 
 
 def main(argv: list[str]):
-    if len(argv) < 3:
+    logger.remove()
+    logger.add(
+        sys.stderr,
+        format="<green>{time:HH:mm:ss}</green> | {file}:{line} | <level>{level} - {message}</level>",
+        level="TRACE",
+        enqueue=True,
+    )
+
+    if len(argv) != 4:
         print(f"USAGE: py {argv[0]} <Items> <N> <G>")
         exit(1)
 
     items_num = int(argv[1])
     N = int(argv[2])
     G = int(argv[3])
-    W = int(argv[4])
 
     items = [Item(random.random(), random.random()) for _ in range(items_num)]
     capacity = sum([i.weight for i in items]) * 0.7
-    print(f"capacity: {capacity:.3f}")
+    logger.info(f"capacity: {capacity:.3f}")
 
     # greedy method for comparison
     solution, items = greedy(items, capacity)
     value, weight = show_solution(solution, items)
-    print(f"greedy (value: {value:.3f}, weight: {weight:.3f})")
+    logger.info(f"greedy (value: {value:.3f}, weight: {weight:.3f})")
 
     toolbox = base.ToolBox()
     toolbox.set_weights(weights=(3.0, -1.0))
@@ -86,24 +95,24 @@ def main(argv: list[str]):
     start = time.perf_counter()
     seq_best, seq_stats = sequential.generational(toolbox, N, G, hall_of_fame=hof)
     sequential_time = time.perf_counter() - start
-    print(f"sequential time: {sequential_time} seconds")
+    logger.success(f"sequential time: {sequential_time} seconds")
     value, weight = show_solution(seq_best[0].chromosome, items)
-    print(f"sequential best solution: ({value:.3f}, {weight:.3f})")
-    print(f"sequential best fitnes: {seq_best[0].fitness}")
+    logger.success(f"sequential best solution: ({value:.3f}, {weight:.3f})")
+    logger.success(f"sequential best fitnes: {seq_best[0].fitness}")
     for i, ind in enumerate(hof.best):
-        print(f"HoF {i}: {ind.fitness}")
+        logger.trace(f"HoF {i}: {ind.fitness}")
 
     hof.clear()
     start = time.perf_counter()
     queue_best, queue_stats = parallel.generational(toolbox, N, G, hall_of_fame=hof)
     queue_time = time.perf_counter() - start
     for i, ind in enumerate(hof.best):
-        print(f"HoF {i}: {ind.fitness}")
-    print(f"queue time: {queue_time} seconds")
+        logger.trace(f"HoF {i}: {ind.fitness}")
+    logger.success(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)
-    print(f"queue best solution: ({value:.3f}, {weight:.3f})")
+    logger.success(f"queue best solution: ({value:.3f}, {weight:.3f})")
 
-    print(f"speed up: {sequential_time / queue_time:.4f} seconds")
+    logger.success(f"speed up: {sequential_time / queue_time:.4f} seconds")
 
 
 if __name__ == "__main__":

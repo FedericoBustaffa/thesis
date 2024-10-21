@@ -42,10 +42,6 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
 
 
 def main(argv: list[str]):
-    if len(argv) < 3:
-        logger.error(f"USAGE: py {argv[0]} <T> <N> <G>")
-        exit(1)
-
     logger.remove()
     logger.add(
         sys.stderr,
@@ -53,6 +49,10 @@ def main(argv: list[str]):
         level="TRACE",
         enqueue=True,
     )
+
+    if len(argv) != 4:
+        logger.error(f"USAGE: py {argv[0]} <T> <N> <G>")
+        exit(1)
 
     data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
     x_coords = data["x"]
@@ -83,9 +83,9 @@ def main(argv: list[str]):
     sequential_time = time.perf_counter() - start
     logger.success(f"sequential best score: {seq_best[0].fitness}")
     for i, ind in enumerate(hall_of_fame.best):
-        print(f"HoF {i}: {ind.fitness}")
-    logger.info(f"sequential total time: {sequential_time:.5f} seconds")
-    logger.info(f"to parallelize time: {seq_stats.cme():.5f} seconds")
+        logger.trace(f"HoF {i}: {ind.fitness}")
+    logger.success(f"sequential total time: {sequential_time:.5f} seconds")
+    logger.success(f"to parallelize time: {seq_stats.cme():.5f} seconds")
 
     hall_of_fame.clear()
     start = time.perf_counter()
@@ -94,7 +94,7 @@ def main(argv: list[str]):
     )
     queue_time = time.perf_counter() - start
     for i, ind in enumerate(hall_of_fame.best):
-        print(f"HoF {i}: {ind.fitness}")
+        logger.trace(f"HoF {i}: {ind.fitness}")
 
     queue_t = queue_stats["parallel"]
 
@@ -102,11 +102,11 @@ def main(argv: list[str]):
     logger.success(f"queue best score: {queue_best[0].fitness}")
 
     queue_sync_time = queue_stats["parallel"] - queue_stats.cme()
-    logger.info(f"queue pure work time: {queue_stats.cme()} seconds")
-    logger.info(f"queue sync time: {queue_sync_time} seconds")
-    logger.info(f"queue parallel time: {queue_stats['parallel']} seconds")
+    logger.success(f"queue pure work time: {queue_stats.cme()} seconds")
+    logger.success(f"queue sync time: {queue_sync_time} seconds")
+    logger.success(f"queue parallel time: {queue_stats['parallel']} seconds")
 
-    logger.info(f"queue total time: {queue_time:.5f} seconds")
+    logger.success(f"queue total time: {queue_time:.5f} seconds")
     if seq_stats.cme() / queue_t > 1.0:
         logger.success(f"queue solver core speed up: {seq_stats.cme() / queue_t:.5f}")
     else:
@@ -119,7 +119,6 @@ def main(argv: list[str]):
 
     # statistics data
     plotting.draw_graph(data, seq_best[0].chromosome)
-    plotting.draw_graph(data, hall_of_fame[0].chromosome)
     plotting.fitness_trend(seq_stats.best, seq_stats.worst)
 
     plotting.draw_graph(data, queue_best[0].chromosome)
