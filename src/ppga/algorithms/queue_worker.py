@@ -12,7 +12,6 @@ def get(rqueue: mpq.Queue, local_queue: queue.Queue):
         chunk = rqueue.get()
         local_queue.put(chunk)
         if chunk is None:
-            local_queue.put(None)
             break
 
         while chunk is not None:
@@ -83,7 +82,5 @@ class QueueWorker(mp.Process):
     def join(self, timeout: float | None = None) -> None:
         self.squeue.close()
         self.rqueue.put(None)
-        while not self.rqueue.empty():
-            pass
         self.rqueue.close()
         super().join(timeout)
