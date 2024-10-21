@@ -54,8 +54,8 @@ def show_solution(solution, items):
 
 
 def main(argv: list[str]):
-    if len(argv) < 4:
-        print(f"USAGE: py {argv[0]} <Items> <N> <G> <C> <M> <W>")
+    if len(argv) < 3:
+        print(f"USAGE: py {argv[0]} <Items> <N> <G>")
         exit(1)
 
     items_num = int(argv[1])
@@ -81,17 +81,24 @@ def main(argv: list[str]):
     toolbox.set_evaluation(evaluate, items, capacity)
     toolbox.set_replacement(replacement.merge)
 
+    hof = base.HallOfFame(5)
+
     start = time.perf_counter()
-    seq_best, seq_stats = sequential.generational(toolbox, N, G)
+    seq_best, seq_stats = sequential.generational(toolbox, N, G, hall_of_fame=hof)
     sequential_time = time.perf_counter() - start
     print(f"sequential time: {sequential_time} seconds")
     value, weight = show_solution(seq_best[0].chromosome, items)
     print(f"sequential best solution: ({value:.3f}, {weight:.3f})")
     print(f"sequential best fitnes: {seq_best[0].fitness}")
+    for i, ind in enumerate(hof.best):
+        print(f"HoF {i}: {ind.fitness}")
 
+    hof.clear()
     start = time.perf_counter()
-    queue_best, queue_stats = parallel.generational(toolbox, N, G, W)
+    queue_best, queue_stats = parallel.generational(toolbox, N, G, hall_of_fame=hof)
     queue_time = time.perf_counter() - start
+    for i, ind in enumerate(hof.best):
+        print(f"HoF {i}: {ind.fitness}")
     print(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)
     print(f"queue best solution: ({value:.3f}, {weight:.3f})")
