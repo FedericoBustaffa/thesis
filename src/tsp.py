@@ -84,20 +84,24 @@ def main(argv: list[str]):
         toolbox, N, G, hall_of_fame=hall_of_fame
     )
     sequential_time = time.perf_counter() - start
-
-    start = time.perf_counter()
-    queue_best, queue_stats = parallel.generational(toolbox, N, G, W)
-    queue_time = time.perf_counter() - start
-
     logger.success(f"sequential best score: {seq_best[0].fitness}")
-    logger.success(f"sequential best score: {hall_of_fame[0].fitness}")
-
-    queue_t = queue_stats["parallel"]
+    for i, ind in enumerate(hall_of_fame.best):
+        print(f"HoF {i}: {ind.fitness}")
     logger.info(f"sequential total time: {sequential_time:.5f} seconds")
     logger.info(f"to parallelize time: {seq_stats.cme():.5f} seconds")
 
+    hall_of_fame.clear()
+    start = time.perf_counter()
+    queue_best, queue_stats = parallel.generational(
+        toolbox, N, G, hall_of_fame=hall_of_fame
+    )
+    queue_time = time.perf_counter() - start
+    for i, ind in enumerate(hall_of_fame.best):
+        print(f"HoF {i}: {ind.fitness}")
+
+    queue_t = queue_stats["parallel"]
+
     # parallel results
-    logger.info("-" * 50)
     logger.success(f"queue best score: {queue_best[0].fitness}")
 
     queue_sync_time = queue_stats["parallel"] - queue_stats.cme()
