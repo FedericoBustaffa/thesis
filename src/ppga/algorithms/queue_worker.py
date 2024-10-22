@@ -4,6 +4,8 @@ import queue
 import threading
 import time
 
+from loguru import logger
+
 from ppga.base import Statistics, ToolBox
 
 
@@ -18,6 +20,8 @@ def get(rqueue: mpq.Queue, local_queue: queue.Queue):
             chunk = rqueue.get()
             local_queue.put(chunk)
 
+    logger.debug("getter done")
+
 
 def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statistics):
     local_queue = queue.Queue()
@@ -28,6 +32,7 @@ def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
 
     while True:
         parents = local_queue.get()
+        local_queue.task_done()
         if parents is None:
             break
 
@@ -47,17 +52,24 @@ def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
 
             squeue.put(offsprings)
             parents = local_queue.get()
+            local_queue.task_done()
 
         squeue.put(stats.timings)
 
+    local_queue.join()
     getter.join()
+    logger.debug(f"{mp.current_process().name} done")
 
 
-class QueueWorker(mp.Process):
+class QueueWorker:
     def __init__(self, toolbox: ToolBox, stats: Statistics) -> None:
+        self.lock = mp.Lock()
         self.rqueue = mp.Queue()
         self.squeue = mp.Queue()
-        super().__init__(target=work, args=[self.rqueue, self.squeue, toolbox, stats])
+        self.worker = mp.Process(
+            target=work, args=[self.rqueue, self.squeue, toolbox, stats], daemon=False
+        )
+        self.worker.start()
 
         self.subchunks = 2
 
@@ -79,8 +91,19 @@ class QueueWorker(mp.Process):
         else:
             return obj
 
-    def join(self, timeout: float | None = None) -> None:
-        self.squeue.close()
-        self.rqueue.put(None)
-        self.rqueue.close()
-        super().join(timeout)
+    def join(self) -> None:
+        if self.worker.is_alive():
+            if not self.rqueue.empty():
+                logger.debug("wait for the recv queue to be empty")
+            self.rqueue.put(None)
+            self.rqueue.close()
+            self.rqueue.join_thread()
+
+            if not self.squeue.empty():
+                logger.debug("wait for the send queue to be empty")
+            self.squeue.close()
+            self.squeue.join_thread()
+
+            logger.debug(f"{self.worker.name} joining")
+            self.worker.join()
+            logger.debug(f"{self.worker.name} joined")

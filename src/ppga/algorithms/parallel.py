@@ -18,9 +18,9 @@ def handle_worker(
     stats: Statistics,
 ):
     worker = QueueWorker(toolbox, stats)
-    worker.start()
     while True:
         chunk = send_buffer.get()
+        send_buffer.task_done()
         if chunk is None:
             break
 
@@ -42,10 +42,15 @@ class Handler(threading.Thread):
         self.send_buffer.put(chunk)
 
     def recv(self):
-        return self.recv_buffer.get()
+        obj = self.recv_buffer.get()
+        self.recv_buffer.task_done()
+
+        return obj
 
     def join(self, timeout: float | None = None) -> None:
         self.send_buffer.put(None)
+        self.send_buffer.join()
+        self.recv_buffer.join()
         super().join(timeout)
 
 
@@ -58,7 +63,7 @@ def generational(
     stats = Statistics()
 
     # start the parallel workers
-    workers_num = os.cpu_count()
+    workers_num = 1
     assert workers_num is not None
 
     handlers = [Handler(toolbox, stats) for _ in range(workers_num)]

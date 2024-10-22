@@ -118,14 +118,16 @@ def main(argv: list[str]):
         logger.warning(f"queue total speed up: {sequential_time / queue_time:.5f}")
 
     # statistics data
-    plotting.draw_graph(data, seq_best[0].chromosome)
-    plotting.fitness_trend(seq_stats.best, seq_stats.worst)
+    # plotting.draw_graph(data, seq_best[0].chromosome)
+    # plotting.fitness_trend(seq_stats.best, seq_stats.worst)
 
-    plotting.draw_graph(data, queue_best[0].chromosome)
-    plotting.fitness_trend(queue_stats.best, queue_stats.worst)
+    # plotting.draw_graph(data, queue_best[0].chromosome)
+    # plotting.fitness_trend(queue_stats.best, queue_stats.worst)
 
-    plotting.timing({"sync": queue_sync_time, "pure": queue_stats.cme()})
+    # plotting.timing({"sync": queue_sync_time, "pure": queue_stats.cme()})
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    for i in range(100):
+        main(sys.argv)
+        logger.debug(i)
