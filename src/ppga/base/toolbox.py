@@ -34,9 +34,7 @@ class ToolBox:
                     *self.generation_args, **self.generation_kwargs
                 )
 
-            population.append(
-                self.generation_func(*self.generation_args, **self.generation_kwargs)
-            )
+            population.append(chromosome)
 
         return [Individual(c) for c in population]
 
