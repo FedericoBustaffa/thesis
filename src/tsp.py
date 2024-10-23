@@ -86,6 +86,9 @@ def main(argv: list[str]):
         logger.trace(f"HoF {i}: {ind.fitness}")
     logger.success(f"sequential total time: {sequential_time:.5f} seconds")
     logger.success(f"to parallelize time: {seq_stats.cme():.5f} seconds")
+    logger.info(
+        f"single mean eval time: {seq_stats["evaluation"] / len(seq_stats.timings["evaluation"])}"
+    )
 
     hall_of_fame.clear()
     start = time.perf_counter()
@@ -105,6 +108,9 @@ def main(argv: list[str]):
     logger.success(f"queue pure work time: {queue_stats.cme()} seconds")
     logger.success(f"queue sync time: {queue_sync_time} seconds")
     logger.success(f"queue parallel time: {queue_stats['parallel']} seconds")
+    logger.info(
+        f"queue mean eval time: {queue_stats["evaluation"] / len(queue_stats.timings["evaluation"])}"
+    )
 
     logger.success(f"queue total time: {queue_time:.5f} seconds")
     if seq_stats.cme() / queue_t > 1.0:

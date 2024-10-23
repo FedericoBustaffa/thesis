@@ -57,16 +57,22 @@ def generational(
             offsprings_chunk, timings = worker.recv()
 
             offsprings.extend(offsprings_chunk)
-            s = sum([timings["crossover"], timings["mutation"], timings["evaluation"]])
+            s = sum(
+                [
+                    sum(timings["crossover"]),
+                    sum(timings["mutation"]),
+                    sum(timings["evaluation"]),
+                ]
+            )
             s2 = sum([crossover_time, mutation_time, evaluation_time])
             if s > s2:
-                crossover_time = timings["crossover"]
-                mutation_time = timings["mutation"]
-                evaluation_time = timings["evaluation"]
+                crossover_time = sum(timings["crossover"])
+                mutation_time = sum(timings["mutation"])
+                evaluation_time = sum(timings["evaluation"])
 
-        stats["crossover"] += crossover_time
-        stats["mutation"] += mutation_time
-        stats["evaluation"] += evaluation_time
+        stats["crossover"] = crossover_time
+        stats["mutation"] = mutation_time
+        stats["evaluation"] = evaluation_time
         stats.add_time("parallel", start)
 
         # replacement
