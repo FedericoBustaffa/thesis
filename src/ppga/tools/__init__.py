@@ -1,1 +1,1 @@
-from ppga.tools import coupling, crossover, mutation, replacement, selection
+from ppga.tools import coupling, crossover, generation, mutation, replacement, selection

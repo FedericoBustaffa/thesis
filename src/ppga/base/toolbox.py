@@ -1,5 +1,6 @@
 import random
 import time
+from functools import partial
 
 from ppga.base.individual import Individual
 from ppga.tools.coupling import couples_mating
@@ -19,23 +20,27 @@ class ToolBox:
     def set_weights(self, weights: tuple) -> None:
         self.weights = weights
 
+    def set_attributes(self, func, *args, **kwargs) -> None:
+        self.attrib_func = func
+        self.attrib_args = args
+        self.attrib_kwargs = kwargs
+
     def set_generation(self, func, *args, **kwargs) -> None:
         self.generation_func = func
         self.generation_args = args
         self.generation_kwargs = kwargs
 
     def generate(self, population_size) -> list[Individual]:
-        population = []
-        for _ in range(population_size):
-            chromosome = self.generation_func(
-                *self.generation_args, **self.generation_kwargs
-            )
-            while chromosome in population:
-                chromosome = self.generation_func(
-                    *self.generation_args, **self.generation_kwargs
-                )
+        attribute_generator = partial(
+            self.attrib_func, *self.attrib_args, **self.attrib_kwargs
+        )
 
-            population.append(chromosome)
+        population = self.generation_func(
+            attribute_generator,
+            population_size,
+            *self.generation_args,
+            **self.generation_kwargs,
+        )
 
         return [Individual(c) for c in population]
 
@@ -101,7 +106,7 @@ class ToolBox:
         self.evaluation_args = args
         self.evaluation_kwargs = kwargs
 
-    def evaluate(self, population: list[Individual]) -> list[Individual]:
+    def evaluate(self, population: list[Individual]) -> tuple[list[Individual], float]:
         times = []
         for i in population:
             start = time.perf_counter()
@@ -111,7 +116,11 @@ class ToolBox:
             i.fitness = sum([v * w for v, w in zip(i.values, self.weights)])
             times.append(time.perf_counter() - start)
 
-        return population, sum(times) / len(times)
+        try:
+            mean = sum(times) / len(times)
+            return population, mean
+        except ZeroDivisionError:
+            return population, 0.0
 
     def set_replacement(self, func, *args, **kwargs):
         self.replacement_func = func

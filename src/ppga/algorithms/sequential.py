@@ -1,5 +1,6 @@
 import time
 
+from loguru import logger
 from tqdm import tqdm
 
 from ppga.base.hall_of_fame import HallOfFame
@@ -53,6 +54,6 @@ def generational(
         if hall_of_fame is not None:
             hall_of_fame.update(population)
 
-    print(f"eval mean time: {sum(times) / len(times)} seconds")
+    logger.info(f"eval mean time: {sum(times) / len(times)} seconds")
 
     return population, stats

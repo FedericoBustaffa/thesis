@@ -2,6 +2,8 @@ import multiprocessing as mp
 import multiprocessing.queues as mpq
 import time
 
+from loguru import logger
+
 from ppga.base import Statistics, ToolBox
 
 
@@ -36,9 +38,12 @@ def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
     total_time = time.perf_counter() - total_start
 
     name = mp.current_process().name
-    print(f"{name} total time: {total_time} seconds")
-    print(f"{name} pure work time: {pure_work} seconds")
-    print(f"{name} eval mean time: {sum(times) / len(times)} seconds")
+    logger.info(f"{name} total time: {total_time} seconds")
+    logger.info(f"{name} pure work time: {pure_work} seconds")
+    try:
+        logger.info(f"{name} eval mean time: {sum(times) / len(times)} seconds")
+    except ZeroDivisionError:
+        pass
 
 
 class Worker:

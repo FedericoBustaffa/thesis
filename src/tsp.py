@@ -8,7 +8,7 @@ from loguru import logger
 
 from ppga import base
 from ppga.algorithms import parallel, sequential
-from ppga.tools import crossover, mutation, replacement, selection
+from ppga.tools import crossover, generation, mutation, replacement, selection
 from utils import plotting
 
 
@@ -16,13 +16,6 @@ class Town:
     def __init__(self, x: float, y: float) -> None:
         self.x = x
         self.y = y
-
-
-def generate(length: int) -> list[int]:
-    chromosome = [i for i in range(length)]
-    random.shuffle(chromosome)
-
-    return chromosome
 
 
 def distance(t1: Town, t2: Town) -> float:
@@ -67,7 +60,8 @@ def main(argv: list[str]):
 
     toolbox = base.ToolBox()
     toolbox.set_weights((-1.0,))
-    toolbox.set_generation(generate, len(towns))
+    toolbox.set_attributes(random.sample, range(len(towns)), len(towns))
+    toolbox.set_generation(generation.iterate)
     toolbox.set_selection(selection.tournament, tournsize=2)
     toolbox.set_crossover(crossover.one_point_ordered, cxpb=0.7)
     toolbox.set_mutation(mutation.rotation, mutpb=0.3)

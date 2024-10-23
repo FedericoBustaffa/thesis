@@ -6,17 +6,13 @@ from loguru import logger
 
 from ppga import base
 from ppga.algorithms import parallel, sequential
-from ppga.tools import crossover, mutation, replacement, selection
+from ppga.tools import crossover, generation, mutation, replacement, selection
 
 
 class Item:
     def __init__(self, value: float, weight: float):
         self.value = value
         self.weight = weight
-
-
-def generate(length: int) -> list[int]:
-    return [random.randint(0, 1) for _ in range(length)]
 
 
 def evaluate(chromosome, items: list[Item], capacity: float) -> tuple:
@@ -83,7 +79,8 @@ def main(argv: list[str]):
 
     toolbox = base.ToolBox()
     toolbox.set_weights(weights=(3.0, -1.0))
-    toolbox.set_generation(generate, len(items))
+    toolbox.set_attributes(random.randint, 0, 1)
+    toolbox.set_generation(generation.repeat, len(items))
     toolbox.set_selection(selection.roulette)
     toolbox.set_crossover(crossover.shuffle, cxpb=0.8)
     toolbox.set_mutation(mutation.shuffle, mutpb=0.2)
@@ -111,8 +108,13 @@ def main(argv: list[str]):
     logger.success(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)
     logger.success(f"queue best solution: ({value:.3f}, {weight:.3f})")
+    logger.success(f"queue best fitness: {queue_best[0].fitness}")
 
-    logger.success(f"speed up: {sequential_time / queue_time:.4f} seconds")
+    speed_up = sequential_time / queue_time
+    if speed_up < 1.0:
+        logger.warning(f"speed up: {sequential_time / queue_time:.4f} seconds")
+    else:
+        logger.success(f"speed up: {sequential_time / queue_time:.4f} seconds")
 
 
 if __name__ == "__main__":

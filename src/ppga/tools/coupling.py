@@ -1,4 +1,3 @@
-
 import random
 
 from ppga.base import Individual
