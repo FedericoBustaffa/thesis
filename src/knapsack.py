@@ -92,6 +92,7 @@ def main(argv: list[str]):
     start = time.perf_counter()
     seq_best, seq_stats = sequential.generational(toolbox, N, G, hall_of_fame=hof)
     sequential_time = time.perf_counter() - start
+
     logger.success(f"sequential time: {sequential_time} seconds")
     value, weight = show_solution(seq_best[0].chromosome, items)
     logger.success(f"sequential best solution: ({value:.3f}, {weight:.3f})")
@@ -103,8 +104,10 @@ def main(argv: list[str]):
     start = time.perf_counter()
     queue_best, queue_stats = parallel.generational(toolbox, N, G, hall_of_fame=hof)
     queue_time = time.perf_counter() - start
+
     for i, ind in enumerate(hof.best):
         logger.trace(f"HoF {i}: {ind.fitness}")
+
     logger.success(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)
     logger.success(f"queue best solution: ({value:.3f}, {weight:.3f})")
