@@ -114,10 +114,16 @@ def main(argv: list[str]):
     logger.success(f"queue best fitness: {queue_best[0].fitness}")
 
     speed_up = sequential_time / queue_time
+    true_speed_up = seq_stats.cme() / queue_stats["parallel"]
     if speed_up < 1.0:
-        logger.warning(f"speed up: {sequential_time / queue_time:.4f} seconds")
+        logger.warning(f"speed up: {speed_up} seconds")
     else:
-        logger.success(f"speed up: {sequential_time / queue_time:.4f} seconds")
+        logger.success(f"speed up: {speed_up} seconds")
+
+    if true_speed_up < 1.0:
+        logger.warning(f"true speed up: {true_speed_up} seconds")
+    else:
+        logger.success(f"true speed up: {true_speed_up} seconds")
 
 
 if __name__ == "__main__":
