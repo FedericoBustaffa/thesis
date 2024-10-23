@@ -1,4 +1,5 @@
 import random
+import time
 
 from ppga.base.individual import Individual
 from ppga.tools.coupling import couples_mating
@@ -101,13 +102,16 @@ class ToolBox:
         self.evaluation_kwargs = kwargs
 
     def evaluate(self, population: list[Individual]) -> list[Individual]:
+        times = []
         for i in population:
+            start = time.perf_counter()
             i.values = self.evaluation_func(
                 i.chromosome, *self.evaluation_args, **self.evaluation_kwargs
             )
             i.fitness = sum([v * w for v, w in zip(i.values, self.weights)])
+            times.append(time.perf_counter() - start)
 
-        return population
+        return population, sum(times) / len(times)
 
     def set_replacement(self, func, *args, **kwargs):
         self.replacement_func = func

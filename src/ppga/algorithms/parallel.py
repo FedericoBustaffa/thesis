@@ -18,7 +18,7 @@ def generational(
     stats = Statistics()
 
     # start the parallel workers
-    workers_num = os.cpu_count()
+    workers_num = 8
     assert workers_num is not None
 
     workers = [Worker(toolbox, stats) for _ in range(workers_num)]

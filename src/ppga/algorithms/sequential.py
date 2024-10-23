@@ -19,6 +19,8 @@ def generational(
     population = toolbox.generate(population_size)
     stats.add_time("generation", start)
 
+    times = []
+
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
         start = time.perf_counter()
         chosen = toolbox.select(population, population_size)
@@ -37,8 +39,9 @@ def generational(
         stats.add_time("mutation", start)
 
         start = time.perf_counter()
-        offsprings = toolbox.evaluate(offsprings)
+        offsprings, mean_time = toolbox.evaluate(offsprings)
         stats.add_time("evaluation", start)
+        times.append(mean_time)
 
         start = time.perf_counter()
         population = toolbox.replace(population, offsprings)
@@ -49,5 +52,7 @@ def generational(
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)
+
+    print(f"eval mean time: {sum(times) / len(times)} seconds")
 
     return population, stats

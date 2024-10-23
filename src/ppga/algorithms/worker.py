@@ -8,6 +8,7 @@ from ppga.base import Statistics, ToolBox
 def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statistics):
     total_time = 0.0
     pure_work = 0.0
+    times = []
     total_start = time.perf_counter()
     while True:
         parents = squeue.get()
@@ -26,15 +27,18 @@ def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, stats: Statisti
         pure_work += stats["mutation"]
 
         start = time.perf_counter()
-        offsprings = toolbox.evaluate(offsprings)
+        offsprings, mean_time = toolbox.evaluate(offsprings)
         stats.add_time("evaluation", start)
         pure_work += stats["evaluation"]
+        times.append(mean_time)
 
         rqueue.put((offsprings, stats.timings))
     total_time = time.perf_counter() - total_start
 
-    print(f"{mp.current_process().name} total time: {total_time} seconds")
-    print(f"{mp.current_process().name} pure work time: {pure_work} seconds")
+    name = mp.current_process().name
+    print(f"{name} total time: {total_time} seconds")
+    print(f"{name} pure work time: {pure_work} seconds")
+    print(f"{name} eval mean time: {sum(times) / len(times)} seconds")
 
 
 class Worker:
