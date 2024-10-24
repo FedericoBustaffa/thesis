@@ -25,6 +25,21 @@ def one_point_ordered(father, mother) -> tuple:
     return offspring1, offspring2
 
 
+def two_points(father, mother) -> tuple:
+    cx_point1 = random.randint(1, len(father) - 2)
+    cx_point2 = random.randint(1, len(father) - 2)
+    while cx_point2 == cx_point1:
+        cx_point2 = random.randint(1, len(father) - 2)
+
+    if cx_point1 > cx_point2:
+        cx_point1, cx_point2 = cx_point2, cx_point1
+
+    offspring1 = father[:cx_point1] + mother[cx_point1:cx_point2] + father[cx_point2:]
+    offspring2 = mother[:cx_point1] + father[cx_point1:cx_point2] + mother[cx_point2:]
+
+    return offspring1, offspring2
+
+
 def shuffle(father, mother) -> tuple:
     offspring1 = []
     offspring2 = []
