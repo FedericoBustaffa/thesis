@@ -73,7 +73,7 @@ class ToolBox:
     def crossover(self, couples: list[tuple]) -> list[Individual]:
         offsprings = []
         for c in couples:
-            if random.random() < self.crossover_pb:
+            if random.random() <= self.crossover_pb:
                 new_offsprings = list(
                     self.crossover_func(
                         c[0].chromosome,
@@ -94,7 +94,7 @@ class ToolBox:
 
     def mutate(self, population: list[Individual]) -> list[Individual]:
         for i in population:
-            if random.random() < self.mutation_pb:
+            if random.random() <= self.mutation_pb:
                 i.chromosome = self.mutation_func(
                     i.chromosome, *self.mutation_args, **self.mutation_kwargs
                 )
