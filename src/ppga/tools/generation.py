@@ -1,4 +1,4 @@
-def repeat(generator, length: int, n: int):
+def repeat(generator, n: int, length: int):
     return [[generator() for _ in range(length)] for _ in range(n)]
 
 
