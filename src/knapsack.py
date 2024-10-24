@@ -87,7 +87,7 @@ def main(argv: list[str]):
     toolbox.set_evaluation(evaluate, items, capacity)
     toolbox.set_replacement(replacement.merge)
 
-    hof = base.HallOfFame(5)
+    hof = base.HallOfFame(10)
 
     start = time.perf_counter()
     seq_best, seq_stats = sequential.generational(toolbox, N, G, hall_of_fame=hof)
@@ -97,16 +97,14 @@ def main(argv: list[str]):
     value, weight = show_solution(seq_best[0].chromosome, items)
     logger.success(f"sequential best solution: ({value:.3f}, {weight:.3f})")
     logger.success(f"sequential best fitnes: {seq_best[0].fitness}")
-    for i, ind in enumerate(hof.best):
-        logger.trace(f"HoF {i}: {ind.fitness}")
+    print(f"Hall of Fame\n{hof}")
 
     hof.clear()
     start = time.perf_counter()
     queue_best, queue_stats = parallel.generational(toolbox, N, G, hall_of_fame=hof)
     queue_time = time.perf_counter() - start
 
-    for i, ind in enumerate(hof.best):
-        logger.trace(f"HoF {i}: {ind.fitness}")
+    print(f"Hall of Fame\n{hof}")
 
     logger.success(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)
