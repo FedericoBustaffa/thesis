@@ -3,4 +3,4 @@ def repeat(generator, length: int, n: int):
 
 
 def iterate(generator, n: int):
-    return [generator()]
+    return [generator() for _ in range(n)]

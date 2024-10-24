@@ -1,5 +1,7 @@
 import time
 
+from ppga.base.individual import Individual
+
 
 class Statistics:
     def __init__(self):
@@ -40,8 +42,6 @@ class Statistics:
         for k in self.timings.keys():
             self.timings[k] = []
 
-    def push_best(self, fitness: float) -> None:
-        self.best.append(fitness)
-
-    def push_worst(self, fitness: float) -> None:
-        self.worst.append(fitness)
+    def update_fitness(self, population: list[Individual]) -> None:
+        self.best.append(max(population).fitness)
+        self.worst.append(min([i.fitness for i in population if not i.invalid()]))

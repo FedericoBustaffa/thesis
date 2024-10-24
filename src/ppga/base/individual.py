@@ -22,17 +22,17 @@ class Individual:
 
     def __lt__(self, other) -> bool:
         assert isinstance(other, Individual)
-        if self.values == ():
+        if self.invalid():
             return True
-        elif other.values == ():
+        elif other.invalid():
             return False
         return self.fitness < other.fitness
 
     def __gt__(self, other) -> bool:
         assert isinstance(other, Individual)
-        if self.values == ():
+        if self.invalid():
             return False
-        elif other.values == ():
+        elif other.invalid():
             return True
         return self.fitness > other.fitness
 
