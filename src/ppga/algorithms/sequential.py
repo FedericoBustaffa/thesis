@@ -22,7 +22,7 @@ def generational(
         offsprings = toolbox.evaluate(offsprings)
         population = toolbox.replace(population, offsprings)
 
-        stats.update_fitness(population)
+        stats.update(population)
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)

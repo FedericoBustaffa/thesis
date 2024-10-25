@@ -98,7 +98,8 @@ def main(argv: list[str]):
     value, weight = show_solution(seq_best[0].chromosome, items)
     logger.success(f"sequential best solution: ({value:.3f}, {weight:.3f})")
     logger.success(f"sequential best fitnes: {seq_best[0].fitness}")
-    print(f"Hall of Fame\n{hof}")
+    for i, ind in enumerate(hof):
+        logger.info(f"{i}. {ind.values}")
 
     hof.clear()
     start = time.perf_counter()
@@ -109,10 +110,14 @@ def main(argv: list[str]):
     value, weight = show_solution(queue_best[0].chromosome, items)
     logger.success(f"queue best solution: ({value:.3f}, {weight:.3f})")
     logger.success(f"queue best fitness: {queue_best[0].fitness}")
-    print(f"Hall of Fame\n{hof}")
+    for i, ind in enumerate(hof):
+        logger.info(f"{i}. {ind.values}")
 
-    plotting.fitness_trend(seq_stats.best, seq_stats.mean, seq_stats.worst)
-    plotting.fitness_trend(queue_stats.best, queue_stats.mean, queue_stats.worst)
+    plotting.fitness_trend(seq_stats)
+    plotting.biodiversity_trend(seq_stats)
+
+    plotting.fitness_trend(queue_stats)
+    plotting.biodiversity_trend(queue_stats)
 
 
 if __name__ == "__main__":

@@ -73,7 +73,8 @@ def main(argv: list[str]):
     sequential_time = time.perf_counter() - start
     logger.success(f"sequential best score: {seq_best[0].fitness}")
     logger.success(f"sequential total time: {sequential_time:.5f} seconds")
-    print(hall_of_fame)
+    for i, ind in enumerate(hall_of_fame):
+        logger.info(f"{i}. {ind.values}")
 
     hall_of_fame.clear()
     start = time.perf_counter()
@@ -83,16 +84,23 @@ def main(argv: list[str]):
     parallel_time = time.perf_counter() - start
     logger.success(f"parallel best score: {parallel_pop[0].fitness}")
     logger.success(f"parallel time: {parallel_time:.5f} seconds")
-    print(hall_of_fame)
+    for i, ind in enumerate(hall_of_fame):
+        logger.info(f"{i}. {ind.values}")
+
+    speed_up = sequential_time / parallel_time
+    if speed_up <= 1.0:
+        logger.warning(f"speed up: {speed_up:.3f}")
+    else:
+        logger.success(f"speed up: {speed_up:.3f}")
 
     # statistics data
     plotting.draw_graph(data, seq_best[0].chromosome)
-    plotting.fitness_trend(seq_stats.best, seq_stats.mean, seq_stats.worst)
+    plotting.fitness_trend(seq_stats)
+    plotting.biodiversity_trend(seq_stats)
 
     plotting.draw_graph(data, parallel_pop[0].chromosome)
-    plotting.fitness_trend(
-        parallel_stats.best, parallel_stats.mean, parallel_stats.worst
-    )
+    plotting.fitness_trend(parallel_stats)
+    plotting.biodiversity_trend(parallel_stats)
 
 
 if __name__ == "__main__":

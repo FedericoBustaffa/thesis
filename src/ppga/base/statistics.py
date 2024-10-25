@@ -2,13 +2,22 @@ from ppga.base.individual import Individual
 
 
 class Statistics:
-    def __init__(self):
+    def __init__(self) -> None:
         self.best = []
         self.mean = []
         self.worst = []
 
-    def update_fitness(self, population: list[Individual]) -> None:
-        valid_fitness = [i.fitness for i in population if not i.invalid()]
-        self.best.append(max(valid_fitness))
-        self.mean.append(sum(valid_fitness) / len(valid_fitness))
-        self.worst.append(min(valid_fitness))
+        self.diversity = []
+
+    def update(self, population: list[Individual]) -> None:
+        valid_pop = [i for i in population if not i.invalid()]
+        scores = [i.fitness for i in valid_pop]
+
+        # update the fitness trend
+        self.best.append(max(scores))
+        self.mean.append(sum(scores) / len(scores))
+        self.worst.append(min(scores))
+
+        # update the biodiversity
+        uniques = set(population)
+        self.diversity.append(len(uniques) / len(population))

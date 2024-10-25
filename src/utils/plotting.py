@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from ppga.base.statistics import Statistics
+
 
 def draw_graph(towns: pd.DataFrame, best: list[int]):
     x = [towns["x"][i] for i in best]
@@ -18,7 +20,11 @@ def draw_graph(towns: pd.DataFrame, best: list[int]):
     plt.show()
 
 
-def fitness_trend(best: list[float], mean: list[float], worst: list[float]):
+def fitness_trend(stats: Statistics):
+    best = stats.best
+    mean = stats.mean
+    worst = stats.worst
+
     generations = [g for g in range(len(best))]
 
     plt.figure(figsize=(12, 6))
@@ -35,14 +41,15 @@ def fitness_trend(best: list[float], mean: list[float], worst: list[float]):
     plt.show()
 
 
-def biodiversity_trend(biodiversities: list[float]):
-    generations = [g for g in range(len(biodiversities))]
+def biodiversity_trend(stats: Statistics):
+    diversity = stats.diversity
+    generations = [g for g in range(len(diversity))]
 
     plt.figure(figsize=(12, 6))
     plt.title("Biodiversity trend")
     plt.xlabel("Generation")
     plt.ylabel("Biodiversity percentage")
-    plt.plot(generations, biodiversities, label="Biodiversity", c="g")
+    plt.plot(generations, diversity, label="Biodiversity", c="g")
 
     plt.grid()
     plt.legend()
