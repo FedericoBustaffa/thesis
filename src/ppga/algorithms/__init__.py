@@ -1,1 +1,3 @@
-from ppga.algorithms import parallel, sequential
+from ppga.algorithms.simple import psga, reproduction, sga
+
+__all__ = ["psga", "reproduction", "sga"]

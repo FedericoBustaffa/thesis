@@ -1,28 +1,30 @@
 import multiprocessing as mp
 import multiprocessing.queues as mpq
 
-from ppga.base import ToolBox
+from ppga.algorithms import simple
+from ppga.base.toolbox import ToolBox
 
 
-def work(rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox):
+def work(
+    rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, cxpb: float, mutpb: float
+):
     while True:
         parents = squeue.get()
         if parents is None:
             break
 
-        offsprings = toolbox.crossover(parents)
-        offsprings = toolbox.mutate(offsprings)
-        offsprings = toolbox.evaluate(offsprings)
-
+        offsprings = simple.reproduction(parents, cxpb, mutpb, toolbox)
         rqueue.put(offsprings)
 
 
 class Worker:
-    def __init__(self, toolbox: ToolBox) -> None:
+    def __init__(self, toolbox: ToolBox, cxpb: float, mutpb: float) -> None:
         self.lock = mp.Lock()
         self.rqueue = mp.Queue()
         self.squeue = mp.Queue()
-        self.worker = mp.Process(target=work, args=[self.rqueue, self.squeue, toolbox])
+        self.worker = mp.Process(
+            target=work, args=[self.rqueue, self.squeue, toolbox, cxpb, mutpb]
+        )
         self.worker.start()
 
     def send(self, chunk: list | None = None) -> None:

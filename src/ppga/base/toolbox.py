@@ -1,17 +1,11 @@
-import random
 from functools import partial
 
 from ppga.base.individual import Individual
-from ppga.tools.coupling import couples_mating
 from ppga.tools.replacement import total
 
 
 class ToolBox:
-    def __init__(self):
-        self.mating_func = couples_mating
-        self.mating_args = ()
-        self.mating_kwargs = {}
-
+    def __init__(self) -> None:
         self.replacement_func = total
         self.replacement_args = ()
         self.replacement_kwargs = {}
@@ -55,66 +49,45 @@ class ToolBox:
             population, population_size, *self.selection_args, **self.selection_kwargs
         )
 
-    def set_mating(self, func, *args, **kwargs) -> None:
-        self.mating_func = func
-        self.mating_args = args
-        self.mating_kwargs = kwargs
-
-    def mate(self, population: list[Individual]) -> list[tuple]:
-        return self.mating_func(population, *self.mating_args, **self.mating_kwargs)
-
-    def set_crossover(self, func, cxpb: float = 0.8, *args, **kwargs) -> None:
+    def set_crossover(self, func, *args, **kwargs) -> None:
         self.crossover_func = func
-        self.crossover_pb = cxpb
         self.crossover_args = args
         self.crossover_kwargs = kwargs
 
-    def crossover(self, couples: list[tuple]) -> list[Individual]:
-        offsprings = []
-        for c in couples:
-            if random.random() <= self.crossover_pb:
-                new_offsprings = list(
-                    self.crossover_func(
-                        c[0].chromosome,
-                        c[1].chromosome,
-                        *self.crossover_args,
-                        **self.crossover_kwargs,
-                    )
-                )
-                offsprings.extend(new_offsprings)
+    def crossover(self, father: Individual, mother: Individual) -> tuple:
+        offspring1, offspring2 = self.crossover_func(
+            father.chromosome,
+            mother.chromosome,
+            *self.crossover_args,
+            **self.crossover_kwargs,
+        )
 
-        return [Individual(o) for o in offsprings]
+        return Individual(offspring1), Individual(offspring2)
 
-    def set_mutation(self, func, mutpb: float = 0.2, *args, **kwargs):
+    def set_mutation(self, func, *args, **kwargs) -> None:
         self.mutation_func = func
-        self.mutation_pb = mutpb
         self.mutation_args = args
         self.mutation_kwargs = kwargs
 
-    def mutate(self, population: list[Individual]) -> list[Individual]:
-        for i in population:
-            if random.random() <= self.mutation_pb:
-                i.chromosome = self.mutation_func(
-                    i.chromosome, *self.mutation_args, **self.mutation_kwargs
-                )
-
-        return population
+    def mutate(self, individual: Individual) -> None:
+        individual.chromosome = self.mutation_func(
+            individual.chromosome, *self.mutation_args, **self.mutation_kwargs
+        )
 
     def set_evaluation(self, func, *args, **kwargs) -> None:
         self.evaluation_func = func
         self.evaluation_args = args
         self.evaluation_kwargs = kwargs
 
-    def evaluate(self, population: list[Individual]) -> list[Individual]:
-        for i in population:
-            i.values = self.evaluation_func(
-                i.chromosome, *self.evaluation_args, **self.evaluation_kwargs
-            )
-            i.fitness = sum([v * w for v, w in zip(i.values, self.weights)])
+    def evaluate(self, individual: Individual) -> None:
+        individual.values = self.evaluation_func(
+            individual.chromosome, *self.evaluation_args, **self.evaluation_kwargs
+        )
+        individual.fitness = sum(
+            [v * w for v, w in zip(individual.values, self.weights)]
+        )
 
-        return population
-
-    def set_replacement(self, func, *args, **kwargs):
+    def set_replacement(self, func, *args, **kwargs) -> None:
         self.replacement_func = func
         self.replacement_args = args
         self.replacement_kwargs = kwargs

@@ -23,7 +23,7 @@ def bit_flip(chromosome, pb: float = 0.5):
     return chromosome
 
 
-def shuffle(chromosome, pb: float = 0.5):
+def mut_shuffle(chromosome, pb: float = 0.5):
     for i, gene in enumerate(chromosome):
         if random.random() < pb:
             new_pos = random.randint(0, len(chromosome) - 1)

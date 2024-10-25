@@ -6,9 +6,7 @@ import time
 import pandas as pd
 from loguru import logger
 
-from ppga import base
-from ppga.algorithms import parallel, sequential
-from ppga.tools import crossover, generation, mutation, replacement, selection
+from ppga import algorithms, base, tools
 from utils import plotting
 
 
@@ -57,18 +55,18 @@ def main(argv: list[str]):
     toolbox = base.ToolBox()
     toolbox.set_weights((-1.0,))
     toolbox.set_attributes(random.sample, range(len(towns)), len(towns))
-    toolbox.set_generation(generation.iterate)
-    toolbox.set_selection(selection.tournament, tournsize=2)
-    toolbox.set_crossover(crossover.one_point_ordered, cxpb=0.7)
-    toolbox.set_mutation(mutation.rotation, mutpb=0.3)
+    toolbox.set_generation(tools.iterate)
+    toolbox.set_selection(tools.tournament, tournsize=2)
+    toolbox.set_crossover(tools.one_point_ordered)
+    toolbox.set_mutation(tools.rotation)
     toolbox.set_evaluation(evaluate, towns)
-    toolbox.set_replacement(replacement.merge)
+    toolbox.set_replacement(tools.merge)
 
     hall_of_fame = base.HallOfFame(5)
 
     start = time.perf_counter()
-    seq_best, seq_stats = sequential.generational(
-        toolbox, N, G, hall_of_fame=hall_of_fame
+    seq_best, seq_stats = algorithms.sga(
+        toolbox, N, 0.7, 0.3, G, hall_of_fame=hall_of_fame
     )
     sequential_time = time.perf_counter() - start
     logger.success(f"sequential best score: {seq_best[0].fitness}")
@@ -78,8 +76,8 @@ def main(argv: list[str]):
 
     hall_of_fame.clear()
     start = time.perf_counter()
-    parallel_pop, parallel_stats = parallel.generational(
-        toolbox, N, G, hall_of_fame=hall_of_fame
+    parallel_pop, parallel_stats = algorithms.psga(
+        toolbox, N, 0.7, 0.3, G, hall_of_fame=hall_of_fame
     )
     parallel_time = time.perf_counter() - start
     logger.success(f"parallel best score: {parallel_pop[0].fitness}")

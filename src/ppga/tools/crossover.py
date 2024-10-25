@@ -40,7 +40,7 @@ def two_points(father, mother) -> tuple:
     return offspring1, offspring2
 
 
-def shuffle(father, mother) -> tuple:
+def cx_shuffle(father, mother) -> tuple:
     offspring1 = []
     offspring2 = []
     for i in range(len(father)):

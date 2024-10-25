@@ -4,9 +4,7 @@ import time
 
 from loguru import logger
 
-from ppga import base
-from ppga.algorithms import parallel, sequential
-from ppga.tools import crossover, generation, mutation, replacement, selection
+from ppga import algorithms, base, tools
 from utils import plotting
 
 
@@ -81,17 +79,17 @@ def main(argv: list[str]):
     toolbox = base.ToolBox()
     toolbox.set_weights(weights=(3.0, -1.0))
     toolbox.set_attributes(random.randint, 0, 1)
-    toolbox.set_generation(generation.repeat, len(items))
-    toolbox.set_selection(selection.roulette)
-    toolbox.set_crossover(crossover.shuffle, cxpb=0.8)
-    toolbox.set_mutation(mutation.shuffle, mutpb=0.2)
+    toolbox.set_generation(tools.repeat, len(items))
+    toolbox.set_selection(tools.roulette)
+    toolbox.set_crossover(tools.cx_shuffle)
+    toolbox.set_mutation(tools.mut_shuffle)
     toolbox.set_evaluation(evaluate, items, capacity)
-    toolbox.set_replacement(replacement.merge)
+    toolbox.set_replacement(tools.merge)
 
     hof = base.HallOfFame(10)
 
     start = time.perf_counter()
-    seq_best, seq_stats = sequential.generational(toolbox, N, G, hall_of_fame=hof)
+    seq_best, seq_stats = algorithms.sga(toolbox, N, 0.8, 0.2, G, hall_of_fame=hof)
     sequential_time = time.perf_counter() - start
 
     logger.success(f"sequential time: {sequential_time} seconds")
@@ -103,7 +101,7 @@ def main(argv: list[str]):
 
     hof.clear()
     start = time.perf_counter()
-    queue_best, queue_stats = parallel.generational(toolbox, N, G, hall_of_fame=hof)
+    queue_best, queue_stats = algorithms.psga(toolbox, N, 0.8, 0.2, G, hall_of_fame=hof)
     queue_time = time.perf_counter() - start
 
     logger.success(f"queue time: {queue_time} seconds")
