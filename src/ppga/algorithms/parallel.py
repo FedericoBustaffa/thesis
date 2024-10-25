@@ -1,5 +1,4 @@
 import os
-import time
 
 from tqdm import tqdm
 
@@ -21,26 +20,18 @@ def generational(
     workers_num = os.cpu_count()
     assert workers_num is not None
 
-    workers = [Worker(toolbox, stats) for _ in range(workers_num)]
+    workers = [Worker(toolbox) for _ in range(workers_num)]
 
-    start = time.perf_counter()
     population = toolbox.generate(population_size)
-    stats.add_time("generation", start)
 
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
-        start = time.perf_counter()
         chosen = toolbox.select(population, population_size)
-        stats.add_time("selection", start)
-
-        start = time.perf_counter()
         couples = toolbox.mate(chosen)
-        stats.add_time("mating", start)
 
         # parallel crossover + mutation + evaluation
         chunksize = len(couples) // workers_num
         carry = len(couples) % workers_num
 
-        start = time.perf_counter()
         for i in range(carry):
             workers[i].send(couples[i * chunksize : i * chunksize + chunksize + 1])
 
@@ -49,37 +40,12 @@ def generational(
 
         # keep only the worst time for each worker
         offsprings = []
-        crossover_time = 0.0
-        mutation_time = 0.0
-        evaluation_time = 0.0
-
         for worker in workers:
-            offsprings_chunk, timings = worker.recv()
-
+            offsprings_chunk = worker.recv()
             offsprings.extend(offsprings_chunk)
-            s = sum(
-                [
-                    sum(timings["crossover"]),
-                    sum(timings["mutation"]),
-                    sum(timings["evaluation"]),
-                ]
-            )
-            s2 = sum([crossover_time, mutation_time, evaluation_time])
-            if s > s2:
-                crossover_time = sum(timings["crossover"])
-                mutation_time = sum(timings["mutation"])
-                evaluation_time = sum(timings["evaluation"])
-
-        stats["crossover"] = crossover_time
-        stats["mutation"] = mutation_time
-        stats["evaluation"] = evaluation_time
-        stats.add_time("parallel", start)
 
         # replacement
-        start = time.perf_counter()
         population = toolbox.replace(population, offsprings)
-        stats.add_time("replacement", start)
-
         stats.update_fitness(population)
 
         if hall_of_fame is not None:

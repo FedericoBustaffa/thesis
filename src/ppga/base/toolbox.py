@@ -1,5 +1,4 @@
 import random
-import time
 from functools import partial
 
 from ppga.base.individual import Individual
@@ -106,21 +105,14 @@ class ToolBox:
         self.evaluation_args = args
         self.evaluation_kwargs = kwargs
 
-    def evaluate(self, population: list[Individual]) -> tuple[list[Individual], float]:
-        times = []
+    def evaluate(self, population: list[Individual]) -> list[Individual]:
         for i in population:
-            start = time.perf_counter()
             i.values = self.evaluation_func(
                 i.chromosome, *self.evaluation_args, **self.evaluation_kwargs
             )
             i.fitness = sum([v * w for v, w in zip(i.values, self.weights)])
-            times.append(time.perf_counter() - start)
 
-        try:
-            mean = sum(times) / len(times)
-            return population, mean
-        except ZeroDivisionError:
-            return population, 0.0
+        return population
 
     def set_replacement(self, func, *args, **kwargs):
         self.replacement_func = func

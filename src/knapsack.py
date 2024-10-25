@@ -7,6 +7,7 @@ from loguru import logger
 from ppga import base
 from ppga.algorithms import parallel, sequential
 from ppga.tools import crossover, generation, mutation, replacement, selection
+from utils import plotting
 
 
 class Item:
@@ -104,24 +105,14 @@ def main(argv: list[str]):
     queue_best, queue_stats = parallel.generational(toolbox, N, G, hall_of_fame=hof)
     queue_time = time.perf_counter() - start
 
-    print(f"Hall of Fame\n{hof}")
-
     logger.success(f"queue time: {queue_time} seconds")
     value, weight = show_solution(queue_best[0].chromosome, items)
     logger.success(f"queue best solution: ({value:.3f}, {weight:.3f})")
     logger.success(f"queue best fitness: {queue_best[0].fitness}")
+    print(f"Hall of Fame\n{hof}")
 
-    speed_up = sequential_time / queue_time
-    true_speed_up = seq_stats.cme() / queue_stats["parallel"]
-    if speed_up < 1.0:
-        logger.warning(f"speed up: {speed_up} seconds")
-    else:
-        logger.success(f"speed up: {speed_up} seconds")
-
-    if true_speed_up < 1.0:
-        logger.warning(f"true speed up: {true_speed_up} seconds")
-    else:
-        logger.success(f"true speed up: {true_speed_up} seconds")
+    plotting.fitness_trend(seq_stats.best, seq_stats.mean, seq_stats.worst)
+    plotting.fitness_trend(queue_stats.best, queue_stats.mean, queue_stats.worst)
 
 
 if __name__ == "__main__":

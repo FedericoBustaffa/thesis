@@ -18,7 +18,7 @@ def draw_graph(towns: pd.DataFrame, best: list[int]):
     plt.show()
 
 
-def fitness_trend(best: list[float], worst: list[float]):
+def fitness_trend(best: list[float], mean: list[float], worst: list[float]):
     generations = [g for g in range(len(best))]
 
     plt.figure(figsize=(12, 6))
@@ -27,6 +27,7 @@ def fitness_trend(best: list[float], worst: list[float]):
     plt.ylabel("Fitness")
 
     plt.plot(generations, best, label="Best fitness", c="g")
+    plt.plot(generations, mean, label="Mean fitness", c="b")
     plt.plot(generations, worst, label="Worst fitness", c="r")
 
     plt.grid()

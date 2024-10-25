@@ -1,6 +1,3 @@
-import time
-
-from loguru import logger
 from tqdm import tqdm
 
 from ppga.base.hall_of_fame import HallOfFame
@@ -16,43 +13,18 @@ def generational(
 ):
     stats = Statistics()
 
-    start = time.perf_counter()
     population = toolbox.generate(population_size)
-    stats.add_time("generation", start)
-
-    times = []
-
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
-        start = time.perf_counter()
         chosen = toolbox.select(population, population_size)
-        stats.add_time("selection", start)
-
-        start = time.perf_counter()
         couples = toolbox.mate(chosen)
-        stats.add_time("mating", start)
-
-        start = time.perf_counter()
         offsprings = toolbox.crossover(couples)
-        stats.add_time("crossover", start)
-
-        start = time.perf_counter()
         offsprings = toolbox.mutate(offsprings)
-        stats.add_time("mutation", start)
-
-        start = time.perf_counter()
-        offsprings, mean_time = toolbox.evaluate(offsprings)
-        stats.add_time("evaluation", start)
-        times.append(mean_time)
-
-        start = time.perf_counter()
+        offsprings = toolbox.evaluate(offsprings)
         population = toolbox.replace(population, offsprings)
-        stats.add_time("replacement", start)
 
         stats.update_fitness(population)
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)
-
-    logger.info(f"eval mean time: {sum(times) / len(times)} seconds")
 
     return population, stats
