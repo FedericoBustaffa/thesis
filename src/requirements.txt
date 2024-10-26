@@ -1,10 +1,7 @@
 pyarrow
-ipykernel
-notebook
-jupyterlab
 tqdm
 numpy
 matplotlib
 pandas
-loguru
 deap
+scoop
