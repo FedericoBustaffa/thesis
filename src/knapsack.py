@@ -49,11 +49,13 @@ def show_solution(solution, items):
 
 
 def main(argv: list[str]):
-    if len(argv) < 5:
+    if len(argv) < 4:
         print(f"USAGE: py {argv[0]} <Items> <N> <G> <LOG_LEVEL>")
         exit(1)
 
-    logger = log.getLogger("main", argv[4].upper())
+    if len(argv) < 5:
+        argv.append("INFO")
+    logger = log.getLogger("main", argv[-1].upper())
 
     items_num = int(argv[1])
     N = int(argv[2])

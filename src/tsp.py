@@ -28,11 +28,13 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
 
 
 def main(argv: list[str]):
-    logger = log.getLogger("user", log.DEBUG)
-    logger.debug("Hello")
-    if len(argv) != 4:
-        logger.error(f"USAGE: py {argv[0]} <T> <N> <G>")
+    if len(argv) < 4:
+        print(f"USAGE: py {argv[0]} <T> <N> <G> <LOG-LEVEL>")
         exit(1)
+
+    if len(argv) < 5:
+        argv.append("INFO")
+    logger = log.getLogger("main", argv[-1].upper())
 
     data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
     x_coords = data["x"]
@@ -63,7 +65,7 @@ def main(argv: list[str]):
     logger.info(f"sequential best score: {best[0].fitness}")
     logger.info(f"sequential total time: {sequential_time:.5f} seconds")
     for i, ind in enumerate(hall_of_fame):
-        logger.info(f"{i}. {ind.values}")
+        logger.debug(f"{i}. {ind.values}")
 
     hall_of_fame.clear()
     start = time.perf_counter()
@@ -72,7 +74,7 @@ def main(argv: list[str]):
     logger.info(f"parallel best score: {pbest[0].fitness}")
     logger.info(f"parallel time: {parallel_time:.5f} seconds")
     for i, ind in enumerate(hall_of_fame):
-        logger.info(f"{i}. {ind.values}")
+        logger.debug(f"{i}. {ind.values}")
 
     speed_up = sequential_time / parallel_time
     if speed_up <= 1.0:
