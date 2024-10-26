@@ -1,4 +1,5 @@
 pyarrow
+colorama
 tqdm
 numpy
 matplotlib

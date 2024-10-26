@@ -4,9 +4,8 @@ import sys
 import time
 
 import pandas as pd
-from loguru import logger
 
-from ppga import algorithms, base, tools
+from ppga import algorithms, base, log, tools
 from utils import plotting
 
 
@@ -29,14 +28,8 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
 
 
 def main(argv: list[str]):
-    logger.remove()
-    logger.add(
-        sys.stderr,
-        format="<green>{time:HH:mm:ss}</green> | {file}:{line} | <level>{level} - {message}</level>",
-        level="TRACE",
-        enqueue=True,
-    )
-
+    logger = log.getLogger("user", log.DEBUG)
+    logger.debug("Hello")
     if len(argv) != 4:
         logger.error(f"USAGE: py {argv[0]} <T> <N> <G>")
         exit(1)
@@ -65,23 +58,19 @@ def main(argv: list[str]):
     hall_of_fame = base.HallOfFame(5)
 
     start = time.perf_counter()
-    seq_best, seq_stats = algorithms.sga(
-        toolbox, N, 0.7, 0.3, G, hall_of_fame=hall_of_fame
-    )
+    best, stats = algorithms.sga(toolbox, N, 0.7, 0.3, G, hall_of_fame)
     sequential_time = time.perf_counter() - start
-    logger.success(f"sequential best score: {seq_best[0].fitness}")
-    logger.success(f"sequential total time: {sequential_time:.5f} seconds")
+    logger.info(f"sequential best score: {best[0].fitness}")
+    logger.info(f"sequential total time: {sequential_time:.5f} seconds")
     for i, ind in enumerate(hall_of_fame):
         logger.info(f"{i}. {ind.values}")
 
     hall_of_fame.clear()
     start = time.perf_counter()
-    parallel_pop, parallel_stats = algorithms.psga(
-        toolbox, N, 0.7, 0.3, G, hall_of_fame=hall_of_fame
-    )
+    pbest, pstats = algorithms.psga(toolbox, N, 0.7, 0.3, G, hall_of_fame)
     parallel_time = time.perf_counter() - start
-    logger.success(f"parallel best score: {parallel_pop[0].fitness}")
-    logger.success(f"parallel time: {parallel_time:.5f} seconds")
+    logger.info(f"parallel best score: {pbest[0].fitness}")
+    logger.info(f"parallel time: {parallel_time:.5f} seconds")
     for i, ind in enumerate(hall_of_fame):
         logger.info(f"{i}. {ind.values}")
 
@@ -92,13 +81,13 @@ def main(argv: list[str]):
         logger.success(f"speed up: {speed_up:.3f}")
 
     # statistics data
-    plotting.draw_graph(data, seq_best[0].chromosome)
-    plotting.fitness_trend(seq_stats)
-    plotting.biodiversity_trend(seq_stats)
+    plotting.draw_graph(data, best[0].chromosome)
+    plotting.fitness_trend(stats)
+    plotting.biodiversity_trend(stats)
 
-    plotting.draw_graph(data, parallel_pop[0].chromosome)
-    plotting.fitness_trend(parallel_stats)
-    plotting.biodiversity_trend(parallel_stats)
+    plotting.draw_graph(data, pbest[0].chromosome)
+    plotting.fitness_trend(pstats)
+    plotting.biodiversity_trend(pstats)
 
 
 if __name__ == "__main__":
