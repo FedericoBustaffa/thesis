@@ -82,34 +82,32 @@ def main(argv: list[str]):
 
     hof = base.HallOfFame(10)
 
-    start = time.perf_counter()
+    # sequential execution
     best, stats = algorithms.sga(toolbox, N, 0.8, 0.2, G, hall_of_fame=hof)
-    sequential_time = time.perf_counter() - start
 
-    logger.info(f"sequential time: {sequential_time} seconds")
     value, weight = show_solution(best[0].chromosome, items)
     logger.info(f"sequential best solution: ({value:.3f}, {weight:.3f})")
     logger.info(f"sequential best fitnes: {best[0].fitness}")
     for i, ind in enumerate(hof):
         logger.debug(f"{i}. {ind.values}")
 
+    # parallel execution
     hof.clear()
-    start = time.perf_counter()
     pbest, pstats = algorithms.psga(toolbox, N, 0.8, 0.2, G, hall_of_fame=hof)
-    queue_time = time.perf_counter() - start
 
-    logger.info(f"queue time: {queue_time} seconds")
     value, weight = show_solution(pbest[0].chromosome, items)
     logger.info(f"queue best solution: ({value:.3f}, {weight:.3f})")
     logger.info(f"queue best fitness: {pbest[0].fitness}")
     for i, ind in enumerate(hof):
         logger.debug(f"{i}. {ind.values}")
 
-    plotting.fitness_trend(stats)
-    plotting.biodiversity_trend(stats)
+    # plotting
+    if logger.level <= log.SUCCESS:
+        plotting.fitness_trend(stats)
+        plotting.biodiversity_trend(stats)
 
-    plotting.fitness_trend(pstats)
-    plotting.biodiversity_trend(pstats)
+        plotting.fitness_trend(pstats)
+        plotting.biodiversity_trend(pstats)
 
 
 if __name__ == "__main__":

@@ -59,37 +59,28 @@ def main(argv: list[str]):
 
     hall_of_fame = base.HallOfFame(5)
 
-    start = time.perf_counter()
+    # sequential execution
     best, stats = algorithms.sga(toolbox, N, 0.7, 0.3, G, hall_of_fame)
-    sequential_time = time.perf_counter() - start
     logger.info(f"sequential best score: {best[0].fitness}")
-    logger.info(f"sequential total time: {sequential_time:.5f} seconds")
     for i, ind in enumerate(hall_of_fame):
         logger.debug(f"{i}. {ind.values}")
 
+    # parallel execution
     hall_of_fame.clear()
-    start = time.perf_counter()
     pbest, pstats = algorithms.psga(toolbox, N, 0.7, 0.3, G, hall_of_fame)
-    parallel_time = time.perf_counter() - start
     logger.info(f"parallel best score: {pbest[0].fitness}")
-    logger.info(f"parallel time: {parallel_time:.5f} seconds")
     for i, ind in enumerate(hall_of_fame):
         logger.debug(f"{i}. {ind.values}")
-
-    speed_up = sequential_time / parallel_time
-    if speed_up <= 1.0:
-        logger.warning(f"speed up: {speed_up:.3f}")
-    else:
-        logger.success(f"speed up: {speed_up:.3f}")
 
     # statistics data
-    plotting.draw_graph(data, best[0].chromosome)
-    plotting.fitness_trend(stats)
-    plotting.biodiversity_trend(stats)
+    if logger.level <= log.SUCCESS:
+        plotting.draw_graph(data, best[0].chromosome)
+        plotting.fitness_trend(stats)
+        plotting.biodiversity_trend(stats)
 
-    plotting.draw_graph(data, pbest[0].chromosome)
-    plotting.fitness_trend(pstats)
-    plotting.biodiversity_trend(pstats)
+        plotting.draw_graph(data, pbest[0].chromosome)
+        plotting.fitness_trend(pstats)
+        plotting.biodiversity_trend(pstats)
 
 
 if __name__ == "__main__":
