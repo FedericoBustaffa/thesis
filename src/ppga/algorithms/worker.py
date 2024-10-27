@@ -14,6 +14,7 @@ def work(
             break
 
         offsprings = simple.reproduction(parents, cxpb, mutpb, toolbox)
+        offsprings = list(map(toolbox.evaluate, offsprings))
         rqueue.put(offsprings)
 
 

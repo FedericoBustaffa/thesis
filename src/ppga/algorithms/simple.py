@@ -16,9 +16,6 @@ def reproduction(chosen: list[Individual], cxpb: float, mutpb: float, toolbox: T
             toolbox.mutate(offspring1)
             toolbox.mutate(offspring2)
 
-            toolbox.evaluate(offspring1)
-            toolbox.evaluate(offspring2)
-
             offsprings.extend([offspring1, offspring2])
 
     return offsprings
@@ -38,6 +35,7 @@ def sga(
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
         chosen = toolbox.select(population, population_size)
         offsprings = reproduction(chosen, cxpb, mutpb, toolbox)
+        offsprings = list(map(toolbox.evaluate, offsprings))
         population = toolbox.replace(population, offsprings)
 
         stats.update(population)
@@ -66,7 +64,6 @@ def psga(
     population = toolbox.generate(population_size)
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
         chosen = toolbox.select(population, population_size)
-
         chunksize = len(chosen) // workers_num
         carry = len(chosen) % workers_num
 
