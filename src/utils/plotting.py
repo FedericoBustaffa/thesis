@@ -3,12 +3,14 @@ import pandas as pd
 
 from ppga.base.statistics import Statistics
 
+figsize = (16, 8)
+
 
 def draw_graph(towns: pd.DataFrame, best: list[int]):
     x = [towns["x"][i] for i in best]
     y = [towns["y"][i] for i in best]
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=figsize)
     plt.title("Best path found")
     plt.xlabel("X coordinates")
     plt.ylabel("Y coordinates")
@@ -27,7 +29,7 @@ def fitness_trend(stats: Statistics):
 
     generations = [g for g in range(len(best))]
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=figsize)
     plt.title("Fitness trend")
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
@@ -45,7 +47,7 @@ def biodiversity_trend(stats: Statistics):
     diversity = stats.diversity
     generations = [g for g in range(len(diversity))]
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=figsize)
     plt.title("Biodiversity trend")
     plt.xlabel("Generation")
     plt.ylabel("Biodiversity percentage")
@@ -57,7 +59,7 @@ def biodiversity_trend(stats: Statistics):
 
 
 def timing(timings: dict[str, float]):
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=figsize)
     plt.title("Timing")
     plt.pie(
         [v for v in timings.values()],
@@ -68,7 +70,7 @@ def timing(timings: dict[str, float]):
 
 
 def evals(evals: list[int]):
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=figsize)
     plt.title("Evaluations")
     plt.xlabel("Generation")
     plt.ylabel("Evals")
@@ -81,7 +83,7 @@ def evals(evals: list[int]):
 
 
 def multievals(evals: list[list[int]]):
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=figsize)
     plt.title("Evaluations per worker")
     plt.xlabel("Worker")
     plt.ylabel("Number of evaluations")
