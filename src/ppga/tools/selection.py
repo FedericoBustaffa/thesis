@@ -39,3 +39,11 @@ def sel_roulette(population: list[Individual], k: int) -> list[Individual]:
                 normalized_scores.append(i.fitness / total)
 
         return random.choices(population, k=k, weights=normalized_scores)
+
+
+def sel_ranking(population: list[Individual], k: int) -> list[Individual]:
+    population = sorted(population)
+    total = sum([i for i in range(len(population))])
+    ranks = [i / total for i in range(len(population))]
+
+    return random.choices(population, weights=ranks, k=k)
