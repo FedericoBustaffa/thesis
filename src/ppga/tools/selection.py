@@ -3,7 +3,11 @@ import random
 from ppga.base.individual import Individual
 
 
-def tournament(
+def sel_truncation(population: list[Individual], k: int) -> list[Individual]:
+    return sorted(population, reverse=True)[:k]
+
+
+def sel_tournament(
     population: list[Individual], k: int, tournsize: int = 2
 ) -> list[Individual]:
     selected = []
@@ -16,7 +20,7 @@ def tournament(
     return selected
 
 
-def roulette(population: list[Individual], k: int) -> list[Individual]:
+def sel_roulette(population: list[Individual], k: int) -> list[Individual]:
     total = 0.0
     for i in population:
         if i.fitness < 0.0:
@@ -33,4 +37,5 @@ def roulette(population: list[Individual], k: int) -> list[Individual]:
                 normalized_scores.append(-1.0 / i.fitness / total)
             else:
                 normalized_scores.append(i.fitness / total)
+
         return random.choices(population, k=k, weights=normalized_scores)
