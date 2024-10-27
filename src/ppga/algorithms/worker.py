@@ -20,7 +20,6 @@ def work(
 
 class Worker:
     def __init__(self, toolbox: ToolBox, cxpb: float, mutpb: float) -> None:
-        self.lock = mp.Lock()
         self.rqueue = mp.Queue()
         self.squeue = mp.Queue()
         self.worker = mp.Process(
