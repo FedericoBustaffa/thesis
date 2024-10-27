@@ -5,7 +5,7 @@ from ppga.tools.crossover import (
     cx_uniform,
 )
 from ppga.tools.generation import gen_permutation, gen_repetition
-from ppga.tools.mutation import bit_flip, mut_shuffle, rotation
+from ppga.tools.mutation import mut_bitflip, mut_rotation, mut_swap
 from ppga.tools.replacement import merge, total
 from ppga.tools.selection import sel_roulette, sel_tournament, sel_truncation
 
@@ -19,9 +19,9 @@ __all__ = [
     "cx_one_point_ordered",
     "cx_two_points",
     "cx_uniform",
-    "bit_flip",
-    "mut_shuffle",
-    "rotation",
+    "mut_bitflip",
+    "mut_swap",
+    "mut_rotation",
     "merge",
     "total",
 ]

@@ -74,7 +74,7 @@ def main(argv: list[str]):
     toolbox.set_generation(tools.gen_repetition, (0, 1), len(items))
     toolbox.set_selection(tools.sel_roulette)
     toolbox.set_crossover(tools.cx_uniform)
-    toolbox.set_mutation(tools.mut_shuffle)
+    toolbox.set_mutation(tools.mut_bitflip)
     toolbox.set_evaluation(evaluate, items, capacity)
     toolbox.set_replacement(tools.merge)
 
