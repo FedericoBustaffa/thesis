@@ -1,7 +1,5 @@
 import math
-import random
 import sys
-import time
 
 import pandas as pd
 
@@ -49,8 +47,7 @@ def main(argv: list[str]):
 
     toolbox = base.ToolBox()
     toolbox.set_weights((-1.0,))
-    toolbox.set_attributes(random.sample, range(len(towns)), len(towns))
-    toolbox.set_generation(tools.iterate)
+    toolbox.set_generation(tools.permutation, range(len(towns)), len(towns))
     toolbox.set_selection(tools.tournament, tournsize=2)
     toolbox.set_crossover(tools.one_point_ordered)
     toolbox.set_mutation(tools.rotation)
@@ -63,14 +60,14 @@ def main(argv: list[str]):
     best, stats = algorithms.sga(toolbox, N, 0.7, 0.3, G, hall_of_fame)
     logger.info(f"sequential best score: {best[0].fitness}")
     for i, ind in enumerate(hall_of_fame):
-        logger.debug(f"{i}. {ind.values}")
+        logger.debug(f"{i + 1}. {ind.values}")
 
     # parallel execution
     hall_of_fame.clear()
     pbest, pstats = algorithms.psga(toolbox, N, 0.7, 0.3, G, hall_of_fame)
     logger.info(f"parallel best score: {pbest[0].fitness}")
     for i, ind in enumerate(hall_of_fame):
-        logger.debug(f"{i}. {ind.values}")
+        logger.debug(f"{i + 1}. {ind.values}")
 
     # statistics data
     if logger.level <= log.SUCCESS:

@@ -1,6 +1,5 @@
 import random
 import sys
-import time
 
 from ppga import algorithms, base, log, tools
 from utils import plotting
@@ -72,8 +71,7 @@ def main(argv: list[str]):
 
     toolbox = base.ToolBox()
     toolbox.set_weights(weights=(3.0, -1.0))
-    toolbox.set_attributes(random.randint, 0, 1)
-    toolbox.set_generation(tools.repeat, len(items))
+    toolbox.set_generation(tools.repetition, (0, 1), len(items))
     toolbox.set_selection(tools.roulette)
     toolbox.set_crossover(tools.cx_shuffle)
     toolbox.set_mutation(tools.mut_shuffle)

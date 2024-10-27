@@ -1,6 +1,9 @@
-def repeat(generator, n: int, length: int):
-    return [[generator() for _ in range(length)] for _ in range(n)]
+import random
 
 
-def iterate(generator, n: int):
-    return [generator() for _ in range(n)]
+def repetition(values, length: int):
+    return random.choices(values, k=length)
+
+
+def permutation(values, length: int):
+    return random.sample(values, k=length)
