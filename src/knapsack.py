@@ -71,9 +71,9 @@ def main(argv: list[str]):
 
     toolbox = base.ToolBox()
     toolbox.set_weights(weights=(3.0, -1.0))
-    toolbox.set_generation(tools.repetition, (0, 1), len(items))
+    toolbox.set_generation(tools.gen_repetition, (0, 1), len(items))
     toolbox.set_selection(tools.roulette)
-    toolbox.set_crossover(tools.cx_shuffle)
+    toolbox.set_crossover(tools.cx_uniform)
     toolbox.set_mutation(tools.mut_shuffle)
     toolbox.set_evaluation(evaluate, items, capacity)
     toolbox.set_replacement(tools.merge)
