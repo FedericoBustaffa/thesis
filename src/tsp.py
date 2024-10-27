@@ -71,11 +71,11 @@ def main(argv: list[str]):
 
     # statistics data
     if logger.level <= log.SUCCESS:
-        plotting.draw_graph(data, best[0].chromosome)
+        plotting.draw_graph(data, hall_of_fame[0].chromosome)
         plotting.fitness_trend(stats)
         plotting.biodiversity_trend(stats)
 
-        plotting.draw_graph(data, pbest[0].chromosome)
+        plotting.draw_graph(data, hall_of_fame[0].chromosome)
         plotting.fitness_trend(pstats)
         plotting.biodiversity_trend(pstats)
 
