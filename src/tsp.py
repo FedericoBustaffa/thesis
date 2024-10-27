@@ -47,8 +47,8 @@ def main(argv: list[str]):
 
     toolbox = base.ToolBox()
     toolbox.set_weights((-1.0,))
-    toolbox.set_generation(tools.gen_permutation, range(len(towns)), len(towns))
-    toolbox.set_selection(tools.tournament, tournsize=2)
+    toolbox.set_generation(tools.gen_permutation, range(len(towns)))
+    toolbox.set_selection(tools.sel_tournament, tournsize=2)
     toolbox.set_crossover(tools.cx_one_point_ordered)
     toolbox.set_mutation(tools.rotation)
     toolbox.set_evaluation(evaluate, towns)
