@@ -83,6 +83,9 @@ def evals(evals: list[int]):
 def multievals(evals: list[list[int]]):
     plt.figure(figsize=(12, 6))
     plt.title("Evaluations per worker")
+    plt.xlabel("Worker")
+    plt.ylabel("Number of evaluations")
+    plt.xticks(list(range(len(evals[0]))))
 
     evals_per_worker = [0 for _ in range(len(evals[0]))]
     for e in evals:
