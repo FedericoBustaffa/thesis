@@ -6,6 +6,7 @@ from functools import partial
 
 import pandas as pd
 from deap import algorithms, base, creator, tools
+from scoop import futures
 
 from utils import plotting
 
@@ -71,6 +72,7 @@ def main(argv: list[str]):
     toolbox.register("mate", tools.cxOrdered)
     toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.01)
     toolbox.register("select", tools.selTournament, tournsize=2)
+    toolbox.register("map", futures.map)
 
     start = time.perf_counter()
     best, logbook = algorithms.eaSimple(
@@ -91,6 +93,9 @@ def main(argv: list[str]):
         print(f"{i.fitness}")
 
     print(f"DEAP time: {end - start:.4f} seconds")
+    plotting.draw_graph(
+        data, sorted([ind for ind in best], key=lambda x: x.fitness, reverse=True)[0]
+    )
     plotting.draw_graph(data, hall_of_fame[0])
 
 
