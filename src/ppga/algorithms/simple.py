@@ -36,6 +36,9 @@ def sga(
         chosen = toolbox.select(population, population_size)
         offsprings = reproduction(chosen, cxpb, mutpb, toolbox)
         offsprings = list(map(toolbox.evaluate, offsprings))
+
+        stats.update_evals(len(offsprings))
+
         population = toolbox.replace(population, offsprings)
 
         stats.update(population)
@@ -75,13 +78,16 @@ def psga(
 
         # keep only the worst time for each worker
         offsprings = []
+        evals = []
         for worker in workers:
             offsprings_chunk = worker.recv()
             offsprings.extend(offsprings_chunk)
+            evals.append(len(offsprings_chunk))
 
         population = toolbox.replace(population, offsprings)
 
         stats.update(population)
+        stats.update_multievals(evals)
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)

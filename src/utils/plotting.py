@@ -65,3 +65,31 @@ def timing(timings: dict[str, float]):
         autopct="%1.1f%%",
     )
     plt.show()
+
+
+def evals(evals: list[int]):
+    plt.figure(figsize=(12, 6))
+    plt.title("Evaluations")
+    plt.xlabel("Generation")
+    plt.ylabel("Evals")
+
+    plt.plot([g for g in range(len(evals))], evals, label="evals")
+
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+
+def multievals(evals: list[list[int]]):
+    plt.figure(figsize=(12, 6))
+    plt.title("Evaluations per worker")
+
+    evals_per_worker = [0 for _ in range(len(evals[0]))]
+    for e in evals:
+        for i, n in enumerate(e):
+            evals_per_worker[i] += n
+
+    plt.bar(list(range(len(evals_per_worker))), evals_per_worker, label="bar")
+
+    plt.legend()
+    plt.show()

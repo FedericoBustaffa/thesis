@@ -79,6 +79,9 @@ def main(argv: list[str]):
         plotting.fitness_trend(pstats)
         plotting.biodiversity_trend(pstats)
 
+        plotting.evals(stats.evals)
+        plotting.multievals(pstats.multievals)
+
 
 if __name__ == "__main__":
     main(sys.argv)

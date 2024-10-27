@@ -13,29 +13,11 @@ class ToolBox:
     def set_weights(self, weights: tuple) -> None:
         self.weights = weights
 
-    def set_attributes(self, func, *args, **kwargs) -> None:
-        self.attrib_func = func
-        self.attrib_args = args
-        self.attrib_kwargs = kwargs
-
     def set_generation(self, func, *args, **kwargs) -> None:
-        self.generation_func = func
-        self.generation_args = args
-        self.generation_kwargs = kwargs
+        self.generation_func = partial(func, *args, **kwargs)
 
     def generate(self, population_size) -> list[Individual]:
-        attribute_generator = partial(
-            self.attrib_func, *self.attrib_args, **self.attrib_kwargs
-        )
-
-        population = self.generation_func(
-            attribute_generator,
-            population_size,
-            *self.generation_args,
-            **self.generation_kwargs,
-        )
-
-        return [Individual(c) for c in population]
+        return [Individual(self.generation_func()) for _ in range(population_size)]
 
     def set_selection(self, func, *args, **kwargs) -> None:
         self.selection_func = func
@@ -69,23 +51,27 @@ class ToolBox:
         self.mutation_args = args
         self.mutation_kwargs = kwargs
 
-    def mutate(self, individual: Individual) -> None:
+    def mutate(self, individual: Individual) -> Individual:
         individual.chromosome = self.mutation_func(
             individual.chromosome, *self.mutation_args, **self.mutation_kwargs
         )
+
+        return individual
 
     def set_evaluation(self, func, *args, **kwargs) -> None:
         self.evaluation_func = func
         self.evaluation_args = args
         self.evaluation_kwargs = kwargs
 
-    def evaluate(self, individual: Individual) -> None:
+    def evaluate(self, individual: Individual) -> Individual:
         individual.values = self.evaluation_func(
             individual.chromosome, *self.evaluation_args, **self.evaluation_kwargs
         )
         individual.fitness = sum(
             [v * w for v, w in zip(individual.values, self.weights)]
         )
+
+        return individual
 
     def set_replacement(self, func, *args, **kwargs) -> None:
         self.replacement_func = func

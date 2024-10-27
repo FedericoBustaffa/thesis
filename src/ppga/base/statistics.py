@@ -8,6 +8,8 @@ class Statistics:
         self.worst = []
 
         self.diversity = []
+        self.evals = []
+        self.multievals = []
 
     def update(self, population: list[Individual]) -> None:
         valid_pop = [i for i in population if not i.invalid()]
@@ -21,3 +23,9 @@ class Statistics:
         # update the biodiversity
         uniques = set(population)
         self.diversity.append(len(uniques) / len(population))
+
+    def update_evals(self, evals_num: int) -> None:
+        self.evals.append(evals_num)
+
+    def update_multievals(self, evals: list[int]) -> None:
+        self.multievals.append(evals)
