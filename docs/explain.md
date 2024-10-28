@@ -16,15 +16,24 @@ corretta o meno, ci interessa sapere _"perché"_
 i nuovi dati sono stati classificati in quel
 modo.
 
-## Approccio
+## Approccio generale
 
 Una volta classificati i nuovi dati, viene
 svolta un'analisi locale su ciascuno di
-questi. Una volta scelto il punto da analizzare
-si generano dati _sintetici_ vicini a quel
-punto, i quali, per essere di buona qualità,
-devono essere simili al punto considerato, non
-uguali ma neanche troppo distanti.
+questi:
+
+1. Si sceglie un punto da analizzare e si
+   generano dati _sintetici_ vicini a quel
+   punto. Per essere considerati di buona
+   qualità devono essere _simili_ al dato
+   iniziale ma non uguali.
+2. Tramite una tecnica di _explain_ si cerca
+   capire perché il punto è stato classificato
+   in quel modo andando a generalizzare meglio
+3. Si cerca di capire quali valori dovrebbero
+   assumere le feature (soprattutto rispetto ai
+   valori iniziali), per riuscire a classificare
+   il punto nell'altro modo.
 
 L'obbiettivo è sia capire perché il
 classificatore ha dato determinati risultati,
