@@ -3,8 +3,12 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+import tsp
+
 
 def main():
+    tsp.main(["tsp.py", "10", "10000", "10", "debug"])
+
     main_file = open("MainProcess.txt", "r")
     stats = []
     lines = main_file.readlines()
