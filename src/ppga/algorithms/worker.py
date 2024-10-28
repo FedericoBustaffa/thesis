@@ -9,7 +9,7 @@ from ppga.base.toolbox import ToolBox
 def work(
     rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, cxpb: float, mutpb: float
 ):
-    worker_file = open(f"{mp.current_process().name}.txt", "w")
+    worker_file = open(f"./results/{mp.current_process().name}.txt", "w")
     while True:
         parents = squeue.get()
         if parents is None:

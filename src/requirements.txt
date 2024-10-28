@@ -1,4 +1,5 @@
 pyarrow
+scikit-learn
 colorama
 tqdm
 numpy

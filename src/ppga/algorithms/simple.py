@@ -32,7 +32,7 @@ def sga(
     hall_of_fame: None | HallOfFame = None,
 ):
     stats = Statistics()
-    worker_file = open(f"{mp.current_process().name}.txt", "w")
+    worker_file = open(f"./results/{mp.current_process().name}.txt", "w")
 
     population = toolbox.generate(population_size)
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
