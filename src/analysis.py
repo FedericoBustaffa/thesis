@@ -5,38 +5,50 @@ import numpy as np
 
 
 def main():
+    main_file = open("MainProcess.txt", "r")
+    stats = []
+    lines = main_file.readlines()
+    for line in lines:
+        stats.append(float(line))
+
+    stats = np.array(stats)
+    print(f"main total time: {stats.sum()} seconds")
+    print(f"main mean time: {stats.mean()} seconds")
+
     files = [
         open(filepath, "r")
         for filepath in os.listdir(os.getcwd())
-        if filepath.startswith("T") and filepath.endswith(".txt")
+        if filepath.startswith("P") and filepath.endswith(".txt")
     ]
 
-    stats = []
+    pstats = []
     for f in files:
         lines = f.readlines()
-        stats.append(np.array([float(line) for line in lines]))
+        pstats.append(np.array([float(line) for line in lines]))
 
-    stats = np.array(stats).T
+    totals = [s.sum() for s in pstats]
+    means = [s.mean() for s in pstats]
 
-    total_time = stats.sum(axis=0)
-    print(f"max time: {total_time.max()}")
-    print(f"min time: {total_time.min()}")
-    mean_time = stats.mean(axis=0)
+    for i, (t, m) in enumerate(zip(totals, means)):
+        print(f"worker {i+1} total time: {t}\t | mean time: {m} seconds")
+
+    workers_num = len(pstats)
 
     plt.figure(figsize=(16, 9))
     plt.title("Total time per worker")
     plt.xlabel("Worker")
     plt.ylabel("Total time of work")
-    plt.xticks([i + 1 for i in range(len(total_time))])
-    plt.bar([i + 1 for i in range(len(total_time))], total_time)
+    plt.xticks([i + 1 for i in range(workers_num)])
+    plt.bar([i + 1 for i in range(workers_num)], totals)
     plt.show()
 
     plt.figure(figsize=(16, 9))
     plt.title("Mean time per worker")
     plt.xlabel("Worker")
     plt.ylabel("Mean time of work")
-    plt.xticks([i + 1 for i in range(len(total_time))])
-    plt.bar([i + 1 for i in range(len(mean_time))], mean_time)
+    plt.xticks([i for i in range(workers_num + 1)])
+    plt.bar([0], stats.mean())
+    plt.bar([i + 1 for i in range(workers_num)], means)
     plt.show()
 
 

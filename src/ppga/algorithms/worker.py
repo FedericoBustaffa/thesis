@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import multiprocessing.queues as mpq
+import time
 
 from ppga.algorithms import simple
 from ppga.base.toolbox import ToolBox
@@ -8,14 +9,23 @@ from ppga.base.toolbox import ToolBox
 def work(
     rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, cxpb: float, mutpb: float
 ):
+    worker_file = open(f"{mp.current_process().name}.txt", "w")
     while True:
         parents = squeue.get()
         if parents is None:
             break
 
         offsprings = simple.reproduction(parents, cxpb, mutpb, toolbox)
-        offsprings = list(map(toolbox.evaluate, offsprings))
+
+        for offspring in offsprings:
+            start = time.perf_counter()
+            offspring = toolbox.evaluate(offspring)
+            eval_time = time.perf_counter() - start
+            print(eval_time, file=worker_file)
+
         rqueue.put(offsprings)
+
+    worker_file.close()
 
 
 class Worker:
