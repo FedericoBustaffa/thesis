@@ -31,7 +31,7 @@ def evaluate(towns: list[Town], chromosome) -> tuple[float]:
 
 def main(argv: list[str]):
     if len(argv) < 4:
-        print(f"USAGE: py {argv[0]} <T> <N> <G> <W>")
+        print(f"USAGE: py {argv[0]} <T> <N> <G>")
         exit(1)
 
     data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
@@ -52,9 +52,6 @@ def main(argv: list[str]):
 
     # mutation rate
     mutpb = 0.3
-
-    # number of workers
-    W = int(argv[4])
 
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMin)
