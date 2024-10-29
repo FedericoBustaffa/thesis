@@ -111,3 +111,22 @@ alla precedente ma usata in modo quasi inverso.
 
 Nel caso in cui si abbiamo più classi si ripete
 il procedimento per ognuna di esse.
+
+A livello implementativo i punti di maggiore
+interesse mi sembrano essere la generazione della
+popolazione iniziale e la definizione di due
+funzioni di fitness:
+
+- La popolazione iniziale dovrebbe generare
+  individui vicini a quello di partenza, per
+  esempio sfruttando la deviazione standard del
+  valore delle feature per generare un offset.
+  In alternativa si potrebbe usare la distanza
+  media tra i punti per creare una sorta di
+  raggio entro il quale generare gli individui
+  attorno a quello di partenza.
+- Entrambe le funzioni di fitness sfruttano la
+  distanza euclidea per stabilire la bontà
+  dell'individuo sintetico con l'aggiunta di
+  penalità per gli individui non classificati
+  correttamente.
