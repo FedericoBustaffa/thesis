@@ -7,7 +7,7 @@ import tsp
 
 
 def main():
-    tsp.main(["tsp.py", "10", "10000", "50", "info"])
+    tsp.main(["tsp.py", "10", "50000", "50", "info"])
 
     main_file = open("results/MainProcess.txt", "r")
     stats = []
