@@ -7,9 +7,9 @@ import tsp
 
 
 def main():
-    tsp.main(["tsp.py", "10", "10000", "10", "debug"])
+    tsp.main(["tsp.py", "10", "10000", "50", "info"])
 
-    main_file = open("MainProcess.txt", "r")
+    main_file = open("results/MainProcess.txt", "r")
     stats = []
     lines = main_file.readlines()
     for line in lines:
@@ -20,8 +20,8 @@ def main():
     print(f"main mean time: {stats.mean()} seconds")
 
     files = [
-        open(filepath, "r")
-        for filepath in os.listdir(os.getcwd())
+        open(f"./results/{filepath}", "r")
+        for filepath in os.listdir("./results/")
         if filepath.startswith("P") and filepath.endswith(".txt")
     ]
 
