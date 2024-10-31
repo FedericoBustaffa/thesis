@@ -2,7 +2,7 @@ import random
 
 
 def cx_one_point(father, mother) -> tuple:
-    crossover_point = random.randint(1, len(father) - 2)
+    crossover_point = random.randint(1, len(father) - 1)
 
     offspring1 = father[:crossover_point] + mother[crossover_point:]
     offspring2 = mother[:crossover_point] + father[crossover_point:]
