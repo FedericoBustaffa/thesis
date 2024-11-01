@@ -37,12 +37,13 @@ class Logger(logging.Logger):
         super().log(SUCCESS, message)
 
 
-def getLogger(name: str, level: int | str = INFO) -> Logger:
-    logger = Logger(name, level)
-    formatter = ColorFormatter()
-    handler = logging.StreamHandler()
-    handler.setLevel(level)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+logger = Logger("USER", INFO)
+formatter = ColorFormatter()
+handler = logging.StreamHandler()
+handler.setLevel(INFO)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
+
+def getLogger() -> Logger:
     return logger
