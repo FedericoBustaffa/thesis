@@ -15,8 +15,11 @@ def reproduction(chosen: list[Individual], cxpb: float, mutpb: float, toolbox: T
         if random.random() <= cxpb:
             offspring1, offspring2 = toolbox.crossover(chosen[i], chosen[i + 1])
 
-            toolbox.mutate(offspring1)
-            toolbox.mutate(offspring2)
+            if random.random() <= mutpb:
+                toolbox.mutate(offspring1)
+        
+            if random.random() <= mutpb:
+                toolbox.mutate(offspring2)
 
             offsprings.extend([offspring1, offspring2])
 
