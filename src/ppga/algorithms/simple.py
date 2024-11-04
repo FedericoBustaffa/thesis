@@ -69,7 +69,7 @@ def psga(
 ):
     stats = Statistics()
 
-    workers_num = os.cpu_count()
+    workers_num = 32
     assert workers_num is not None
 
     workers = [Worker(toolbox, cxpb, mutpb) for _ in range(workers_num)]
