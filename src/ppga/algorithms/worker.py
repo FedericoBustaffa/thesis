@@ -1,7 +1,7 @@
 import multiprocessing as mp
 import multiprocessing.queues as mpq
-import time
 
+from ppga import log
 from ppga.algorithms.reproduction import reproduction
 from ppga.base.toolbox import ToolBox
 
@@ -14,23 +14,22 @@ def work(
     cxpb: float,
     mutpb: float,
 ):
-    worker_file = open(f"./results/{mp.current_process().name}.txt", "w")
+    logger = log.core_logger
     while True:
         parents = squeue.get()
         if parents is None:
             break
 
+        if len(parents) == 0:
+            logger.warning(f"worker unused: {len(parents)} parents given")
+            # continue
+
         offsprings = reproduction(parents, toolbox, lam, cxpb, mutpb)
 
         for offspring in offsprings:
-            start = time.perf_counter()
             offspring = toolbox.evaluate(offspring)
-            eval_time = time.perf_counter() - start
-            print(eval_time, file=worker_file)
 
         rqueue.put(offsprings)
-
-    worker_file.close()
 
 
 class Worker:

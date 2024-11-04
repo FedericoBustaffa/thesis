@@ -37,7 +37,8 @@ def main(argv: list[str]):
 
     if len(argv) < 5:
         argv.append("INFO")
-    logger = log.getLogger()
+
+    logger = log.getLogger(argv[4].upper())
 
     data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
     x_coords = data["x"]
@@ -63,7 +64,7 @@ def main(argv: list[str]):
 
     # sequential execution
     start = time.perf_counter()
-    best, stats = algorithms.sga(toolbox, N, 0.7, 0.3, G, hall_of_fame)
+    best, stats = algorithms.sga(toolbox, N, 0.7, 0.3, G, hall_of_fame, log.INFO)
     stime = time.perf_counter() - start
     logger.info(f"sequential best score: {best[0].fitness}")
     for i, ind in enumerate(hall_of_fame):
@@ -73,7 +74,7 @@ def main(argv: list[str]):
     # parallel execution
     hall_of_fame.clear()
     start = time.perf_counter()
-    pbest, pstats = algorithms.psga(toolbox, N, 0.7, 0.3, G, hall_of_fame)
+    pbest, pstats = algorithms.psga(toolbox, N, 0.7, 0.3, G, hall_of_fame, log.DEBUG)
     ptime = time.perf_counter() - start
     logger.info(f"parallel best score: {pbest[0].fitness}")
     for i, ind in enumerate(hall_of_fame):
@@ -84,7 +85,8 @@ def main(argv: list[str]):
 
     # statistics data
     if logger.level <= log.SUCCESS:
-        plotting.draw_graph(data, hall_of_fame[0].chromosome)
+        solution = max(best, key=lambda x: x.fitness)
+        plotting.draw_graph(data, solution.chromosome)
         plotting.fitness_trend(stats)
         plotting.biodiversity_trend(stats)
 

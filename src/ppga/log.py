@@ -12,6 +12,15 @@ WARNING = logging.WARNING
 ERROR = logging.ERROR
 CRITICAL = logging.CRITICAL
 
+levels = {
+    "DEBUG": DEBUG,
+    "SUCCESS": SUCCESS,
+    "INFO": INFO,
+    "WARNING": WARNING,
+    "ERROR": ERROR,
+    "CRITICAL": CRITICAL,
+}
+
 logging.addLevelName(15, "SUCCESS")
 
 FORMATS = {
@@ -25,6 +34,8 @@ FORMATS = {
 
 
 class ColorFormatter(logging.Formatter):
+    """Formatter the provides colors through colorama module"""
+
     def format(self, record: logging.LogRecord) -> str:
         formatter = logging.Formatter(FORMATS[record.levelno], style="{")
         return formatter.format(record)
@@ -56,12 +67,33 @@ handler.setFormatter(formatter)
 user_logger.addHandler(handler)
 
 
-def set_core_level(level: int = WARNING):
-    """Set the core logger level"""
+def getCoreLogger(level: str | int = WARNING) -> Logger:
+    """Returns the core logger with the given level set on all handlers"""
+    if isinstance(level, str):
+        level = levels[level]
+    setCoreLevel(level)
+
+    print(core_logger.level)
+    for h in core_logger.handlers:
+        print(h.level)
+
+    return core_logger
+
+
+def setCoreLevel(level: str | int) -> None:
+    """Set the core logger log level"""
+    for h in core_logger.handlers:
+        h.setLevel(level)
     core_logger.setLevel(level)
 
 
-def getLogger(level: int = INFO) -> Logger:
+def getLogger(level: str | int = INFO) -> Logger:
     """Provides a logger for the user with the given log level"""
+    if isinstance(level, str):
+        level = levels[level]
+
     user_logger.setLevel(level)
+    for h in user_logger.handlers:
+        h.setLevel(level)
+
     return user_logger

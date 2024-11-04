@@ -6,6 +6,8 @@ from ppga.tools.replacement import total
 
 class ToolBox:
     def __init__(self) -> None:
+        self.map = map
+
         self.replacement_func = total
         self.replacement_args = ()
         self.replacement_kwargs = {}
