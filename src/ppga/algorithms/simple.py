@@ -1,7 +1,5 @@
-import multiprocessing as mp
 import os
 import random
-import time
 
 from tqdm import tqdm
 
@@ -16,10 +14,10 @@ def reproduction(chosen: list[Individual], cxpb: float, mutpb: float, toolbox: T
             offspring1, offspring2 = toolbox.crossover(chosen[i], chosen[i + 1])
 
             if random.random() <= mutpb:
-                toolbox.mutate(offspring1)
-        
+                offspring1 = toolbox.mutate(offspring1)
+
             if random.random() <= mutpb:
-                toolbox.mutate(offspring2)
+                offspring2 = toolbox.mutate(offspring2)
 
             offsprings.extend([offspring1, offspring2])
 
@@ -35,7 +33,6 @@ def sga(
     hall_of_fame: None | HallOfFame = None,
 ):
     stats = Statistics()
-    worker_file = open(f"./results/{mp.current_process().name}.txt", "w")
 
     population = toolbox.generate(population_size)
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
@@ -43,10 +40,7 @@ def sga(
         offsprings = reproduction(chosen, cxpb, mutpb, toolbox)
 
         for offspring in offsprings:
-            start = time.perf_counter()
             offspring = toolbox.evaluate(offspring)
-            eval_time = time.perf_counter() - start
-            print(eval_time, file=worker_file)
 
         stats.update_evals(len(offsprings))
 
@@ -56,8 +50,6 @@ def sga(
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)
-
-    worker_file.close()
 
     return population, stats
 
