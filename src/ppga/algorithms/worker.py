@@ -15,7 +15,7 @@ def work(
         if parents is None:
             break
 
-        offsprings = simple.reproduction(parents, cxpb, mutpb, toolbox)
+        offsprings = simple.reproduction(parents, toolbox, cxpb, mutpb)
 
         for offspring in offsprings:
             start = time.perf_counter()
