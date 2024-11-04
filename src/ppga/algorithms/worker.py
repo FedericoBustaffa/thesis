@@ -2,12 +2,17 @@ import multiprocessing as mp
 import multiprocessing.queues as mpq
 import time
 
-from ppga.algorithms import simple
+from ppga.algorithms.reproduction import reproduction
 from ppga.base.toolbox import ToolBox
 
 
 def work(
-    rqueue: mpq.Queue, squeue: mpq.Queue, toolbox: ToolBox, cxpb: float, mutpb: float
+    rqueue: mpq.Queue,
+    squeue: mpq.Queue,
+    toolbox: ToolBox,
+    lam: int,
+    cxpb: float,
+    mutpb: float,
 ):
     worker_file = open(f"./results/{mp.current_process().name}.txt", "w")
     while True:
@@ -15,7 +20,7 @@ def work(
         if parents is None:
             break
 
-        offsprings = simple.reproduction(parents, toolbox, cxpb, mutpb)
+        offsprings = reproduction(parents, toolbox, lam, cxpb, mutpb)
 
         for offspring in offsprings:
             start = time.perf_counter()
@@ -29,11 +34,11 @@ def work(
 
 
 class Worker:
-    def __init__(self, toolbox: ToolBox, cxpb: float, mutpb: float) -> None:
+    def __init__(self, toolbox: ToolBox, lam: int, cxpb: float, mutpb: float) -> None:
         self.rqueue = mp.Queue()
         self.squeue = mp.Queue()
         self.worker = mp.Process(
-            target=work, args=[self.rqueue, self.squeue, toolbox, cxpb, mutpb]
+            target=work, args=[self.rqueue, self.squeue, toolbox, lam, cxpb, mutpb]
         )
         self.worker.start()
 
