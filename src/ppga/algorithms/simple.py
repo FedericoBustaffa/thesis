@@ -3,15 +3,17 @@ import random
 
 from tqdm import tqdm
 
+from ppga import log
 from ppga.algorithms.worker import Worker
 from ppga.base import HallOfFame, Individual, Statistics, ToolBox
 
 
-def reproduction(chosen: list[Individual], cxpb: float, mutpb: float, toolbox: ToolBox):
+def reproduction(chosen: list[Individual], toolbox: ToolBox, cxpb: float, mutpb: float):
     offsprings = []
-    for i in range(0, len(chosen) - 1, 1):
+    for i in range(0, len(chosen), 1):
         if random.random() <= cxpb:
-            offspring1, offspring2 = toolbox.crossover(chosen[i], chosen[i + 1])
+            father, mother = random.choices(chosen, k=2)
+            offspring1, offspring2 = toolbox.crossover(father, mother)
 
             if random.random() <= mutpb:
                 offspring1 = toolbox.mutate(offspring1)
@@ -37,7 +39,7 @@ def sga(
     population = toolbox.generate(population_size)
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
         chosen = toolbox.select(population, population_size)
-        offsprings = reproduction(chosen, cxpb, mutpb, toolbox)
+        offsprings = reproduction(chosen, toolbox, cxpb, mutpb)
 
         for offspring in offsprings:
             offspring = toolbox.evaluate(offspring)
