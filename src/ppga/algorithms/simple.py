@@ -1,22 +1,25 @@
-import multiprocessing as mp
 import os
 import random
-import time
 
 from tqdm import tqdm
 
+from ppga import log
 from ppga.algorithms.worker import Worker
 from ppga.base import HallOfFame, Individual, Statistics, ToolBox
 
 
-def reproduction(chosen: list[Individual], cxpb: float, mutpb: float, toolbox: ToolBox):
+def reproduction(chosen: list[Individual], toolbox: ToolBox, cxpb: float, mutpb: float):
     offsprings = []
-    for i in range(0, len(chosen) - 1, 1):
+    for i in range(0, len(chosen), 1):
         if random.random() <= cxpb:
-            offspring1, offspring2 = toolbox.crossover(chosen[i], chosen[i + 1])
+            father, mother = random.choices(chosen, k=2)
+            offspring1, offspring2 = toolbox.crossover(father, mother)
 
-            toolbox.mutate(offspring1)
-            toolbox.mutate(offspring2)
+            if random.random() <= mutpb:
+                offspring1 = toolbox.mutate(offspring1)
+
+            if random.random() <= mutpb:
+                offspring2 = toolbox.mutate(offspring2)
 
             offsprings.extend([offspring1, offspring2])
 
@@ -32,18 +35,14 @@ def sga(
     hall_of_fame: None | HallOfFame = None,
 ):
     stats = Statistics()
-    worker_file = open(f"./results/{mp.current_process().name}.txt", "w")
 
     population = toolbox.generate(population_size)
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
         chosen = toolbox.select(population, population_size)
-        offsprings = reproduction(chosen, cxpb, mutpb, toolbox)
+        offsprings = reproduction(chosen, toolbox, cxpb, mutpb)
 
         for offspring in offsprings:
-            start = time.perf_counter()
             offspring = toolbox.evaluate(offspring)
-            eval_time = time.perf_counter() - start
-            print(eval_time, file=worker_file)
 
         stats.update_evals(len(offsprings))
 
@@ -53,8 +52,6 @@ def sga(
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)
-
-    worker_file.close()
 
     return population, stats
 

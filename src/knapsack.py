@@ -54,7 +54,7 @@ def main(argv: list[str]):
 
     if len(argv) < 5:
         argv.append("INFO")
-    logger = log.getLogger("main", argv[-1].upper())
+    logger = log.getLogger()
 
     items_num = int(argv[1])
     N = int(argv[2])

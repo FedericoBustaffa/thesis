@@ -24,8 +24,8 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    for _ in range(100000):
-        random.random()
+    # for _ in range(100000):
+    #     random.random()
 
     return (total_distance,)
 
@@ -37,7 +37,7 @@ def main(argv: list[str]):
 
     if len(argv) < 5:
         argv.append("INFO")
-    logger = log.getLogger("main", argv[-1].upper())
+    logger = log.getLogger()
 
     data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
     x_coords = data["x"]
