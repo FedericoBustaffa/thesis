@@ -1,9 +1,8 @@
-import os
 import random
 
+import psutil
 from tqdm import tqdm
 
-from ppga import log
 from ppga.algorithms.worker import Worker
 from ppga.base import HallOfFame, Individual, Statistics, ToolBox
 
@@ -66,7 +65,8 @@ def psga(
 ):
     stats = Statistics()
 
-    workers_num = 32
+    # only use the physical cores
+    workers_num = psutil.cpu_count(logical=False)
     assert workers_num is not None
 
     workers = [Worker(toolbox, cxpb, mutpb) for _ in range(workers_num)]
