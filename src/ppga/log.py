@@ -73,10 +73,6 @@ def getCoreLogger(level: str | int = WARNING) -> Logger:
         level = levels[level]
     setCoreLevel(level)
 
-    print(core_logger.level)
-    for h in core_logger.handlers:
-        print(h.level)
-
     return core_logger
 
 
