@@ -18,12 +18,19 @@ def mu_lambda(
     hall_of_fame: None | HallOfFame = None,
     log_level: str | int = log.WARNING,
 ):
+    """
+    Simple genetic algorithm that select `mu` individuals every generation
+    for reproduction and try to keep `lam` individuals to the new generation.
+
+    Args:
+        toolbox a valid and initialized toolbox
+    """
     stats = Statistics()
     logger = log.getCoreLogger(log_level)
 
     population = toolbox.generate(population_size)
     for g in tqdm(range(max_generations), desc="generations", ncols=80):
-        chosen = toolbox.select(population, mu)
+        chosen = [toolbox.clone(i) for i in toolbox.select(population, mu)]
         logger.debug(f"chosen: {len(chosen)}")
 
         offsprings = reproduction(chosen, toolbox, lam, cxpb, mutpb)
@@ -65,9 +72,10 @@ def parallel_mu_lambda(
     # dinamically resize the chunksize
     chunksize = mu // workers_num
     carry = mu % workers_num
-    logger.info(f"chunksize: {chunksize}")
-    logger.info(f"carry: {carry}")
+    logger.debug(f"chunksize: {chunksize}")
+    logger.debug(f"carry: {carry}")
 
+    lam = lam // workers_num
     workers = [Worker(toolbox, lam, cxpb, mutpb) for _ in range(workers_num)]
 
     population = toolbox.generate(population_size)
