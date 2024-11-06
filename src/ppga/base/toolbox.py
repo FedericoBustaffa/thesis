@@ -1,3 +1,4 @@
+import copy
 from functools import partial
 
 from ppga.base.individual import Individual
@@ -6,11 +7,12 @@ from ppga.tools.replacement import total
 
 class ToolBox:
     def __init__(self) -> None:
-        self.map = map
-
         self.replacement_func = total
         self.replacement_args = ()
         self.replacement_kwargs = {}
+
+    def clone(self, individual: Individual) -> Individual:
+        return copy.deepcopy(individual)
 
     def set_weights(self, weights: tuple) -> None:
         self.weights = weights

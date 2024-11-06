@@ -29,7 +29,7 @@ def mu_lambda(
         offsprings = reproduction(chosen, toolbox, lam, cxpb, mutpb)
         logger.debug(f"offsprings generated: {len(offsprings)}")
 
-        offsprings = list(toolbox.map(toolbox.evaluate, offsprings))
+        offsprings = list(map(toolbox.evaluate, offsprings))
 
         stats.update_evals(len(offsprings))
 
