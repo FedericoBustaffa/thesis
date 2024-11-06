@@ -21,7 +21,8 @@ class ToolBox:
         self.generation_func = partial(func, *args, **kwargs)
 
     def generate(self, population_size) -> list[Individual]:
-        return [Individual(self.generation_func()) for _ in range(population_size)]
+        population = [self.generation_func() for _ in range(population_size)]
+        return [Individual(i) for i in population]
 
     def set_selection(self, func, *args, **kwargs) -> None:
         self.selection_func = func

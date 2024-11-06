@@ -12,7 +12,7 @@ class Statistics:
         self.multievals = []
 
     def update(self, population: list[Individual]) -> None:
-        valid_pop = [i for i in population if not i.invalid()]
+        valid_pop = [i for i in population if not i.invalid]
         scores = [i.fitness for i in valid_pop]
 
         # update the fitness trend

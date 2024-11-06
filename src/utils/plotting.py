@@ -6,7 +6,7 @@ from ppga.base.statistics import Statistics
 figsize = (16, 8)
 
 
-def draw_graph(towns: pd.DataFrame, best: list[int]):
+def draw_graph(towns: pd.DataFrame, best):
     x = [towns["x"][i] for i in best]
     y = [towns["y"][i] for i in best]
 

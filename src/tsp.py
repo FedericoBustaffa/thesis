@@ -24,7 +24,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    # for _ in range(100000):
+    # for _ in range(50000):
     #     random.random()
 
     return (total_distance,)
@@ -81,7 +81,10 @@ def main(argv: list[str]):
         logger.debug(f"{i + 1}. {ind.values}")
     logger.info(f"parallel time: {ptime}")
 
-    logger.info(f"speed up: {stime / ptime}")
+    if stime / ptime >= 1.0:
+        logger.success(f"speed up: {stime / ptime}")
+    else:
+        logger.warning(f"speed up: {stime / ptime}")
 
     # statistics data
     if logger.level <= log.SUCCESS:
