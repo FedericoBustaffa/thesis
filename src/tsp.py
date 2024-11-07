@@ -24,8 +24,8 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    for _ in range(50000):
-        random.random()
+    # for _ in range(50000):
+    #     random.random()
 
     return (total_distance,)
 
@@ -63,14 +63,14 @@ def main(argv: list[str]):
 
     # sequential execution
     start = time.perf_counter()
-    best, stats = algorithms.sga(
+    best, stats = algorithms.generational(
         toolbox=toolbox,
         population_size=N,
         cxpb=0.7,
         mutpb=0.3,
         max_generations=G,
         hall_of_fame=hall_of_fame,
-        log_level=log.INFO,
+        log_level=log.DEBUG,
     )
     stime = time.perf_counter() - start
     logger.info(f"sequential best score: {best[0].fitness}")
@@ -81,7 +81,7 @@ def main(argv: list[str]):
     # parallel execution
     hall_of_fame.clear()
     start = time.perf_counter()
-    pbest, pstats = algorithms.psga(
+    pbest, pstats = algorithms.pgenerational(
         toolbox=toolbox,
         population_size=N,
         cxpb=0.7,
