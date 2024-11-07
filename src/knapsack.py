@@ -72,7 +72,7 @@ def main(argv: list[str]):
     toolbox = base.ToolBox()
     toolbox.set_weights(weights=(3.0, -1.0))
     toolbox.set_generation(tools.gen_repetition, (0, 1), len(items))
-    toolbox.set_selection(tools.sel_roulette)
+    toolbox.set_selection(tools.sel_ranking)
     toolbox.set_crossover(tools.cx_uniform)
     toolbox.set_mutation(tools.mut_bitflip)
     toolbox.set_evaluation(evaluate, items, capacity)
@@ -81,7 +81,7 @@ def main(argv: list[str]):
     hof = base.HallOfFame(10)
 
     # sequential execution
-    best, stats = algorithms.sga(toolbox, N, 0.8, 0.2, G, hall_of_fame=hof)
+    best, stats = algorithms.elitist(toolbox, N, 0.8, 0.2, G, hall_of_fame=hof)
 
     value, weight = show_solution(best[0].chromosome, items)
     logger.info(f"sequential best solution: ({value:.3f}, {weight:.3f})")
@@ -91,7 +91,7 @@ def main(argv: list[str]):
 
     # parallel execution
     hof.clear()
-    pbest, pstats = algorithms.psga(toolbox, N, 0.8, 0.2, G, hall_of_fame=hof)
+    pbest, pstats = algorithms.pelitist(toolbox, N, 0.8, 0.2, G, hall_of_fame=hof)
 
     value, weight = show_solution(pbest[0].chromosome, items)
     logger.info(f"queue best solution: ({value:.3f}, {weight:.3f})")
