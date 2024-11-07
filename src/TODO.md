@@ -1,12 +1,7 @@
-# TO-DO
+# Da fare
 
-- Controllo codice algoritmo genetico
-  - Migliore definizione del dataflow.
-  - Controllo crossover e rimpiazzo.
-- Parallelizzazione adattiva in base alla
-  dimensione dei chunk.
-- Fixare il logger.
+- Benchmarking code di comunicazione.
 - Implementazione logging su file per
   benchmarking.
-- Logging interni alla libreria.
+- Benchmarking completo
 - Simulazione completa algoritmo di explain.
