@@ -6,7 +6,7 @@ from ppga.algorithms.reproduction import reproduction
 from ppga.base.toolbox import ToolBox
 
 
-def work(
+def task(
     rqueue: mpq.Queue,
     squeue: mpq.Queue,
     toolbox: ToolBox,
@@ -15,19 +15,17 @@ def work(
     log_level: str | int = log.INFO,
 ):
     logger = log.getCoreLogger(log_level)
+    logger.debug(f"{mp.current_process().name} start")
     while True:
         parents = squeue.get()
         if parents is None:
+            logger.debug(f"{mp.current_process().name} closing")
             break
-
-        if len(parents) == 0:
-            logger.warning(f"worker unused: {len(parents)} parents given")
-            # continue
 
         offsprings = reproduction(parents, toolbox, cxpb, mutpb)
 
-        for offspring in offsprings:
-            offspring = toolbox.evaluate(offspring)
+        invalid_individuals = [i for i in offsprings if i.invalid]
+        offsprings = list(map(toolbox.evaluate, invalid_individuals))
 
         rqueue.put(offsprings)
 
@@ -44,7 +42,7 @@ class Worker:
         self.squeue = mp.Queue()
 
         self.worker = mp.Process(
-            target=work,
+            target=task,
             args=[self.rqueue, self.squeue, toolbox, cxpb, mutpb, log_level],
         )
 
