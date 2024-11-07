@@ -1,9 +1,9 @@
 import math
-import random
 import sys
 import time
 
 import pandas as pd
+from numpy import random
 
 from ppga import algorithms, base, log, tools
 from utils import plotting
