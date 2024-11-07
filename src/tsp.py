@@ -63,11 +63,9 @@ def main(argv: list[str]):
 
     # sequential execution
     start = time.perf_counter()
-    best, stats = algorithms.mu_lambda(
+    best, stats = algorithms.sga(
         toolbox=toolbox,
         population_size=N,
-        mu=N,
-        keep=0.5,
         cxpb=0.7,
         mutpb=0.3,
         max_generations=G,
@@ -83,7 +81,15 @@ def main(argv: list[str]):
     # parallel execution
     hall_of_fame.clear()
     start = time.perf_counter()
-    pbest, pstats = algorithms.psga(toolbox, N, 0.7, 0.3, G, hall_of_fame, log.DEBUG)
+    pbest, pstats = algorithms.psga(
+        toolbox=toolbox,
+        population_size=N,
+        cxpb=0.7,
+        mutpb=0.3,
+        max_generations=G,
+        hall_of_fame=hall_of_fame,
+        log_level=log.DEBUG,
+    )
     ptime = time.perf_counter() - start
     logger.info(f"parallel best score: {pbest[0].fitness}")
     for i, ind in enumerate(hall_of_fame):
