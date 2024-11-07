@@ -13,7 +13,7 @@ def sel_tournament(
     selected = []
 
     for _ in range(k):
-        aspirants = random.choices(population, k=tournsize)
+        aspirants = random.sample(population, k=tournsize)
         winner = max(aspirants)
         selected.append(winner)
 

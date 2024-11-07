@@ -1,7 +1,6 @@
 import psutil
-from tqdm import tqdm
 
-from ppga import log
+from ppga import log, tools
 from ppga.algorithms.reproduction import reproduction
 from ppga.algorithms.worker import Worker
 from ppga.base import HallOfFame, Statistics, ToolBox
@@ -11,7 +10,7 @@ def mu_lambda(
     toolbox: ToolBox,
     population_size: int,
     mu: int,
-    lam: int,
+    keep: float,
     cxpb: float,
     mutpb: float,
     max_generations: int,
@@ -21,32 +20,30 @@ def mu_lambda(
     """
     Simple genetic algorithm that select `mu` individuals every generation
     for reproduction and try to keep `lam` individuals to the new generation.
-
-    Args:
-        toolbox a valid and initialized toolbox
     """
+
+    assert keep >= 0.0 and keep <= 1.0
+    toolbox.set_replacement(tools.partial, keep=keep)
+
     stats = Statistics()
     logger = log.getCoreLogger(log_level)
 
     population = toolbox.generate(population_size)
-    for g in tqdm(range(max_generations), desc="generations", ncols=80):
-        chosen = [toolbox.clone(i) for i in toolbox.select(population, mu)]
-        logger.debug(f"chosen: {len(chosen)}")
+    logger.info(f"\t{'gen':15s}{'evals':15s}")
 
-        offsprings = reproduction(chosen, toolbox, lam, cxpb, mutpb)
-        logger.debug(f"offsprings generated: {len(offsprings)}")
-
+    for g in range(max_generations):
+        chosen = toolbox.select(population, mu)
+        offsprings = reproduction(chosen, toolbox, cxpb, mutpb)
         offsprings = list(map(toolbox.evaluate, offsprings))
-
-        stats.update_evals(len(offsprings))
-
         population = toolbox.replace(population, offsprings)
-        logger.debug(f"population size: {len(population)}")
-
-        stats.update(population)
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)
+
+        stats.update(population)
+        stats.update_evals(len(offsprings))
+
+        logger.info(f"\t{g:<15d}{len(offsprings):<15d}")
 
     return population, stats
 
@@ -55,13 +52,16 @@ def parallel_mu_lambda(
     toolbox: ToolBox,
     population_size: int,
     mu: int,
-    lam: int,
+    keep: float,
     cxpb: float,
     mutpb: float,
     max_generations: int,
     hall_of_fame: None | HallOfFame = None,
     log_level: str | int = log.WARNING,
 ):
+    assert keep >= 0.0 and keep <= 1.0
+    toolbox.set_replacement(tools.partial, keep=keep)
+
     stats = Statistics()
 
     logger = log.getCoreLogger(log_level)
@@ -70,17 +70,22 @@ def parallel_mu_lambda(
     workers_num = psutil.cpu_count(logical=False)
 
     # dinamically resize the chunksize
+    if mu < workers_num:
+        workers_num = mu
+
     chunksize = mu // workers_num
     carry = mu % workers_num
     logger.debug(f"chunksize: {chunksize}")
     logger.debug(f"carry: {carry}")
+    logger.debug(f"workers: {workers_num}")
 
-    lam = lam // workers_num
-    workers = [Worker(toolbox, lam, cxpb, mutpb) for _ in range(workers_num)]
+    workers = [Worker(toolbox, cxpb, mutpb, log_level) for _ in range(workers_num)]
 
     population = toolbox.generate(population_size)
-    for g in tqdm(range(max_generations), desc="generations", ncols=80):
+    logger.info(f"\t{'gen':15s}{'evals':15s}")
+    for g in range(max_generations):
         chosen = toolbox.select(population, mu)
+        chosen = [toolbox.clone(i) for i in chosen]
 
         for i in range(carry):
             workers[i].send(chosen[i * chunksize : i * chunksize + chunksize + 1])
@@ -88,7 +93,6 @@ def parallel_mu_lambda(
         for i in range(carry, workers_num, 1):
             workers[i].send(chosen[i * chunksize : i * chunksize + chunksize])
 
-        # keep only the worst time for each worker
         offsprings = []
         evals = []
         for worker in workers:
@@ -100,6 +104,8 @@ def parallel_mu_lambda(
 
         stats.update(population)
         stats.update_multievals(evals)
+
+        logger.info(f"\t{g:<15d}{len(offsprings):<15d}")
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)

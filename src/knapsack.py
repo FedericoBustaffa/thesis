@@ -76,7 +76,7 @@ def main(argv: list[str]):
     toolbox.set_crossover(tools.cx_uniform)
     toolbox.set_mutation(tools.mut_bitflip)
     toolbox.set_evaluation(evaluate, items, capacity)
-    toolbox.set_replacement(tools.merge)
+    toolbox.set_replacement(tools.elitist)
 
     hof = base.HallOfFame(10)
 

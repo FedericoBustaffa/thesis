@@ -10,11 +10,11 @@ def work(
     rqueue: mpq.Queue,
     squeue: mpq.Queue,
     toolbox: ToolBox,
-    lam: int,
     cxpb: float,
     mutpb: float,
+    log_level: str | int = log.INFO,
 ):
-    logger = log.core_logger
+    logger = log.getCoreLogger(log_level)
     while True:
         parents = squeue.get()
         if parents is None:
@@ -24,7 +24,7 @@ def work(
             logger.warning(f"worker unused: {len(parents)} parents given")
             # continue
 
-        offsprings = reproduction(parents, toolbox, lam, cxpb, mutpb)
+        offsprings = reproduction(parents, toolbox, cxpb, mutpb)
 
         for offspring in offsprings:
             offspring = toolbox.evaluate(offspring)
@@ -33,12 +33,21 @@ def work(
 
 
 class Worker:
-    def __init__(self, toolbox: ToolBox, lam: int, cxpb: float, mutpb: float) -> None:
+    def __init__(
+        self,
+        toolbox: ToolBox,
+        cxpb: float,
+        mutpb: float,
+        log_level: str | int = log.INFO,
+    ) -> None:
         self.rqueue = mp.Queue()
         self.squeue = mp.Queue()
+
         self.worker = mp.Process(
-            target=work, args=[self.rqueue, self.squeue, toolbox, lam, cxpb, mutpb]
+            target=work,
+            args=[self.rqueue, self.squeue, toolbox, cxpb, mutpb, log_level],
         )
+
         self.worker.start()
 
     def send(self, chunk: list | None = None) -> None:

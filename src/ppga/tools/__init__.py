@@ -6,7 +6,7 @@ from ppga.tools.crossover import (
 )
 from ppga.tools.generation import gen_permutation, gen_repetition
 from ppga.tools.mutation import mut_bitflip, mut_rotation, mut_swap
-from ppga.tools.replacement import merge, total
+from ppga.tools.replacement import elitist, partial, total
 from ppga.tools.selection import (
     sel_ranking,
     sel_roulette,
@@ -28,6 +28,7 @@ __all__ = [
     "mut_bitflip",
     "mut_swap",
     "mut_rotation",
-    "merge",
+    "partial",
     "total",
+    "elitist",
 ]

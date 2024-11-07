@@ -24,8 +24,8 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    # for _ in range(50000):
-    #     random.random()
+    for _ in range(50000):
+        random.random()
 
     return (total_distance,)
 
@@ -58,9 +58,8 @@ def main(argv: list[str]):
     toolbox.set_crossover(tools.cx_one_point_ordered)
     toolbox.set_mutation(tools.mut_rotation)
     toolbox.set_evaluation(evaluate, towns)
-    toolbox.set_replacement(tools.merge)
 
-    hall_of_fame = base.HallOfFame(1)
+    hall_of_fame = base.HallOfFame(5)
 
     # sequential execution
     start = time.perf_counter()
@@ -68,12 +67,12 @@ def main(argv: list[str]):
         toolbox=toolbox,
         population_size=N,
         mu=N,
-        lam=N // 2,
+        keep=0.5,
         cxpb=0.7,
         mutpb=0.3,
         max_generations=G,
         hall_of_fame=hall_of_fame,
-        log_level=argv[4].upper(),
+        log_level=log.INFO,
     )
     stime = time.perf_counter() - start
     logger.info(f"sequential best score: {best[0].fitness}")
@@ -84,9 +83,7 @@ def main(argv: list[str]):
     # parallel execution
     hall_of_fame.clear()
     start = time.perf_counter()
-    pbest, pstats = algorithms.psga(
-        toolbox, N, 0.7, 0.3, G, hall_of_fame, argv[4].upper()
-    )
+    pbest, pstats = algorithms.psga(toolbox, N, 0.7, 0.3, G, hall_of_fame, log.DEBUG)
     ptime = time.perf_counter() - start
     logger.info(f"parallel best score: {pbest[0].fitness}")
     for i, ind in enumerate(hall_of_fame):
@@ -98,8 +95,8 @@ def main(argv: list[str]):
     else:
         logger.warning(f"speed up: {stime / ptime}")
 
-    # statistics data
-    if logger.level <= log.SUCCESS:
+    # statistics data plot
+    if logger.level <= log.DEBUG:
         solution = max(best, key=lambda x: x.fitness)
         plotting.draw_graph(data, solution.chromosome)
         plotting.fitness_trend(stats)
