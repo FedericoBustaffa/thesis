@@ -105,7 +105,7 @@ def pgenerational(
         stats.update(population)
         stats.update_multievals(evals)
 
-        logger.info(f"\t{g:<15d}{stats.evals[-1]:<15d}")
+        logger.info(f"\t{g:<15d}{len(offsprings):<15d}")
 
         if hall_of_fame is not None:
             hall_of_fame.update(population)

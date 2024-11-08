@@ -24,7 +24,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    for _ in range(50000):
+    for _ in range(5000):
         random.random()
 
     return (total_distance,)
@@ -36,7 +36,7 @@ def main(argv: list[str]):
         exit(1)
 
     if len(argv) < 5:
-        argv.append("INFO")
+        argv.append("success")
 
     logger = log.getLogger(argv[4].upper())
 
