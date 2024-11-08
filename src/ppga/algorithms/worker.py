@@ -24,11 +24,13 @@ def task(
 
         offsprings = reproduction(parents, toolbox, cxpb, mutpb)
 
+        evals = 0
         for i in range(len(offsprings)):
             if offsprings[i].invalid:
                 offsprings[i] = toolbox.evaluate(offsprings[i])
+                evals += 1
 
-        rqueue.put(offsprings)
+        rqueue.put((offsprings, evals))
 
 
 class Worker:
