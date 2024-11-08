@@ -1,5 +1,8 @@
 import multiprocessing as mp
 import multiprocessing.queues as mpq
+import time
+
+import numpy as np
 
 from ppga import log
 from ppga.algorithms.reproduction import reproduction
@@ -14,6 +17,7 @@ def task(
     mutpb: float,
     log_level: str | int = log.INFO,
 ):
+    eval_times = []
     logger = log.getCoreLogger(log_level)
     logger.debug(f"{mp.current_process().name} start")
     while True:
@@ -24,10 +28,17 @@ def task(
 
         offsprings = reproduction(parents, toolbox, cxpb, mutpb)
 
-        invalid_individuals = [i for i in offsprings if i.invalid]
-        offsprings = list(map(toolbox.evaluate, invalid_individuals))
+        for i in range(len(offsprings)):
+            if offsprings[i].invalid:
+                eval_start = time.perf_counter()
+                offsprings[i] = toolbox.evaluate(offsprings[i])
+                eval_times.append(time.perf_counter() - eval_start)
 
         rqueue.put(offsprings)
+
+    logger.info(
+        f"{mp.current_process().name} eval mean time: {np.mean(eval_times):.4f} seconds"
+    )
 
 
 class Worker:

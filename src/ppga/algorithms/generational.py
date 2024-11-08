@@ -1,5 +1,6 @@
 import time
 
+import numpy as np
 import psutil
 
 from ppga import log, tools
@@ -32,6 +33,7 @@ def generational(
     selection_time = 0.0
     parallel_time = 0.0
     replace_time = 0.0
+    eval_times = []
 
     for g in range(max_generations):
         # select individuals for reproduction
@@ -44,8 +46,11 @@ def generational(
         offsprings = reproduction(chosen, toolbox, cxpb, mutpb)
 
         # evaluate the individuals with invalid fitness
-        invalid_individuals = [i for i in offsprings if i.invalid]
-        offsprings = list(map(toolbox.evaluate, invalid_individuals))
+        for i in range(len(offsprings)):
+            if offsprings[i].invalid:
+                eval_start = time.perf_counter()
+                offsprings[i] = toolbox.evaluate(offsprings[i])
+                eval_times.append(time.perf_counter() - eval_start)
         parallel_time += time.perf_counter() - start
 
         # elitist replacement
@@ -59,7 +64,7 @@ def generational(
 
         # update the stats
         stats.update(population)
-        stats.update_evals(len(invalid_individuals))
+        stats.update_evals(len([i for i in offsprings if i.invalid]))
 
         logger.info(f"\t{g:<15d}{len(offsprings):<15d}")
 
@@ -67,6 +72,7 @@ def generational(
     logger.info(f"selection time: {selection_time:.4f} seconds")
     logger.info(f"parallel time: {parallel_time:.4f} seconds")
     logger.info(f"replacement time: {replace_time:.4f} seconds")
+    logger.info(f"mean eval time: {np.mean(eval_times):.4f} seconds")
 
     return population, stats
 
