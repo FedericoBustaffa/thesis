@@ -66,6 +66,7 @@ def main(argv: list[str]):
     best, stats = algorithms.elitist(
         toolbox=toolbox,
         population_size=N,
+        keep=0.3,
         cxpb=0.7,
         mutpb=0.3,
         max_generations=G,
@@ -84,7 +85,7 @@ def main(argv: list[str]):
     pbest, pstats = algorithms.pelitist(
         toolbox=toolbox,
         population_size=N,
-        keep=1.0,
+        keep=0.3,
         cxpb=0.7,
         mutpb=0.3,
         max_generations=G,

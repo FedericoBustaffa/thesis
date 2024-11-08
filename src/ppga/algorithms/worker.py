@@ -15,12 +15,13 @@ def task(
     log_level: str | int = log.INFO,
 ):
     logger = log.getCoreLogger(log_level)
-    logger.debug(f"{mp.current_process().name} start")
     while True:
         parents = squeue.get()
         if parents is None:
-            logger.debug(f"{mp.current_process().name} closing")
             break
+
+        if len(parents) == 0:
+            logger.warning(f"{mp.current_process().name} an empty chunk")
 
         offsprings = reproduction(parents, toolbox, cxpb, mutpb)
 

@@ -20,6 +20,15 @@ def custom(
     stats = Statistics()
     logger = log.getCoreLogger(log_level)
 
+    logger.debug("init values")
+    logger.debug(f"population_size: {population_size}")
+    logger.debug(f"keep: {keep}")
+    logger.debug(f"crossover rate: {cxpb}")
+    logger.debug(f"mutation rate: {mutpb}")
+    logger.debug(f"max generations: {max_generations}")
+    if hall_of_fame is None:
+        logger.debug("hall of fame not initialized")
+
     # generate the initial population
     population = toolbox.generate(population_size)
 
@@ -65,7 +74,16 @@ def pcustom(
     log_level: str | int = log.WARNING,
 ):
     stats = Statistics()
+
     logger = log.getCoreLogger(log_level)
+    logger.debug("init values")
+    logger.debug(f"population_size: {population_size}")
+    logger.debug(f"keep: {keep}")
+    logger.debug(f"crossover rate: {cxpb}")
+    logger.debug(f"mutation rate: {mutpb}")
+    logger.debug(f"max generations: {max_generations}")
+    if hall_of_fame is None:
+        logger.debug("hall of fame not initialized")
 
     # only use the physical cores
     workers_num = psutil.cpu_count(logical=False)
