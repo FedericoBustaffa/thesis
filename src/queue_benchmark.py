@@ -1,5 +1,7 @@
 import multiprocessing as mp
 import multiprocessing.queues as mpq
+import multiprocessing.synchronize as sync
+import statistics
 import time
 
 import matplotlib.pyplot as plt
@@ -8,27 +10,64 @@ import numpy as np
 from ppga import base
 
 
-def benchmark(dim: int):
-    q = mp.Queue()
-    pop = [base.Individual([i for i in range(dim)])]
-    put = []
-    get = []
-
-    for _ in range(10000):
-        put_start = time.perf_counter()
-        q.put(pop)
-        get_start = time.perf_counter()
-        pop = q.get()
+def receive(event: sync.Event, queue: mpq.Queue, ret: mpq.Queue) -> None:
+    times = []
+    event.wait()
+    while True:
+        start = time.perf_counter()
+        msg = queue.get()
         end = time.perf_counter()
 
-        put.append(get_start - put_start)
-        get.append(end - get_start)
+        if msg is None:
+            break
 
-    return np.mean(put), np.mean(get)
+        times.append(end - start)
+
+    ret.put(times)
+
+
+def benchmark(dim: int):
+    q = mp.Queue()
+    ret = mp.Queue()
+    e = mp.Event()
+    p = mp.Process(target=receive, args=[e, q, ret])
+    p.start()
+
+    pop = [base.Individual([i for i in range(dim)])]
+    put = []
+
+    for _ in range(1000):
+        start = time.perf_counter()
+        q.put(pop)
+        end = time.perf_counter()
+        put.append(end - start)
+
+    e.set()
+    q.put(None)
+    get = np.array(ret.get())
+
+    q.close()
+    q.join_thread()
+    p.join()
+
+    return np.mean(put), get.mean()
 
 
 def main():
-    pop_dims = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000]
+    pop_dims = [
+        100,
+        200,
+        500,
+        1000,
+        2000,
+        5000,
+        10000,
+        20000,
+        50000,
+        100000,
+        200000,
+        500000,
+    ]
     put_means = []
     get_means = []
 
@@ -37,9 +76,14 @@ def main():
         put_means.append(put)
         get_means.append(get)
 
+    reg = statistics.linear_regression(pop_dims, get_means)
+    print(f"get slope: {reg.slope}")
+
+    reg = statistics.linear_regression(pop_dims, put_means)
+    print(f"put slope: {reg.slope}")
+
     plt.figure(figsize=(16, 9))
     plt.title("Mean times")
-    plt.xticks(pop_dims)
     plt.xlabel("Population dimension")
     plt.ylabel("Time (s)")
 
