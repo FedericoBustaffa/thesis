@@ -3,12 +3,10 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-import tsp
+from ppga import base, log, tools
 
 
 def main():
-    tsp.main(["tsp.py", "10", "50000", "50", "info"])
-
     main_file = open("results/MainProcess.txt", "r")
     stats = []
     lines = main_file.readlines()
