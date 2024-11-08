@@ -24,7 +24,7 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    for _ in range(5000):
+    for _ in range(10000):
         random.random()
 
     return (total_distance,)
@@ -63,7 +63,7 @@ def main(argv: list[str]):
 
     # sequential execution
     start = time.perf_counter()
-    best, stats = algorithms.generational(
+    best, stats = algorithms.elitist(
         toolbox=toolbox,
         population_size=N,
         cxpb=0.7,
@@ -81,9 +81,10 @@ def main(argv: list[str]):
     # parallel execution
     hall_of_fame.clear()
     start = time.perf_counter()
-    pbest, pstats = algorithms.pgenerational(
+    pbest, pstats = algorithms.pelitist(
         toolbox=toolbox,
         population_size=N,
+        keep=1.0,
         cxpb=0.7,
         mutpb=0.3,
         max_generations=G,
@@ -113,7 +114,6 @@ def main(argv: list[str]):
         plotting.biodiversity_trend(pstats)
 
         plotting.evals(stats.evals)
-        plotting.multievals(pstats.multievals)
 
 
 if __name__ == "__main__":
