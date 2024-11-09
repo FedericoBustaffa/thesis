@@ -1,7 +1,6 @@
 pyarrow
 scikit-learn
 colorama
-tqdm
 numpy
 matplotlib
 pandas

@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from colorama import Back, Fore
 
@@ -53,7 +54,7 @@ class Logger(logging.Logger):
 
 core_logger = Logger("CORE", WARNING)
 formatter = ColorFormatter()
-handler = logging.StreamHandler()
+handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(WARNING)
 handler.setFormatter(formatter)
 core_logger.addHandler(handler)
