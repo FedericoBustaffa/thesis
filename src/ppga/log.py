@@ -27,7 +27,7 @@ logging.addLevelName(15, "SUCCESS")
 FORMATS = {
     logging.DEBUG: Fore.CYAN + FMT + Fore.RESET,
     SUCCESS: Fore.GREEN + FMT + Fore.RESET,
-    logging.INFO: Fore.WHITE + FMT + Fore.RESET,
+    logging.INFO: Fore.RESET + FMT + Fore.RESET,
     logging.WARNING: Fore.YELLOW + FMT + Fore.RESET,
     logging.ERROR: Fore.RED + FMT + Fore.RESET,
     logging.CRITICAL: Back.RED + Fore.WHITE + FMT + Fore.RESET + Back.RESET,
