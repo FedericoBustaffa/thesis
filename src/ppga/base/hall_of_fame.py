@@ -15,6 +15,9 @@ class HallOfFame:
     def __next__(self):
         return next(iter(self.hof))
 
+    def __len__(self) -> int:
+        return len(self.hof)
+
     def __repr__(self) -> str:
         buf = ""
         for i, ind in enumerate(self.hof):
