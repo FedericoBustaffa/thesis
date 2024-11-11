@@ -5,7 +5,7 @@ from ppga.tools.crossover import (
     cx_uniform,
 )
 from ppga.tools.generation import gen_permutation, gen_repetition
-from ppga.tools.mutation import mut_bitflip, mut_rotation, mut_swap
+from ppga.tools.mutation import mut_bitflip, mut_gaussian, mut_rotation, mut_swap
 from ppga.tools.replacement import elitist, total
 from ppga.tools.selection import (
     sel_ranking,
@@ -28,6 +28,7 @@ __all__ = [
     "mut_bitflip",
     "mut_swap",
     "mut_rotation",
+    "mut_gaussian",
     "total",
     "elitist",
 ]
