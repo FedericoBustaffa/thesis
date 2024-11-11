@@ -12,7 +12,7 @@ def elitist(
     n = round(len(population) * keep)
     to_keep = sorted(population, reverse=True)[:n]
 
-    return sorted(to_keep + offsprings, reverse=True)[: len(population)]
+    return to_keep + offsprings
 
 
 def total(
