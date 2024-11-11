@@ -3,7 +3,7 @@ from numpy import random
 
 
 def cx_one_point(father, mother) -> tuple:
-    cx_point = random.randint(1, len(father) - 1)
+    cx_point = random.randint(1, len(father))
 
     offspring1 = np.append(father[:cx_point], mother[cx_point:])
     offspring2 = np.append(mother[:cx_point], father[cx_point:])
