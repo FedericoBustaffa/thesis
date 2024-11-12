@@ -31,7 +31,7 @@ def explain(blackbox, X, outcomes):
 
 
 def main(argv: list[str]):
-    X_train, X_test, y_train, _ = make_data(10000, 2, 3)
+    X_train, X_test, y_train = make_data(10000, 2, 3)
 
     # %%
     plt.scatter(X_train.T[0], X_train.T[1])
