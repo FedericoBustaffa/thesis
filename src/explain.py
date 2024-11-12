@@ -79,15 +79,15 @@ def genetic_explain_same(blackbox, point, y, sigma, alpha=0.5):
     epsilon = linalg.norm(sigma * 0.1, ord=2)
     toolbox.set_evaluation(same_evaluate, point, blackbox, epsilon, alpha)
 
-    hof = base.HallOfFame(len(y))
+    hof = base.HallOfFame(500)
 
     pop, stats = algorithms.pelitist(
         toolbox=toolbox,
-        population_size=len(y),
+        population_size=1000,
         keep=0.1,
         cxpb=0.7,
         mutpb=0.3,
-        max_generations=100,
+        max_generations=50,
         hall_of_fame=hof,
         log_level=log.INFO,
     )
@@ -105,25 +105,21 @@ def explain(blackbox, X, outcomes):
     same_populations = []
     same_hall_of_fames = []
 
-    diff_populations = []
-    diff_hall_of_fames = []
-
-    for point, y in X, y_predicted:
+    # run the genetic algorithm for every point
+    for point, y in zip(X, y_predicted):
         pop, hof = genetic_explain_same(blackbox, point, y, sigma, 0.6)
         same_populations.append(pop)
         same_hall_of_fames.append(hof)
 
-        for target in possible_targets:
-            pop, hof = genetic_explain_diff(blackbox, point, y, target, sigma, 0.8)
-
 
 def main(argv: list[str]):
     X_train, X_test, y_train, _ = make_data(200, 2, 2)
+    outcomes = np.unique(y_train)
 
     blackbox = RandomForestClassifier()
     blackbox.fit(X_train, y_train)
 
-    df = explain(blackbox, X_test)
+    explain(blackbox, X_test, outcomes)
 
 
 if __name__ == "__main__":
