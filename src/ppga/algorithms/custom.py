@@ -91,6 +91,7 @@ def pcustom(
     # dinamically resize the chunksize
     if population_size < workers_num:
         workers_num = population_size
+        logger.warning(f"workers initialized: {workers_num} out of {psutil.cpu_count(logical=False)} cores")
 
     chunksize = population_size // workers_num
     carry = population_size % workers_num
