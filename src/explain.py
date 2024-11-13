@@ -1,6 +1,5 @@
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -9,7 +8,7 @@ from data import make_data
 from genetic_explain import genetic_build
 
 
-def explain(blackbox, X, outcomes) -> list[pd.DataFrame]:
+def explain(blackbox, X, outcomes) -> pd.DataFrame:
     # data to explain
     to_explain = blackbox.predict(X)
 
@@ -17,15 +16,22 @@ def explain(blackbox, X, outcomes) -> list[pd.DataFrame]:
     sigma = X.std(axis=0)
 
     # explainations dataframes
-    explain_dfs = []
+    explaination = {
+        "point": [],
+        "individuals": [],
+        "class": [],
+        "target": [],
+        "right": [],
+    }
 
     # run the genetic algorithm for every point
     for point, y in zip(X, to_explain):
         for target in outcomes:
-            pop, hof = genetic_build(blackbox, point, target, sigma, 0.8)
-            explain_dfs.extend([pop, hof])
+            hof = genetic_build(blackbox, point, target, sigma, 0.8)
+            for k in explaination.keys():
+                explaination[k].append(hof[k])
 
-    return explain_dfs
+    return pd.DataFrame(explaination)
 
 
 def main(argv: list[str]):
@@ -37,10 +43,8 @@ def main(argv: list[str]):
     outcomes = np.unique(y_train)
 
     print(f"about to explain {len(X_test)} points")
-    explainations = explain(bb, X_test, outcomes)
-    print("genetic explain done")
-    for ex in explainations:
-        print(ex)
+    explaination = explain(bb, X_test, outcomes)
+    print(explaination)
 
 
 if __name__ == "__main__":

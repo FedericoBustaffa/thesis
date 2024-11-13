@@ -1,15 +1,21 @@
 import numpy as np
-import pandas as pd
 from numpy import linalg, random
 
 from ppga import algorithms, base, log, tools
 
 
-def generate_gauss(mu, sigma, alpha: float) -> np.ndarray:
+def generate_gauss(mu: np.ndarray, sigma: np.ndarray, alpha: float) -> np.ndarray:
     return random.normal(mu, sigma * alpha, size=sigma.shape)
 
 
-def evaluate(chromosome, point, target, classifier, epsilon: float, alpha: float = 0.5):
+def evaluate(
+    chromosome: np.ndarray,
+    point: np.ndarray,
+    target: int,
+    classifier,
+    epsilon: float,
+    alpha: float = 0.5,
+):
     assert alpha > 0.0 and alpha < 1.0
 
     # classification
@@ -27,7 +33,7 @@ def evaluate(chromosome, point, target, classifier, epsilon: float, alpha: float
     return (target_class * distance + epsilon,)
 
 
-def create_toolbox(point, sigma) -> base.ToolBox:
+def create_toolbox(point: np.ndarray, sigma: np.ndarray) -> base.ToolBox:
     toolbox = base.ToolBox()
     toolbox.set_weights((-1.0,))
     toolbox.set_generation(generate_gauss, mu=point, sigma=sigma, alpha=0.15)
@@ -40,7 +46,7 @@ def create_toolbox(point, sigma) -> base.ToolBox:
 
 def genetic_run(
     toolbox: base.ToolBox, population_size: int, max_generations: int = 100
-) -> tuple:
+) -> base.HallOfFame:
     hof = base.HallOfFame(population_size)
 
     pop, stats = algorithms.pelitist(
@@ -54,42 +60,34 @@ def genetic_run(
         log_level=log.INFO,
     )
 
-    return pop, hof
+    return hof
 
 
-def genetic_build(blackbox, point, target, sigma, alpha=0.5):
+def genetic_build(
+    blackbox,
+    point: np.ndarray,
+    target: np.ndarray,
+    sigma: np.ndarray,
+    alpha: float = 0.5,
+):
     toolbox = create_toolbox(point, sigma)
     epsilon = linalg.norm(sigma * 0.1, ord=2)
     toolbox.set_evaluation(evaluate, point, target, blackbox, epsilon, alpha)
 
-    pop, hof = genetic_run(toolbox, 200, 50)
+    hof = genetic_run(toolbox, 200, 50)
 
-    pop_right = len(
-        [i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1)) == target]
-    )
-
-    hof_right = len(
+    right = len(
         [i for i in hof if blackbox.predict(i.chromosome.reshape(1, -1)) == target]
     )
 
     point_class = blackbox.predict(point.reshape(1, -1))
 
-    pop_df = pd.DataFrame(
-        {
-            "individuals": len(pop),
-            "class": point_class,
-            "target": target,
-            "right_class": pop_right,
-        }
-    )
+    hof_res = {
+        "point": point,
+        "individuals": len(hof),
+        "class": int(point_class[0]),
+        "target": int(target),
+        "right": right,
+    }
 
-    hof_df = pd.DataFrame(
-        {
-            "individuals": len(hof),
-            "class": point_class,
-            "target": target,
-            "right_class": hof_right,
-        }
-    )
-
-    return pop_df, hof_df
+    return hof_res
