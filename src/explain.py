@@ -17,7 +17,6 @@ def explain(blackbox, X, outcomes) -> pd.DataFrame:
 
     # explainations dataframes
     explaination = {
-        "point": [],
         "individuals": [],
         "class": [],
         "target": [],
@@ -44,6 +43,7 @@ def main(argv: list[str]):
 
     print(f"about to explain {len(X_test)} points")
     explaination = explain(bb, X_test, outcomes)
+    explaination.to_csv("./results/explain.csv", header=True, index=False)
     print(explaination)
 
 

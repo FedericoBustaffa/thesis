@@ -83,7 +83,6 @@ def genetic_build(
     point_class = blackbox.predict(point.reshape(1, -1))
 
     hof_res = {
-        "point": point,
         "individuals": len(hof),
         "class": int(point_class[0]),
         "target": int(target),
