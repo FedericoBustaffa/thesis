@@ -10,7 +10,7 @@ import numpy as np
 from ppga import base
 
 
-def receive(event: sync.Event, queue: mpq.Queue, ret: mpq.Queue) -> None:
+def queue_receive(event: sync.Event, queue: mpq.Queue, ret: mpq.Queue) -> None:
     times = []
     event.wait()
     while True:
@@ -26,11 +26,11 @@ def receive(event: sync.Event, queue: mpq.Queue, ret: mpq.Queue) -> None:
     ret.put(times)
 
 
-def benchmark(dim: int):
+def queue_benchmark(dim: int):
     q = mp.Queue()
     ret = mp.Queue()
     e = mp.Event()
-    p = mp.Process(target=receive, args=[e, q, ret])
+    p = mp.Process(target=queue_receive, args=[e, q, ret])
     p.start()
 
     pop = [base.Individual([i for i in range(dim)])]
@@ -72,7 +72,8 @@ def main():
     get_means = []
 
     for d in pop_dims:
-        put, get = benchmark(d)
+        print(d)
+        put, get = queue_benchmark(d)
         put_means.append(put)
         get_means.append(get)
 
