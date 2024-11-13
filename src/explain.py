@@ -32,13 +32,15 @@ def explain(blackbox, X, outcomes) -> list[pd.DataFrame]:
 
 
 def main(argv: list[str]):
-    X_train, X_test, y_train = make_data(10000, 2, 3)
+    X_train, X_test, y_train = make_data(n_samples=500, n_features=2, n_classes=3)
 
-    blackbox = RandomForestClassifier()
-    blackbox.fit(X_train, y_train)
+    rf = RandomForestClassifier()
+    rf.fit(X_train, y_train)
 
     outcomes = np.unique(y_train)
-    explainations = explain(blackbox, X_test, outcomes)
+    explainations = explain(rf, X_test, outcomes)
+    for ex in explainations:
+        print(ex)
 
 
 if __name__ == "__main__":
