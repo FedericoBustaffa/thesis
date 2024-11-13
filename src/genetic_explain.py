@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from numpy import linalg, random
 
 from ppga import algorithms, base, log, tools
@@ -71,18 +72,28 @@ def genetic_run(
         mutpb=0.3,
         max_generations=max_generations,
         hall_of_fame=hof,
-        log_level=log.WARNING,
+        log_level=log.INFO,
     )
 
     return pop, hof
 
 
-def genetic_explain_same(blackbox, point, sigma, alpha=0.5):
+def genetic_explain_same(blackbox, point, sigma, alpha=0.5) -> tuple[dict, dict]:
     toolbox = create_toolbox(point, sigma)
     epsilon = linalg.norm(sigma * 0.1, ord=2)
     toolbox.set_evaluation(same_evaluate, point, blackbox, epsilon, alpha)
 
-    return genetic_run(toolbox, 10000, 50)
+    pop, hof = genetic_run(toolbox, 10000, 50)
+
+    pop_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
+    hof_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
+
+    target = blackbox.predict(point.reshape(1, -1))
+
+    pop_df = {"individuals": len(pop), "target": target, "right_class": pop_right}
+    hof_df = {"individuals": len(pop), "target": target, "right_class": hof_right}
+
+    return pop_df, hof_df
 
 
 def genetic_explain_diff(blackbox, point, target, sigma, alpha=0.5):
@@ -90,4 +101,12 @@ def genetic_explain_diff(blackbox, point, target, sigma, alpha=0.5):
     epsilon = linalg.norm(sigma * 0.1, ord=2)
     toolbox.set_evaluation(other_evaluate, point, target, blackbox, epsilon, alpha)
 
-    return genetic_run(toolbox, 10000, 50)
+    pop, hof = genetic_run(toolbox, 10000, 50)
+
+    pop_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
+    hof_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
+
+    pop_df = {"individuals": len(pop), "target": target, "right_class": pop_right}
+    hof_df = {"individuals": len(pop), "target": target, "right_class": hof_right}
+
+    return pop_df, hof_df
