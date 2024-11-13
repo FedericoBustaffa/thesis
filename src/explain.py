@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from data import make_data
 from genetic_explain import genetic_explain_diff, genetic_explain_same
+from ppga import log
 
 
 def explain(blackbox, X, outcomes) -> list[pd.DataFrame]:
@@ -19,20 +20,24 @@ def explain(blackbox, X, outcomes) -> list[pd.DataFrame]:
     # explainations dataframes
     explain_dfs = []
 
+    logger = log.getLogger()
+
     # run the genetic algorithm for every point
     for point, y in zip(X, to_explain):
+        logger.info("same evaluate")
         explaination_df = genetic_explain_same(blackbox, point, sigma, 0.6)
         explain_dfs.append(explaination_df)
 
         for target in outcomes:
             if target != y:
+                logger.info("diff evaluate")
                 pop, hof = genetic_explain_diff(blackbox, point, target, sigma, 0.8)
 
     return explain_dfs
 
 
 def main(argv: list[str]):
-    X_train, X_test, y_train = make_data(n_samples=500, n_features=2, n_classes=3)
+    X_train, X_test, y_train = make_data(n_samples=200, n_features=2, n_classes=3)
 
     rf = RandomForestClassifier()
     rf.fit(X_train, y_train)
