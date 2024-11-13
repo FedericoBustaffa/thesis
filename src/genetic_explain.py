@@ -78,20 +78,24 @@ def genetic_run(
     return pop, hof
 
 
-def genetic_explain_same(blackbox, point, sigma, alpha=0.5) -> tuple[dict, dict]:
+def genetic_explain_same(blackbox, point, sigma, alpha=0.5) -> tuple:
     toolbox = create_toolbox(point, sigma)
     epsilon = linalg.norm(sigma * 0.1, ord=2)
     toolbox.set_evaluation(same_evaluate, point, blackbox, epsilon, alpha)
 
-    pop, hof = genetic_run(toolbox, 10000, 50)
+    pop, hof = genetic_run(toolbox, 200, 50)
 
     pop_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
     hof_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
 
     target = blackbox.predict(point.reshape(1, -1))
 
-    pop_df = {"individuals": len(pop), "target": target, "right_class": pop_right}
-    hof_df = {"individuals": len(pop), "target": target, "right_class": hof_right}
+    pop_df = pd.DataFrame(
+        {"individuals": len(pop), "target": target, "right_class": pop_right}
+    )
+    hof_df = pd.DataFrame(
+        {"individuals": len(hof), "target": target, "right_class": hof_right}
+    )
 
     return pop_df, hof_df
 
@@ -101,12 +105,20 @@ def genetic_explain_diff(blackbox, point, target, sigma, alpha=0.5):
     epsilon = linalg.norm(sigma * 0.1, ord=2)
     toolbox.set_evaluation(other_evaluate, point, target, blackbox, epsilon, alpha)
 
-    pop, hof = genetic_run(toolbox, 10000, 50)
+    pop, hof = genetic_run(toolbox, 200, 50)
 
-    pop_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
-    hof_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
+    pop_right = len(
+        [i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1)) == target]
+    )
+    hof_right = len(
+        [i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1)) == target]
+    )
 
-    pop_df = {"individuals": len(pop), "target": target, "right_class": pop_right}
-    hof_df = {"individuals": len(pop), "target": target, "right_class": hof_right}
+    pop_df = pd.DataFrame(
+        {"individuals": len(pop), "target": target, "right_class": pop_right}
+    )
+    hof_df = pd.DataFrame(
+        {"individuals": len(hof), "target": target, "right_class": hof_right}
+    )
 
     return pop_df, hof_df
