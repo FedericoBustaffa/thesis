@@ -4,11 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
 
 from data import make_data
-from genetic_explain import genetic_explain_diff, genetic_explain_same
-from ppga import log
+from genetic_explain import genetic_build
 
 
 def explain(blackbox, X, outcomes) -> list[pd.DataFrame]:
@@ -21,19 +19,11 @@ def explain(blackbox, X, outcomes) -> list[pd.DataFrame]:
     # explainations dataframes
     explain_dfs = []
 
-    logger = log.getLogger()
-
     # run the genetic algorithm for every point
     for point, y in zip(X, to_explain):
-        logger.info("same evaluate")
-        pop, hof = genetic_explain_same(blackbox, point, sigma, 0.6)
-        explain_dfs.extend([pop, hof])
-
         for target in outcomes:
-            if target != y:
-                logger.info("diff evaluate")
-                pop, hof = genetic_explain_diff(blackbox, point, target, sigma, 0.8)
-                explain_dfs.extend([pop, hof])
+            pop, hof = genetic_build(blackbox, point, target, sigma, 0.8)
+            explain_dfs.extend([pop, hof])
 
     return explain_dfs
 
@@ -41,7 +31,7 @@ def explain(blackbox, X, outcomes) -> list[pd.DataFrame]:
 def main(argv: list[str]):
     X_train, X_test, y_train = make_data(n_samples=50, n_features=2, n_classes=2)
 
-    bb = SVC()
+    bb = RandomForestClassifier()
     bb.fit(X_train, y_train)
 
     outcomes = np.unique(y_train)

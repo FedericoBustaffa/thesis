@@ -9,28 +9,7 @@ def generate_gauss(mu, sigma, alpha: float) -> np.ndarray:
     return random.normal(mu, sigma * alpha, size=sigma.shape)
 
 
-def same_evaluate(chromosome, point, classifier, epsilon: float, alpha: float = 0.5):
-    assert alpha > 0.0 and alpha < 1.0
-
-    # classification
-    pt_class = classifier.predict(point.reshape(1, -1))
-    synth_class = classifier.predict(chromosome.reshape(1, -1))
-
-    # calcolo della distanza con norma euclidea
-    distance = linalg.norm(chromosome - point, ord=2)
-
-    # compute classification weight
-    same_class = 1 - alpha if pt_class == synth_class[0] else alpha
-
-    # check the epsilon distance
-    epsilon = 0.0 if same_class * distance > epsilon else epsilon
-
-    return (same_class * distance + epsilon,)
-
-
-def other_evaluate(
-    chromosome, point, target, classifier, epsilon: float, alpha: float = 0.5
-):
+def evaluate(chromosome, point, target, classifier, epsilon: float, alpha: float = 0.5):
     assert alpha > 0.0 and alpha < 1.0
 
     # classification
@@ -78,47 +57,39 @@ def genetic_run(
     return pop, hof
 
 
-def genetic_explain_same(blackbox, point, sigma, alpha=0.5) -> tuple:
+def genetic_build(blackbox, point, target, sigma, alpha=0.5):
     toolbox = create_toolbox(point, sigma)
     epsilon = linalg.norm(sigma * 0.1, ord=2)
-    toolbox.set_evaluation(same_evaluate, point, blackbox, epsilon, alpha)
-
-    pop, hof = genetic_run(toolbox, 200, 50)
-
-    pop_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
-    hof_right = len([i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1))])
-
-    target = blackbox.predict(point.reshape(1, -1))
-
-    pop_df = pd.DataFrame(
-        {"individuals": len(pop), "target": target, "right_class": pop_right}
-    )
-    hof_df = pd.DataFrame(
-        {"individuals": len(hof), "target": target, "right_class": hof_right}
-    )
-
-    return pop_df, hof_df
-
-
-def genetic_explain_diff(blackbox, point, target, sigma, alpha=0.5):
-    toolbox = create_toolbox(point, sigma)
-    epsilon = linalg.norm(sigma * 0.1, ord=2)
-    toolbox.set_evaluation(other_evaluate, point, target, blackbox, epsilon, alpha)
+    toolbox.set_evaluation(evaluate, point, target, blackbox, epsilon, alpha)
 
     pop, hof = genetic_run(toolbox, 200, 50)
 
     pop_right = len(
         [i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1)) == target]
     )
+
     hof_right = len(
-        [i for i in pop if blackbox.predict(i.chromosome.reshape(1, -1)) == target]
+        [i for i in hof if blackbox.predict(i.chromosome.reshape(1, -1)) == target]
     )
 
+    point_class = blackbox.predict(point.reshape(1, -1))
+
     pop_df = pd.DataFrame(
-        {"individuals": len(pop), "target": target, "right_class": pop_right}
+        {
+            "individuals": len(pop),
+            "class": point_class,
+            "target": target,
+            "right_class": pop_right,
+        }
     )
+
     hof_df = pd.DataFrame(
-        {"individuals": len(hof), "target": target, "right_class": hof_right}
+        {
+            "individuals": len(hof),
+            "class": point_class,
+            "target": target,
+            "right_class": hof_right,
+        }
     )
 
     return pop_df, hof_df
