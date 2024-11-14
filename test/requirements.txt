@@ -10,3 +10,4 @@ ipykernel
 notebook
 jupyterlab
 jupyterlab-fonts
+./ppga/
