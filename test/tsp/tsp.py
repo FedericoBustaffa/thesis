@@ -4,9 +4,9 @@ import time
 
 import pandas as pd
 from numpy import random
+from utils import plotting
 
 from ppga import algorithms, base, log, tools
-from utils import plotting
 
 
 class Town:
