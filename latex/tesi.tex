@@ -1,0 +1,41 @@
+\documentclass[12pt]{report}
+
+% \input{style}
+% \input{math}
+% \input{tikz}
+
+\usepackage{minted}
+\usepackage{diagbox}
+\usepackage{svg}
+
+\definecolor{minted_bg}{rgb}{0.9, 0.9, 0.9}
+\usemintedstyle{colorful}
+
+\setminted[c]{
+	tabsize=4,
+	% linenos=true,
+	bgcolor=minted_bg,
+	fontsize=\small,
+	mathescape=true
+}
+
+\setminted[python3]{
+	tabsize=4,
+	% linenos=true,
+	bgcolor=minted_bg,
+	fontsize=\small,
+	mathescape=true
+}
+
+\title{PPGA}
+\author{Federico Bustaffa}
+\date{14/11/2024}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+Ciao
+
+\end{document}
