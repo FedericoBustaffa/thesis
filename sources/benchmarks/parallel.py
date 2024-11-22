@@ -3,10 +3,10 @@ import random
 import sys
 import time
 
+import dummy
+
 from ppga import base, log, parallel
 from ppga.algorithms import batch
-
-import dummy
 
 
 def ptask(couples: list, toolbox: base.ToolBox):

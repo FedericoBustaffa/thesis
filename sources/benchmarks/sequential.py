@@ -3,10 +3,10 @@ import random
 import sys
 import time
 
+import dummy
+
 from ppga import base, log
 from ppga.algorithms import batch
-
-import dummy
 
 
 def sequential_run(toolbox: base.ToolBox, pop_size: int, max_gens: int):
