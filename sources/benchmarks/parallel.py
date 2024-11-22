@@ -3,16 +3,10 @@ import random
 import sys
 import time
 
-from ppga import base, log, parallel, tools
+from ppga import base, log, parallel
 from ppga.algorithms import batch
 
-
-def evaluate(chromosome):
-    v = 0
-    for _ in range(50000):
-        v += random.random()
-
-    return (v,)
+import dummy
 
 
 def ptask(couples: list, toolbox: base.ToolBox):
@@ -96,14 +90,7 @@ def main(argv: list[str]) -> None:
     handler.setLevel(15)
     logger.addHandler(handler)
 
-    toolbox = base.ToolBox()
-    toolbox.set_weights(weights=(1.0,))
-    toolbox.set_generation(tools.gen_repetition, (0, 1), 10)
-    toolbox.set_selection(tools.sel_ranking)
-    toolbox.set_crossover(tools.cx_uniform)
-    toolbox.set_mutation(tools.mut_bitflip)
-    toolbox.set_evaluation(evaluate)
-    toolbox.set_replacement(tools.elitist, keep=0.3)
+    toolbox = dummy.prepare_toolbox()
 
     start = time.perf_counter()
     parallel_run(toolbox, int(argv[1]), int(argv[2]))
