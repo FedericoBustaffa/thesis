@@ -9,7 +9,7 @@ from ppga.algorithms import batch
 
 def evaluate(chromosome):
     v = 0
-    for _ in range(50000):
+    for _ in range(100000):
         v += random.random()
 
     return (v,)

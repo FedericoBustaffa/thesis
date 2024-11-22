@@ -22,7 +22,7 @@ def parse_values(lines: list[dict]) -> pd.DataFrame:
     for line in lines:
         stats["process_name"].append(line["process_name"])
         stats["field"].append(line["field"])
-        stats["time"].append(line["time"])
+        stats["time"].append(float(line["time"]))
 
     return pd.DataFrame(stats)
 
