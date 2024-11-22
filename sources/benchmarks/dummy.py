@@ -5,8 +5,9 @@ from ppga import base, tools
 
 def evaluate(chromosome) -> tuple:
     v = 0
-    for _ in range(100000):
-        v += random.random()
+    for _ in range(len(chromosome)):
+        for _ in range(5000):
+            v += random.random()
 
     return (v,)
 
