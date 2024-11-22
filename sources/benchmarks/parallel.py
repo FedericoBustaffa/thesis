@@ -3,10 +3,16 @@ import random
 import sys
 import time
 
-from knapsack import Item, evaluate
-
 from ppga import base, log, parallel, tools
 from ppga.algorithms import batch
+
+
+def evaluate(chromosome):
+    v = 0
+    for _ in range(50000):
+        v += random.random()
+
+    return (v,)
 
 
 def ptask(couples: list, toolbox: base.ToolBox):
@@ -77,8 +83,8 @@ def parallel_run(toolbox: base.ToolBox, pop_size: int, max_gens: int):
 
 
 def main(argv: list[str]) -> None:
-    if len(argv) != 4:
-        print(f"USAGE: py {argv[0]} <Items> <N> <G>")
+    if len(argv) != 3:
+        print(f"USAGE: py {argv[0]} <N> <G>")
         exit(1)
 
     logger = log.getUserLogger()
@@ -90,22 +96,17 @@ def main(argv: list[str]) -> None:
     handler.setLevel(15)
     logger.addHandler(handler)
 
-    items_num = int(argv[1])
-
-    items = [Item(random.random(), random.random()) for _ in range(items_num)]
-    capacity = sum([i.weight for i in items]) * 0.7
-
     toolbox = base.ToolBox()
-    toolbox.set_weights(weights=(3.0, -1.0))
-    toolbox.set_generation(tools.gen_repetition, (0, 1), len(items))
+    toolbox.set_weights(weights=(1.0,))
+    toolbox.set_generation(tools.gen_repetition, (0, 1), 10)
     toolbox.set_selection(tools.sel_ranking)
     toolbox.set_crossover(tools.cx_uniform)
     toolbox.set_mutation(tools.mut_bitflip)
-    toolbox.set_evaluation(evaluate, items, capacity)
+    toolbox.set_evaluation(evaluate)
     toolbox.set_replacement(tools.elitist, keep=0.3)
 
     start = time.perf_counter()
-    parallel_run(toolbox, int(argv[2]), int(argv[3]))
+    parallel_run(toolbox, int(argv[1]), int(argv[2]))
     ptime = time.perf_counter() - start
     logger.log(15, f"ptime: {ptime} seconds")
 
