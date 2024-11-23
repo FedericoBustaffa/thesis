@@ -1,22 +1,25 @@
 import numpy as np
 from numpy import linalg, random
 
-from ppga import algorithms, base, log, tools
+from ppga import algorithms, base, tools
+
+
+def generate_copy(point: np.ndarray) -> np.ndarray:
+    return point.copy()
 
 
 def generate_gauss(mu: np.ndarray, sigma: np.ndarray, alpha: float) -> np.ndarray:
     return random.normal(mu, sigma * alpha, size=sigma.shape)
 
 
+def generate_uniform(mu: np.ndarray, sigma: np.ndarray, alpha: float) -> np.ndarray:
+    return random.uniform(-sigma * alpha, sigma * alpha, size=sigma.shape)
+
+
 def evaluate(
-    chromosome: np.ndarray,
-    point: np.ndarray,
-    target: int,
-    classifier,
-    epsilon: float,
-    alpha: float = 0.5,
+    chromosome, point, target, classifier, epsilon: float = 0.0, alpha: float = 1.0
 ):
-    assert alpha > 0.0 and alpha < 1.0
+    assert alpha >= 0.0 and alpha <= 1.0
 
     # classification
     synth_class = classifier.predict(chromosome.reshape(1, -1))
@@ -25,12 +28,12 @@ def evaluate(
     distance = linalg.norm(chromosome - point, ord=2)
 
     # compute classification penalty
-    target_class = 1 - alpha if target == synth_class[0] else alpha
+    right_target = alpha if target == synth_class[0] else 1.0 - alpha
 
     # check the epsilon distance
-    epsilon = 0.0 if target * distance > epsilon else epsilon
+    epsilon = 0.0 if distance > epsilon else np.inf
 
-    return (target_class * distance + epsilon,)
+    return (distance / right_target + epsilon,)
 
 
 def create_toolbox(point: np.ndarray, sigma: np.ndarray) -> base.ToolBox:
@@ -53,11 +56,10 @@ def genetic_run(
         toolbox=toolbox,
         population_size=population_size,
         keep=0.1,
-        cxpb=0.7,
-        mutpb=0.3,
+        cxpb=0.8,
+        mutpb=0.2,
         max_generations=max_generations,
         hall_of_fame=hof,
-        log_level=log.INFO,
     )
 
     return hof

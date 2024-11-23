@@ -2,10 +2,11 @@ import sys
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-
 from data import make_data
 from genetic_explain import genetic_build
+from sklearn.ensemble import RandomForestClassifier
+
+from ppga import log
 
 
 def explain(blackbox, X, outcomes) -> pd.DataFrame:
@@ -26,7 +27,7 @@ def explain(blackbox, X, outcomes) -> pd.DataFrame:
     # run the genetic algorithm for every point
     for point, y in zip(X, to_explain):
         for target in outcomes:
-            hof = genetic_build(blackbox, point, target, sigma, 0.8)
+            hof = genetic_build(blackbox, point, target, sigma, 1.0)
             for k in explaination.keys():
                 explaination[k].append(hof[k])
 
@@ -41,10 +42,11 @@ def main(argv: list[str]):
 
     outcomes = np.unique(y_train)
 
-    print(f"about to explain {len(X_test)} points")
+    logger = log.getUserLogger()
+    logger.info(f"start explaining of {len(X_test)} points")
     explaination = explain(bb, X_test, outcomes)
     explaination.to_csv("./results/explain.csv", header=True, index=False)
-    print(explaination)
+    logger.info(explaination)
 
 
 if __name__ == "__main__":
