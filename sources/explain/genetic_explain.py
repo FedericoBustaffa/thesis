@@ -3,6 +3,10 @@ from numpy import linalg, random
 
 from ppga import algorithms, base, tools
 
+import warnings
+
+warnings.filterwarnings("ignore")
+
 
 def generate_copy(point: np.ndarray) -> np.ndarray:
     return point.copy()
