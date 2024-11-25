@@ -1,7 +1,7 @@
-import sequential
-import parallel
-
 import sys
+
+import parallel
+import sequential
 
 
 def main(argv: list[str]) -> None:
