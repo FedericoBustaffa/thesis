@@ -1,6 +1,5 @@
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from data import make_data
@@ -45,10 +44,6 @@ def main(argv: list[str]):
     X_train, X_test, y_train = make_data(n_samples=50, n_features=2, n_classes=2)
     bb.fit(X_train, y_train)
     y = np.asarray(bb.predict(X_test))
-
-    plt.figure(figsize=(16, 9))
-    plt.scatter(X_test.T[0], X_test.T[1], c=y, cmap="bwr")
-    plt.show()
 
     logger = log.getUserLogger()
     logger.info(f"start explaining of {len(X_test)} points")
