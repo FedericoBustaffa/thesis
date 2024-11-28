@@ -22,9 +22,9 @@ def explain(blackbox, X: np.ndarray, y: np.ndarray) -> dict[str, list]:
         for target in outcomes:
             toolbox.set_evaluation(evaluate, point, target, blackbox, 0.0, 0.0)
             hof, stats = genetic_run(toolbox, 200, 50)
-            explaination["class"].append(outcome)
-            explaination["target"].append(target)
-            explaination["hall_of_fame"].append(hof)
+            explaination["class"].append(int(outcome))
+            explaination["target"].append(int(target))
+            explaination["hall_of_fame"].append(hof.__dict__)
 
     return explaination
 
@@ -32,7 +32,7 @@ def explain(blackbox, X: np.ndarray, y: np.ndarray) -> dict[str, list]:
 def main(argv: list[str]):
     bb = RandomForestClassifier()
 
-    X_train, X_test, y_train = make_data(n_samples=50, n_features=2, n_classes=2)
+    X_train, X_test, y_train = make_data(n_samples=20, n_features=2, n_classes=2)
     bb.fit(X_train, y_train)
     y = np.asarray(bb.predict(X_test))
 
@@ -41,7 +41,7 @@ def main(argv: list[str]):
     explaination = explain(bb, X_test, y)
 
     filename = str(bb.__class__).split(" ")[1].split(".")[3].removesuffix("'>")
-    with open(filename, "w") as file:
+    with open(f"results/{filename}.json", "w") as file:
         json.dump(explaination, file, indent=2)
 
 

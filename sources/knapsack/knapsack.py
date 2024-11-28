@@ -1,8 +1,10 @@
+import logging
 import random
 import sys
 
-from ppga import algorithms, base, log, tools
 from utils import plotting
+
+from ppga import algorithms, base, log, tools
 
 
 class Item:
@@ -54,7 +56,8 @@ def main(argv: list[str]):
 
     if len(argv) < 5:
         argv.append("INFO")
-    logger = log.getLogger()
+    logger = log.getUserLogger()
+    logger.setLevel(argv[4].upper())
 
     items_num = int(argv[1])
     N = int(argv[2])
@@ -86,8 +89,8 @@ def main(argv: list[str]):
     value, weight = show_solution(best[0].chromosome, items)
     logger.info(f"sequential best solution: ({value:.3f}, {weight:.3f})")
     logger.info(f"sequential best fitnes: {best[0].fitness}")
-    for i, ind in enumerate(hof):
-        logger.debug(f"{i}. {ind.values}")
+    with open("results/knapsack.json", "w") as file:
+        print(hof, file=file)
 
     # parallel execution
     hof.clear()
@@ -96,11 +99,12 @@ def main(argv: list[str]):
     value, weight = show_solution(pbest[0].chromosome, items)
     logger.info(f"queue best solution: ({value:.3f}, {weight:.3f})")
     logger.info(f"queue best fitness: {pbest[0].fitness}")
-    for i, ind in enumerate(hof):
-        logger.debug(f"{i}. {ind.values}")
+
+    with open("results/knapsack.json", "w") as file:
+        print(hof, file=file)
 
     # plotting
-    if logger.level <= log.SUCCESS:
+    if logger.level <= logging.INFO:
         plotting.fitness_trend(stats)
         plotting.biodiversity_trend(stats)
 
