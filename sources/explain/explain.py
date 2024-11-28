@@ -4,14 +4,13 @@ import sys
 import numpy as np
 from data import make_data
 from genetic import create_toolbox, evaluate, genetic_run
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 
 from ppga import log
 
 
-def explain(blackbox, X: np.ndarray, y: np.ndarray) -> dict[str, list]:
-    # explainations dataframes
-    explaination = {"class": [], "target": [], "hall_of_fame": []}
+def explain(blackbox, X: np.ndarray, y: np.ndarray) -> list:
+    explainations = []
 
     # possible outcomes
     outcomes = np.unique(y)
@@ -21,16 +20,20 @@ def explain(blackbox, X: np.ndarray, y: np.ndarray) -> dict[str, list]:
         toolbox = create_toolbox(X, point)
         for target in outcomes:
             toolbox.set_evaluation(evaluate, point, target, blackbox, 0.0, 0.0)
-            hof, stats = genetic_run(toolbox, 200, 50)
-            explaination["class"].append(int(outcome))
-            explaination["target"].append(int(target))
-            explaination["hall_of_fame"].append(hof.__dict__)
+            hof, stats = genetic_run(toolbox, 100, 50)
+            explaination = dict()
+            explaination.update({"point": point.tolist()})
+            explaination.update({"class": int(outcome)})
+            explaination.update({"target": int(target)})
+            explaination.update({"hall_of_fame": [i.to_dict() for i in hof.hof]})
 
-    return explaination
+            explainations.append(explaination)
+
+    return explainations
 
 
 def main(argv: list[str]):
-    bb = RandomForestClassifier()
+    bb = SVC()
 
     X_train, X_test, y_train = make_data(n_samples=20, n_features=2, n_classes=2)
     bb.fit(X_train, y_train)
@@ -39,10 +42,11 @@ def main(argv: list[str]):
     logger = log.getUserLogger()
     logger.info(f"start explaining of {len(X_test)} points")
     explaination = explain(bb, X_test, y)
-
     filename = str(bb.__class__).split(" ")[1].split(".")[3].removesuffix("'>")
+
+    to_json = explaination
     with open(f"results/{filename}.json", "w") as file:
-        json.dump(explaination, file, indent=2)
+        json.dump(to_json, fp=file, indent=2)
 
 
 if __name__ == "__main__":
