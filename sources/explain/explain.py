@@ -1,7 +1,7 @@
+import json
 import sys
 
 import numpy as np
-import pandas as pd
 from data import make_data
 from genetic import create_toolbox, evaluate, genetic_run
 from sklearn.ensemble import RandomForestClassifier
@@ -9,9 +9,9 @@ from sklearn.ensemble import RandomForestClassifier
 from ppga import log
 
 
-def explain(blackbox, X: np.ndarray, y: np.ndarray) -> pd.DataFrame:
+def explain(blackbox, X: np.ndarray, y: np.ndarray) -> dict[str, list]:
     # explainations dataframes
-    explaination = {"individuals": [], "class": [], "target": [], "right": []}
+    explaination = {"class": [], "target": [], "hall_of_fame": []}
 
     # possible outcomes
     outcomes = np.unique(y)
@@ -22,20 +22,11 @@ def explain(blackbox, X: np.ndarray, y: np.ndarray) -> pd.DataFrame:
         for target in outcomes:
             toolbox.set_evaluation(evaluate, point, target, blackbox, 0.0, 0.0)
             hof, stats = genetic_run(toolbox, 200, 50)
-            explaination["individuals"].append(hof.size)
             explaination["class"].append(outcome)
             explaination["target"].append(target)
-            explaination["right"].append(
-                len(
-                    [
-                        i
-                        for i in hof
-                        if blackbox.predict(i.chromosome.reshape(1, -1))[0] == target
-                    ]
-                )
-            )
+            explaination["hall_of_fame"].append(hof)
 
-    return pd.DataFrame(explaination)
+    return explaination
 
 
 def main(argv: list[str]):
@@ -50,7 +41,8 @@ def main(argv: list[str]):
     explaination = explain(bb, X_test, y)
 
     filename = str(bb.__class__).split(" ")[1].split(".")[3].removesuffix("'>")
-    explaination.to_csv(f"./results/{filename}.csv", header=True, index=False)
+    with open(filename, "w") as file:
+        json.dump(explaination, file, indent=2)
 
 
 if __name__ == "__main__":
