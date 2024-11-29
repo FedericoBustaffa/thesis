@@ -2,7 +2,7 @@ import json
 import sys
 
 import numpy as np
-from generate_data import make_data
+from generate_data import get_data
 from genetic import create_toolbox, evaluate, genetic_run
 from sklearn.svm import SVC
 
@@ -33,14 +33,24 @@ def explain(blackbox, X: np.ndarray, y: np.ndarray) -> list:
 
 
 def main(argv: list[str]):
-    bb = SVC()
+    logger = log.getUserLogger()
+    logger.setLevel("DEBUG")
 
-    X_train, X_test, y_train = make_data(n_samples=20, n_features=2, n_classes=2)
+    if len(argv) != 4:
+        logger.error(f"USAGE: python {argv[0]} <samples> <features> <classes>")
+        exit(1)
+
+    n_samples = int(argv[1])
+    n_features = int(argv[2])
+    n_classes = int(argv[3])
+
+    # get data if present, although generates a dataset and save it in a CSV file
+    X_train, X_test, y_train = get_data(n_samples, n_features, n_classes)
+    logger.info(f"start explaining of {len(X_test)} points")
+    bb = SVC()
     bb.fit(X_train, y_train)
     y = np.asarray(bb.predict(X_test))
 
-    logger = log.getUserLogger()
-    logger.info(f"start explaining of {len(X_test)} points")
     explaination = explain(bb, X_test, y)
     filename = str(bb.__class__).split(" ")[1].split(".")[3].removesuffix("'>")
 
