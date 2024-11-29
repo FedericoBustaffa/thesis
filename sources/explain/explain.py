@@ -2,7 +2,7 @@ import json
 import sys
 
 import numpy as np
-from data import make_data
+from generate_data import make_data
 from genetic import create_toolbox, evaluate, genetic_run
 from sklearn.svm import SVC
 
