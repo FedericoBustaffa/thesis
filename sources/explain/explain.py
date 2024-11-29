@@ -2,8 +2,11 @@ import json
 import sys
 
 import numpy as np
-from generate_data import get_data
+import pandas as pd
 from genetic import create_toolbox, evaluate, genetic_run
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
 from ppga import log
@@ -26,37 +29,49 @@ def explain(blackbox, X: np.ndarray, y: np.ndarray) -> list:
             explaination.update({"class": int(outcome)})
             explaination.update({"target": int(target)})
             explaination.update({"hall_of_fame": [i.to_dict() for i in hof.hof]})
-
             explainations.append(explaination)
 
     return explainations
 
 
 def main(argv: list[str]):
+    # logger from ppga
     logger = log.getUserLogger()
-    logger.setLevel("DEBUG")
+    logger.setLevel("INFO")
 
-    if len(argv) != 4:
-        logger.error(f"USAGE: python {argv[0]} <samples> <features> <classes>")
+    # command line args
+    if len(argv) != 2:
+        logger.error(f"USAGE: python {argv[0]} <filename>")
         exit(1)
 
-    n_samples = int(argv[1])
-    n_features = int(argv[2])
-    n_classes = int(argv[3])
+    # read dataset file
+    data = pd.read_csv(argv[1])
+    X = np.array([np.asarray(data[k]) for k in data if k.startswith("feature")]).T
+    y = data["outcome"].to_numpy()
 
-    # get data if present, although generates a dataset and save it in a CSV file
-    X_train, X_test, y_train = get_data(n_samples, n_features, n_classes)
+    # splitting training and test sets
+    X_train, X_test, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=0)
+
+    # start the explaination
     logger.info(f"start explaining of {len(X_test)} points")
-    bb = SVC()
-    bb.fit(X_train, y_train)
-    y = np.asarray(bb.predict(X_test))
+    blackboxes = [RandomForestClassifier(), SVC(), MLPClassifier()]
 
-    explaination = explain(bb, X_test, y)
-    filename = str(bb.__class__).split(" ")[1].split(".")[3].removesuffix("'>")
+    for bb in blackboxes:
+        bb.fit(X_train, y_train)
+        y = np.asarray(bb.predict(X_test))
 
-    to_json = explaination
-    with open(f"results/{filename}.json", "w") as file:
-        json.dump(to_json, fp=file, indent=2)
+        # parse the name of the blackbox
+        bb_name = str(bb.__class__).split(" ")[1].split(".")[3].removesuffix("'>")
+        logger.info(f"{bb_name} start")
+
+        # explaination build and save
+        explaination = explain(bb, np.asarray(X_test), y)
+        logger.info(f"{bb_name} done")
+
+        # convert in json format
+        to_json = explaination
+        with open(f"results/{bb_name}.json", "w") as file:
+            json.dump(to_json, fp=file, indent=2)
 
 
 if __name__ == "__main__":
