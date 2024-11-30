@@ -68,10 +68,9 @@ def main(argv: list[str]):
         explaination = explain(bb, np.asarray(X_test), y)
         logger.info(f"{bb_name} done")
 
-        # convert in json format
-        to_json = explaination
+        # json file
         with open(f"results/{bb_name}.json", "w") as file:
-            json.dump(to_json, fp=file, indent=2)
+            json.dump(explaination, fp=file, indent=2)
 
 
 if __name__ == "__main__":
