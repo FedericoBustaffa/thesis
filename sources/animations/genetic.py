@@ -32,7 +32,9 @@ def normal_mutate_gradual(
 ):
     for i in range(len(individual)):
         if random.random() <= indpb:
-            individual[i] -= random.normal(loc=mu[i], scale=sigma[i]) * alpha
+            individual[i] += (
+                np.abs(random.normal(loc=mu[i], scale=sigma[i]) - individual[i]) * alpha
+            )
 
     return individual
 
@@ -120,6 +122,7 @@ def run(
         hof.update(population)
 
         best_points = np.asarray([i.chromosome for i in hof])
+        # best_points = np.asarray([i.chromosome for i in population])
         plot_hof(X, y, best_points, point, outcome)
 
     plt.show()

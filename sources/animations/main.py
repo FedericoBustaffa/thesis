@@ -60,9 +60,9 @@ def main():
     classifier = MLPClassifier(max_iter=2000)
     classifier.fit(X_train, y_train)
     outcomes = np.asarray(classifier.predict(X_test))
-    point = X_test[0]
-    target = (outcomes[0] + 1) % 2
-    plot_dataset(X_test, outcomes, point, outcomes[0])
+    point = X_test[6]
+    target = (outcomes[6] + 1) % 2
+    plot_dataset(X_test, outcomes, point, outcomes[6])
 
     # run the genetic algorithm on one point
     toolbox = base.ToolBox()
@@ -73,8 +73,8 @@ def main():
     toolbox.set_mutation(
         genetic.normal_mutate,
         mu=X_test.mean(axis=0),
-        sigma=X_test.std(axis=0) * 0.5,
-        indpb=0.5,
+        sigma=X_test.std(axis=0),
+        indpb=0.8,
     )
     toolbox.set_evaluation(
         genetic.evaluate,
@@ -85,7 +85,7 @@ def main():
         alpha=0.0,
     )
     toolbox.set_replacement(tools.elitist, keep=0.1)
-    genetic.run(X_test, outcomes, point, outcomes[0], toolbox, 500, 100)
+    genetic.run(X_test, outcomes, point, outcomes[6], toolbox, 500, 100)
 
 
 if __name__ == "__main__":
