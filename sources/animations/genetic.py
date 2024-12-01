@@ -95,9 +95,9 @@ def animate(frame, scatter: PathCollection):
 
 
 def run(
-    X,
-    y,
-    point,
+    X: np.ndarray,
+    y: np.ndarray,
+    point: np.ndarray,
     outcome,
     toolbox: base.ToolBox,
     population_size: int,
