@@ -1,12 +1,13 @@
+import logging
 import math
 import sys
 import time
 
 import pandas as pd
 from numpy import random
-from ppga import algorithms, base, log, tools
-
 from utils import plotting
+
+from ppga import algorithms, base, log, tools
 
 
 class Town:
@@ -24,9 +25,6 @@ def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
     for i in range(len(chromosome) - 1):
         total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
 
-    for _ in range(10000):
-        random.random()
-
     return (total_distance,)
 
 
@@ -38,7 +36,8 @@ def main(argv: list[str]):
     if len(argv) < 5:
         argv.append("success")
 
-    logger = log.getLogger(argv[4].upper())
+    logger = log.getUserLogger()
+    logger.setLevel(argv[4].upper())
 
     data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
     x_coords = data["x"]
@@ -71,7 +70,6 @@ def main(argv: list[str]):
         mutpb=0.3,
         max_generations=G,
         hall_of_fame=hall_of_fame,
-        log_level=log.DEBUG,
     )
     stime = time.perf_counter() - start
     logger.info(f"sequential best score: {best[0].fitness}")
@@ -90,7 +88,6 @@ def main(argv: list[str]):
         mutpb=0.3,
         max_generations=G,
         hall_of_fame=hall_of_fame,
-        log_level=log.DEBUG,
     )
     ptime = time.perf_counter() - start
     logger.info(f"parallel best score: {pbest[0].fitness}")
@@ -99,12 +96,12 @@ def main(argv: list[str]):
     logger.info(f"parallel time: {ptime}")
 
     if stime / ptime >= 1.0:
-        logger.success(f"speed up: {stime / ptime}")
+        logger.log(15, f"speed up: {stime / ptime}")
     else:
         logger.warning(f"speed up: {stime / ptime}")
 
     # statistics data plot
-    if logger.level <= log.DEBUG:
+    if logger.level <= logging.DEBUG:
         solution = max(best, key=lambda x: x.fitness)
         plotting.draw_graph(data, solution.chromosome)
         plotting.fitness_trend(stats)

@@ -114,9 +114,7 @@ def run(
         print(g)
         selected = toolbox.select(population, population_size)
         couples = batch.mating(selected)
-        offsprings = batch.crossover(couples, toolbox, 0.8)
-        offsprings = batch.mutation(offsprings, toolbox, 0.2)
-        offsprings = batch.evaluation(offsprings, toolbox)
+        offsprings = batch.cx_mut_eval(couples, toolbox, 0.8, 0.2)
         population = toolbox.replace(population, offsprings)
 
         hof.update(population)
