@@ -1,5 +1,4 @@
 import logging
-import random
 import sys
 import time
 
@@ -7,37 +6,6 @@ import dummy
 
 from ppga import base, log, parallel
 from ppga.algorithms import batch
-
-
-def ptask(couples: list, toolbox: base.ToolBox):
-    logger = log.getUserLogger()
-
-    # crossover
-    offsprings = []
-    for father, mother in couples:
-        if random.random() <= 0.8:
-            start = time.perf_counter()
-            offspring1, offspring2 = toolbox.crossover(father, mother)
-            offsprings.extend([toolbox.clone(offspring1), toolbox.clone(offspring2)])
-            cx_time = time.perf_counter() - start
-            logger.log(15, f"crossover: {cx_time} seconds")
-
-    # mutation
-    for i, ind in enumerate(offsprings):
-        if random.random() <= 0.2:
-            start = time.perf_counter()
-            offsprings[i] = toolbox.mutate(ind)
-            mut_time = time.perf_counter() - start
-            logger.log(15, f"mutation: {mut_time} seconds")
-
-    # evaluation
-    for i, ind in enumerate(offsprings):
-        start = time.perf_counter()
-        offsprings[i] = toolbox.evaluate(ind)
-        eval_time = time.perf_counter() - start
-        logger.log(15, f"evaluation: {eval_time} seconds")
-
-    return offsprings
 
 
 def parallel_run(toolbox: base.ToolBox, pop_size: int, max_gens: int):
@@ -63,7 +31,7 @@ def parallel_run(toolbox: base.ToolBox, pop_size: int, max_gens: int):
 
         # parallel crossover, mutation and evaluation
         start = time.perf_counter()
-        offsprings = pool.map(ptask, couples, args=[toolbox])
+        offsprings = pool.map(batch.cx_mut_eval, couples, args=[toolbox, 0.8, 0.2])
         parallel_time = time.perf_counter() - start
         logger.log(15, f"parallel: {parallel_time} seconds")
 

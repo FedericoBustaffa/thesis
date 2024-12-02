@@ -1,5 +1,4 @@
 import logging
-import random
 import sys
 import time
 
@@ -28,32 +27,11 @@ def sequential_run(toolbox: base.ToolBox, pop_size: int, max_gens: int):
         # mating
         couples = batch.mating(selected)
 
-        # crossover
-        offsprings = []
-        for father, mother in couples:
-            if random.random() <= 0.8:
-                start = time.perf_counter()
-                offspring1, offspring2 = toolbox.crossover(father, mother)
-                offsprings.extend(
-                    [toolbox.clone(offspring1), toolbox.clone(offspring2)]
-                )
-                cx_time = time.perf_counter() - start
-                logger.log(15, f"crossover: {cx_time} seconds")
-
-        # mutation
-        for i, ind in enumerate(offsprings):
-            if random.random() <= 0.2:
-                start = time.perf_counter()
-                offsprings[i] = toolbox.mutate(ind)
-                mut_time = time.perf_counter() - start
-                logger.log(15, f"mutation: {mut_time} seconds")
-
-        # evaluation
-        for i, ind in enumerate(offsprings):
-            start = time.perf_counter()
-            offsprings[i] = toolbox.evaluate(ind)
-            eval_time = time.perf_counter() - start
-            logger.log(15, f"evaluation: {eval_time} seconds")
+        # crossover + mutation + evaluation
+        start = time.perf_counter()
+        offsprings = batch.cx_mut_eval(couples, toolbox, 0.8, 0.2)
+        cx_mut_eval_time = time.perf_counter() - start
+        logger.log(15, f"cx_mut_eval: {cx_mut_eval_time} seconds")
 
         # replacement
         start = time.perf_counter()
