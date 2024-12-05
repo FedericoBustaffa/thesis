@@ -31,6 +31,7 @@ def build_stats_df(results: list, blackbox) -> pd.DataFrame:
 
         for hof, target in zip(hofs, targets):
             scores = np.asarray([ind.fitness for ind in hof])
+            scores = scores[~np.isinf(scores)]
             synth_points = np.asarray([ind.chromosome for ind in hof])
             outcomes = blackbox.predict(synth_points)
             logger.debug(outcomes)
