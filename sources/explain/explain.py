@@ -42,7 +42,7 @@ def build_stats_df(results: list, blackbox) -> pd.DataFrame:
     return pd.DataFrame(stats)
 
 
-def explain(X, y, blackbox):
+def explain(X: np.ndarray, y: np.ndarray, blackbox, pop_size: int):
     # collect all the possible outcomes
     outcomes = np.unique(y)
 
@@ -71,10 +71,10 @@ def explain(X, y, blackbox):
             )
 
             # run the genetic algorithm on one point
-            hof = base.HallOfFame(500)
+            hof = base.HallOfFame(pop_size // 2)
             last, stats = algorithms.pelitist(
                 toolbox=toolbox,
-                population_size=2000,
+                population_size=pop_size,
                 keep=0.1,
                 cxpb=0.8,
                 mutpb=0.2,
@@ -122,5 +122,5 @@ if __name__ == "__main__":
     X = predictions[[k for k in predictions if k != "outcome"]].to_numpy()
     y = predictions["outcome"].to_numpy()
 
-    stats = explain(X, y, svm)
+    stats = explain(X, y, svm, 2000)
     print(stats)
