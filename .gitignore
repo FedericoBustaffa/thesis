@@ -9,7 +9,6 @@ utils.egg-info/
 .ipynb_checkpoints/
 logs/
 results/
-datasets/
 
 # latex
 *.aux

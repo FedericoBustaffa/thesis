@@ -57,7 +57,7 @@ def main():
     X_test = np.asarray(X_test)
 
     # train and test model
-    classifier = MLPClassifier(max_iter=2000)
+    classifier = MLPClassifier()
     classifier.fit(X_train, y_train)
     outcomes = np.asarray(classifier.predict(X_test))
     point = X_test[6]
@@ -71,7 +71,7 @@ def main():
     toolbox.set_selection(tools.sel_tournament, tournsize=3)
     toolbox.set_crossover(tools.cx_one_point)
     toolbox.set_mutation(
-        genetic.normal_mutate,
+        tools.mut_normal,
         mu=X_test.mean(axis=0),
         sigma=X_test.std(axis=0),
         indpb=0.8,

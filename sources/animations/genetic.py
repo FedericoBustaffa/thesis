@@ -3,7 +3,7 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import PathCollection
-from numpy import linalg, random
+from numpy import linalg
 
 from ppga import base
 from ppga.algorithms import batch
@@ -14,29 +14,6 @@ warnings.filterwarnings("ignore")
 # generation by copy
 def generate_copy(point: np.ndarray) -> np.ndarray:
     return point.copy()
-
-
-# mutate
-def normal_mutate(
-    individual: np.ndarray, mu: np.ndarray, sigma: np.ndarray, indpb: float = 0.5
-):
-    for i in range(len(individual)):
-        if random.random() <= indpb:
-            individual[i] = random.normal(mu[i], sigma[i])
-
-    return individual
-
-
-def normal_mutate_gradual(
-    individual, mu, sigma, alpha: float = 0.1, indpb: float = 0.5
-):
-    for i in range(len(individual)):
-        if random.random() <= indpb:
-            individual[i] += (
-                np.abs(random.normal(loc=mu[i], scale=sigma[i]) - individual[i]) * alpha
-            )
-
-    return individual
 
 
 def evaluate(
