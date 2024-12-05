@@ -43,6 +43,8 @@ def build_stats_df(results: list, blackbox) -> pd.DataFrame:
 
 
 def explain(X: np.ndarray, y: np.ndarray, blackbox, pop_size: int):
+    logger = log.getUserLogger()
+
     # collect all the possible outcomes
     outcomes = np.unique(y)
 
@@ -65,7 +67,7 @@ def explain(X: np.ndarray, y: np.ndarray, blackbox, pop_size: int):
                 genetic.evaluate,
                 point=point,
                 target=target,
-                blackbox=svm,
+                blackbox=blackbox,
                 epsilon=0.0,
                 alpha=0.0,
             )
@@ -89,7 +91,7 @@ def explain(X: np.ndarray, y: np.ndarray, blackbox, pop_size: int):
         one_point_stats["hall_of_fame"].clear()
         one_point_stats["target"].clear()
 
-    return build_stats_df(results, svm)
+    return build_stats_df(results, blackbox)
 
 
 if __name__ == "__main__":

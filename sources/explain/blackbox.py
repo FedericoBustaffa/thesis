@@ -1,6 +1,7 @@
 import argparse
 import warnings
 
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
@@ -15,6 +16,7 @@ def make_predictions(blackbox, filepath: str) -> pd.DataFrame:
     y = df["outcome"].to_numpy()
 
     X_train, X_test, y_train, _ = train_test_split(X, y, test_size=0.3, train_size=0.7)
+    X_test = np.asarray(X_test)
 
     blackbox.fit(X_train, y_train)
     outcomes = blackbox.predict(X_test)

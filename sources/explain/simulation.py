@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     for filepath in filepaths:
         for bb in blackboxes:
-            predictions = blackbox.make_predictions(bb, filepath)
+            predictions = blackbox.make_predictions(bb, f"datasets/{filepath}")
 
             X = predictions[[k for k in predictions if k != "outcome"]].to_numpy()
             y = predictions["outcome"].to_numpy()
