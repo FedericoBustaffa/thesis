@@ -123,4 +123,17 @@ if __name__ == "__main__":
     y = predictions["outcome"].to_numpy()
 
     stats = explain(X, y, svm, 2000)
-    print(stats)
+    name = str(svm).removesuffix("()")
+
+    params = args.filepath.split("/")[1].split("_")
+    samples = int(params[1])
+    features = int(params[2])
+    classes = int(params[3])
+    clusters = int(params[4])
+    seed = int(params[5].removesuffixe(".csv"))
+
+    stats.to_csv(
+        f"datasets/{name}_{samples}_{features}_{classes}_{clusters}_{seed}.csv",
+        header=True,
+        index=False,
+    )

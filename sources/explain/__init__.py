@@ -1,3 +1,3 @@
-from .data import make_data
+from .explain import explain
 
-__all__ = ["make_data"]
+__all__ = ["explain"]
