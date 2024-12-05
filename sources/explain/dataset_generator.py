@@ -54,10 +54,10 @@ def generate_dataset(
 
 
 if __name__ == "__main__":
-    n_samples = [100, 200, 400, 800]
-    n_features = [2, 4, 8, 16]
-    n_classes = [2, 4, 8, 16]
-    n_clusters = [1, 2, 4, 8]
+    n_samples = [100, 200, 400]
+    n_features = [2, 4, 8]
+    n_classes = [2, 4, 8]
+    n_clusters = [1, 2, 4]
 
     for samples in n_samples:
         for features in n_features:

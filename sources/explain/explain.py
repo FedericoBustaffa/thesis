@@ -84,7 +84,6 @@ if __name__ == "__main__":
 
     # run genetic algorithm on every point
     toolbox = genetic.create_toolbox(X)
-    population_size = len(y)  # This should not be fixed
 
     results = []  # save results
     one_point_stats = {"hall_of_fame": [], "target": []}
@@ -105,10 +104,10 @@ if __name__ == "__main__":
             )
 
             # run the genetic algorithm
-            hof = base.HallOfFame(population_size)
+            hof = base.HallOfFame(500)
             last, stats = algorithms.pelitist(
                 toolbox=toolbox,
-                population_size=population_size,
+                population_size=1000,
                 keep=0.1,
                 cxpb=0.8,
                 mutpb=0.2,
