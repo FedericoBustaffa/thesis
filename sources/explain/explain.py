@@ -1,19 +1,59 @@
 import argparse
+from copy import deepcopy
 
 import blackbox
 import genetic
 import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 
 from ppga import algorithms, base, log
 
 
-def save_results(hof: base.HallOfFame):
-    pass
+def build_stats_df(results: list, blackbox) -> pd.DataFrame:
+    logger = log.getUserLogger()
+
+    stats = {
+        "point": [],
+        "class": [],
+        "target": [],
+        "min_fitness": [],
+        "mean_fitness": [],
+        "max_fitness": [],
+        "accuracy": [],
+    }
+
+    for i, (outcome, one_pt_stats) in enumerate(results):
+        hofs = one_pt_stats["hall_of_fame"]
+        targets = one_pt_stats["target"]
+        logger.debug(len(targets))
+
+        for hof, target in zip(hofs, targets):
+            scores = np.asarray([ind.fitness for ind in hof])
+            synth_points = np.asarray([ind.chromosome for ind in hof])
+            outcomes = blackbox.predict(synth_points)
+            logger.debug(outcomes)
+
+            stats["point"].append(i)
+            stats["class"].append(outcome)
+            stats["target"].append(target)
+            stats["min_fitness"].append(scores.min())
+            stats["mean_fitness"].append(scores.mean())
+            stats["max_fitness"].append(scores.max())
+            stats["accuracy"].append(len(outcomes[outcomes == target]) / len(hof))
+
+    return pd.DataFrame(stats)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "filepath",
+        type=str,
+        help="filepath to the dataset",
+    )
 
     parser.add_argument(
         "--log",
@@ -23,12 +63,6 @@ if __name__ == "__main__":
         help="set the debug level",
     )
 
-    parser.add_argument(
-        "filepath",
-        type=str,
-        help="filepath to the dataset",
-    )
-
     args = parser.parse_args()
 
     # logger from ppga
@@ -36,8 +70,10 @@ if __name__ == "__main__":
     logger.setLevel(args.log.upper())
 
     # call the blackbox run with the given dataset
+    rf = RandomForestClassifier()
     svm = SVC()
-    predictions = blackbox.make_predictions(svm, args.filepath)
+    predictions = blackbox.make_predictions(rf, args.filepath)
+    # predictions = blackbox.make_predictions(svm, args.filepath)
     logger.debug("predictions done")
 
     X = predictions[[k for k in predictions if k != "outcome"]].to_numpy()
@@ -49,6 +85,9 @@ if __name__ == "__main__":
     # run genetic algorithm on every point
     toolbox = genetic.create_toolbox(X)
     population_size = len(y)  # This should not be fixed
+
+    results = []  # save results
+    one_point_stats = {"hall_of_fame": [], "target": []}
     for point, outcome in zip(X, y):
         for target in outcomes:
             # update the point for the generation
@@ -59,7 +98,8 @@ if __name__ == "__main__":
                 genetic.evaluate,
                 point=point,
                 target=target,
-                blackbox=svm,
+                blackbox=rf,
+                # blackbox=svm,
                 epsilon=0.0,
                 alpha=0.0,
             )
@@ -76,4 +116,13 @@ if __name__ == "__main__":
                 hall_of_fame=hof,
             )
 
-            save_results(hof, point, target, svm)
+            one_point_stats["hall_of_fame"].append(hof)
+            one_point_stats["target"].append(target)
+
+        results.append((outcome, deepcopy(one_point_stats)))
+        one_point_stats["hall_of_fame"].clear()
+        one_point_stats["target"].clear()
+
+    stats = build_stats_df(results, rf)
+    # stats = build_stats_df(results, svm)
+    print(stats)
