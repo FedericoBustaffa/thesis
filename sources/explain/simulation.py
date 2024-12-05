@@ -15,27 +15,32 @@ if __name__ == "__main__":
     logger = log.getUserLogger()
     logger.setLevel("INFO")
 
+    population_sizes = [1000, 4000, 16000]
+
     for filepath in filepaths:
         for bb in blackboxes:
-            predictions = blackbox.make_predictions(bb, f"datasets/{filepath}")
+            for ps in population_sizes:
+                predictions = blackbox.make_predictions(bb, f"datasets/{filepath}")
 
-            name = str(bb).removesuffix("()")
-            logger.info(f"{filepath} explained with {name}")
+                name = str(bb).removesuffix("()")
+                logger.info(
+                    f"{filepath} explained with {name} and {ps} synthetic individuals"
+                )
 
-            X = predictions[[k for k in predictions if k != "outcome"]].to_numpy()
-            y = predictions["outcome"].to_numpy()
+                X = predictions[[k for k in predictions if k != "outcome"]].to_numpy()
+                y = predictions["outcome"].to_numpy()
 
-            stats = explain(X, y, bb, 1000)
+                stats = explain(X, y, bb, ps)
 
-            params = filepath.split("_")
-            samples = int(params[1])
-            features = int(params[2])
-            classes = int(params[3])
-            clusters = int(params[4])
-            seed = int(params[5].removesuffix(".csv"))
+                params = filepath.split("_")
+                samples = int(params[1])
+                features = int(params[2])
+                classes = int(params[3])
+                clusters = int(params[4])
+                seed = int(params[5].removesuffix(".csv"))
 
-            stats.to_csv(
-                f"datasets/{name}_{samples}_{features}_{classes}_{clusters}_{seed}.csv",
-                header=True,
-                index=False,
-            )
+                stats.to_csv(
+                    f"datasets/{name}_{ps}_{samples}_{features}_{classes}_{clusters}_{seed}.csv",
+                    header=True,
+                    index=False,
+                )
