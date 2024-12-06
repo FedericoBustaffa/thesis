@@ -1,5 +1,4 @@
 import argparse
-from copy import deepcopy
 
 import blackbox
 import genetic
@@ -10,7 +9,11 @@ from sklearn.svm import SVC
 from ppga import algorithms, base, log
 
 
-def build_stats_df(results: list, blackbox) -> pd.DataFrame:
+def hall_of_fame_stats():
+    pass
+
+
+def build_stats_df(results: dict[str, list], blackbox) -> dict[str, list]:
     stats = {
         "point": [],
         "class": [],
@@ -21,39 +24,43 @@ def build_stats_df(results: list, blackbox) -> pd.DataFrame:
         "accuracy": [],
     }
 
-    for i, (outcome, one_pt_stats) in enumerate(results):
-        hofs = one_pt_stats["hall_of_fame"]
-        targets = one_pt_stats["target"]
+    stats["point"] = results["point"]
+    stats["class"] = results["class"]
+    stats["target"] = results["target"]
 
-        for hof, target in zip(hofs, targets):
-            scores = np.asarray([ind.fitness for ind in hof])
-            scores = scores[~np.isinf(scores)]
-            synth_points = np.asarray([ind.chromosome for ind in hof])
-            outcomes = blackbox.predict(synth_points)
+    for hof, target in zip(results["hall_of_fame"], results["target"]):
+        scores = np.asarray([ind.fitness for ind in hof])
+        scores = scores[~np.isinf(scores)]
 
-            stats["point"].append(i)
-            stats["class"].append(outcome)
-            stats["target"].append(target)
-            stats["min_fitness"].append(scores.min())
-            stats["mean_fitness"].append(scores.mean())
-            stats["max_fitness"].append(scores.max())
-            stats["accuracy"].append(len(outcomes[outcomes == target]) / len(hof))
+        synth_points = np.asarray([ind.chromosome for ind in hof])
+        outcomes = blackbox.predict(synth_points)
 
-    return pd.DataFrame(stats)
+        stats["min_fitness"].append(scores.min())
+        stats["mean_fitness"].append(scores.mean())
+        stats["max_fitness"].append(scores.max())
+        stats["accuracy"].append(len(outcomes[outcomes == target]) / len(hof))
+
+    return stats
 
 
-def explain(X: np.ndarray, y: np.ndarray, blackbox, pop_size: int):
+def explain(X: np.ndarray, y: np.ndarray, blackbox, pop_size: int) -> dict[str, list]:
     logger = log.getUserLogger()
 
     # collect all the possible outcomes
     outcomes = np.unique(y)
 
-    # run genetic algorithm on every point
+    # create a toolbox with fixed params
     toolbox = genetic.create_toolbox(X)
 
-    results = []  # save results
-    one_point_stats = {"hall_of_fame": [], "target": []}
-    for point, outcome in zip(X, y):
+    # every entry represents a single run of the genetic algorithm
+    results = {
+        "point": [],
+        "class": [],
+        "target": [],
+        "hall_of_fame": [],
+    }
+
+    for i, (point, outcome) in enumerate(zip(X, y)):
         for target in outcomes:
             logger.debug(f"point: {point}")
             logger.debug(f"outcome: {outcome}")
@@ -72,9 +79,9 @@ def explain(X: np.ndarray, y: np.ndarray, blackbox, pop_size: int):
                 alpha=0.0,
             )
 
-            # run the genetic algorithm on one point
-            hof = base.HallOfFame(pop_size // 2)
-            last, stats = algorithms.pelitist(
+            # run the genetic algorithm on one point with a specific target class
+            hof = base.HallOfFame(pop_size)
+            population, stats = algorithms.pelitist(
                 toolbox=toolbox,
                 population_size=pop_size,
                 keep=0.1,
@@ -82,14 +89,13 @@ def explain(X: np.ndarray, y: np.ndarray, blackbox, pop_size: int):
                 mutpb=0.2,
                 max_generations=100,
                 hall_of_fame=hof,
+                workers_num=16,
             )
 
-            one_point_stats["hall_of_fame"].append(hof)
-            one_point_stats["target"].append(target)
-
-        results.append((outcome, deepcopy(one_point_stats)))
-        one_point_stats["hall_of_fame"].clear()
-        one_point_stats["target"].clear()
+            results["point"].append(i)
+            results["class"].append(outcome)
+            results["target"].append(target)
+            results["hall_of_fame"].append(hof)
 
     return build_stats_df(results, blackbox)
 
@@ -124,18 +130,5 @@ if __name__ == "__main__":
     X = predictions[[k for k in predictions if k != "outcome"]].to_numpy()
     y = predictions["outcome"].to_numpy()
 
-    stats = explain(X, y, svm, 2000)
-    name = str(svm).removesuffix("()")
-
-    params = args.filepath.split("/")[1].split("_")
-    samples = int(params[1])
-    features = int(params[2])
-    classes = int(params[3])
-    clusters = int(params[4])
-    seed = int(params[5].removesuffixe(".csv"))
-
-    stats.to_csv(
-        f"datasets/{name}_{samples}_{features}_{classes}_{clusters}_{seed}.csv",
-        header=True,
-        index=False,
-    )
+    stats = pd.DataFrame(explain(X, y, svm, 2000))
+    print(stats)
