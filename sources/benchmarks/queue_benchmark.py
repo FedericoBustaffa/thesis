@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import multiprocessing.queues as mpq
 import multiprocessing.synchronize as sync
+import pickle
 import statistics
 import time
 
@@ -54,6 +55,7 @@ def queue_benchmark(dim: int):
 
 
 def main():
+    pickle.DEFAULT_PROTOCOL = pickle.HIGHEST_PROTOCOL
     pop_dims = [
         100,
         200,

@@ -59,7 +59,7 @@ def main(argv: list[str]) -> None:
         max_generations=generations,
     )
     ptime = time.perf_counter() - start
-    logger.log(15, f"sequential time: {ptime} seconds")
+    logger.log(15, f"parallel time: {ptime} seconds")
 
     logger.log(15, f"speed up: {stime / ptime}")
 
