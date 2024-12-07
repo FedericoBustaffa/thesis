@@ -9,10 +9,6 @@ from sklearn.svm import SVC
 from ppga import algorithms, base, log
 
 
-def hall_of_fame_stats():
-    pass
-
-
 def build_stats_df(results: dict[str, list], blackbox) -> dict[str, list]:
     stats = {
         "point": [],

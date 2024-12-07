@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import blackbox
@@ -10,6 +11,19 @@ from explain import explain
 from ppga import log
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--log",
+        type=str,
+        choices=["debug", "benchmark", "info", "warning", "error"],
+        default="info",
+        help="set the logging level",
+    )
+
+    args = parser.parse_args()
+
+    # structure of the output
     output = {
         "blackbox": [],
         "samples": [],
@@ -31,9 +45,9 @@ if __name__ == "__main__":
 
     filepaths = sorted(os.listdir("./datasets/"))
     logger = log.getUserLogger()
-    logger.setLevel("INFO")
+    logger.setLevel(args.log.upper())
 
-    population_sizes = [1000, 4000, 16000]
+    population_sizes = [1000, 2000, 4000]
 
     for filepath in filepaths:
         for bb in blackboxes:
