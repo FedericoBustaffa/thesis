@@ -1,3 +1,4 @@
+import json
 import os
 
 import numpy as np
@@ -8,11 +9,11 @@ counter = 0
 
 
 def generate_dataset(
-    n_samples: int, n_features: int, n_classes: int, n_clusters
-) -> None:
+    n_samples: int, n_features: int, n_classes: int, n_clusters: int, seeds: list[int]
+):
     """Generate a dataset and store it in a CSV file"""
     try:
-        for seed in range(4):
+        for seed in seeds:
             X, y = make_classification(
                 n_samples=n_samples,
                 n_features=n_features,
@@ -54,15 +55,19 @@ def generate_dataset(
 
 
 if __name__ == "__main__":
-    n_samples = [100, 200, 400]
-    n_features = [2, 4, 8]
-    n_classes = [2, 4, 8]
-    n_clusters = [1, 2, 4]
+    with open("configs/light.json") as file:
+        data = dict(json.load(file))
+
+    n_samples = data["samples"]
+    n_features = data["features"]
+    n_classes = data["classes"]
+    n_clusters = data["clusters"]
+    seeds = data["seeds"]
 
     for samples in n_samples:
         for features in n_features:
             for classes in n_classes:
                 for clusters in n_clusters:
-                    generate_dataset(samples, features, classes, clusters)
+                    generate_dataset(samples, features, classes, clusters, seeds)
 
     print(f"{counter} datasets generated")
