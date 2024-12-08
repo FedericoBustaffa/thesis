@@ -1,5 +1,5 @@
-setuptools
-wheel
+./ppga/
+./explain/
 pyarrow
 scikit-learn
 colorama
@@ -12,5 +12,5 @@ ipykernel
 notebook
 jupyterlab
 jupyterlab-fonts
-./ppga/
-./explain/
+setuptools
+wheel
