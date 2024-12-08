@@ -74,7 +74,7 @@ if __name__ == "__main__":
                 # take only the number of samples in the test set
                 output["samples"].extend([len(y) for _ in range(len(y))])
 
-                # other dataset features
+                # other dataset params
                 params = filepath.split("_")
                 output["features"].extend([int(params[2]) for _ in range(len(y))])
                 output["classes"].extend([int(params[3]) for _ in range(len(y))])
