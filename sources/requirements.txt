@@ -13,3 +13,4 @@ notebook
 jupyterlab
 jupyterlab-fonts
 ./ppga/
+./explain/
