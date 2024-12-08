@@ -1,3 +1,6 @@
 [submodule "sources/ppga"]
 	path = sources/ppga
 	url = git@github.com:FedericoBustaffa/ppga.git
+[submodule "sources/explain"]
+	path = sources/explain
+	url = git@github.com:FedericoBustaffa/explain.git
