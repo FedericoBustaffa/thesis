@@ -70,6 +70,8 @@ def main(argv: list[str]):
         max_generations=G,
         hall_of_fame=hall_of_fame,
     )
+    solution = hall_of_fame[0]
+    solution2 = hall_of_fame[1]
     stime = time.perf_counter() - start
     logger.info(f"sequential best score: {best[0].fitness}")
     for i, ind in enumerate(hall_of_fame):
@@ -101,8 +103,10 @@ def main(argv: list[str]):
 
     # statistics data plot
     if logger.level <= logging.DEBUG:
-        solution = max(best, key=lambda x: x.fitness)
         plotting.draw_graph(data, solution.chromosome)
+        plotting.draw_graph(data, solution2.chromosome)
+        print(solution.chromosome)
+        print(solution2.chromosome)
         plotting.fitness_trend(stats)
         plotting.biodiversity_trend(stats)
 
