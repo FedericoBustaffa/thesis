@@ -35,7 +35,7 @@ def plot_dataset(
 def main():
     # create dataset
     X, y = make_classification(
-        n_samples=200,
+        n_samples=100,
         n_features=2,
         n_informative=2,
         n_redundant=0,
