@@ -2,10 +2,9 @@ import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.collections import PathCollection
 from numpy import linalg
 
-from ppga import base
+from ppga import base, parallel
 from ppga.algorithms import batch
 
 warnings.filterwarnings("ignore")
@@ -66,11 +65,6 @@ def plot_hof(
     plt.pause(0.0001)
 
 
-def animate(frame, scatter: PathCollection):
-    # scatter.set_offsets()
-    return (scatter,)
-
-
 def run(
     X: np.ndarray,
     y: np.ndarray,
@@ -87,11 +81,12 @@ def run(
     plt.title("Dataset")
     plt.xlabel("feature 1")
     plt.ylabel("feature 2")
+    pool = parallel.Pool()
     for g in range(max_generations):
         print(g)
         selected = toolbox.select(population, population_size)
         couples = batch.mating(selected)
-        offsprings = batch.cx_mut_eval(couples, toolbox, 0.8, 0.2)
+        offsprings = pool.map(batch.cx_mut_eval, couples, args=(toolbox, 0.8, 0.2))
         population = toolbox.replace(population, offsprings)
 
         hof.update(population)
@@ -101,3 +96,4 @@ def run(
         plot_hof(X, y, best_points, point, outcome)
 
     plt.show()
+    pool.join()
