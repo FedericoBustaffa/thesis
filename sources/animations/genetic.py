@@ -62,7 +62,7 @@ def plot_hof(
         )
 
     plt.scatter(hof.T[0], hof.T[1], c="y", ec="w")
-    plt.pause(0.0001)
+    plt.pause(0.00001)
 
 
 def run(
