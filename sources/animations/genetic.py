@@ -87,7 +87,12 @@ def run(
         selected = toolbox.select(population, population_size)
         couples = batch.mating(selected)
         offsprings = pool.map(batch.cx_mut_eval, couples, args=(toolbox, 0.8, 0.2))
-        population = toolbox.replace(population, offsprings)
+        offsprings_copy = []
+        for couple in offsprings:
+            if couple != ():
+                offsprings_copy.extend(couple)
+
+        population = toolbox.replace(population, offsprings_copy)
 
         hof.update(population)
 
