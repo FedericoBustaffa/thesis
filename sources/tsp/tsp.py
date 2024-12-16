@@ -61,7 +61,7 @@ def main(argv: list[str]):
 
     # sequential execution
     start = time.perf_counter()
-    best, stats = algorithms.elitist(
+    best, stats = algorithms.simple(
         toolbox=toolbox,
         population_size=N,
         keep=0.3,
@@ -81,7 +81,7 @@ def main(argv: list[str]):
     # parallel execution
     hall_of_fame.clear()
     start = time.perf_counter()
-    pbest, pstats = algorithms.pelitist(
+    pbest, pstats = algorithms.simple(
         toolbox=toolbox,
         population_size=N,
         keep=0.3,
@@ -89,6 +89,7 @@ def main(argv: list[str]):
         mutpb=0.3,
         max_generations=G,
         hall_of_fame=hall_of_fame,
+        workers_num=-1,
     )
     ptime = time.perf_counter() - start
     logger.info(f"parallel best score: {pbest[0].fitness}")
