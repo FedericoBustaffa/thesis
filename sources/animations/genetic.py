@@ -86,7 +86,7 @@ def run(
         print(g)
         selected = toolbox.select(population, population_size)
         couples = batch.mating(selected)
-        offsprings = pool.map(batch.cx_mut_eval, couples, args=(toolbox, 0.8, 0.2))
+        offsprings = pool.map(batch.cx_mut_eval, couples, toolbox, 0.8, 0.2)
         offsprings_copy = []
         for couple in offsprings:
             if couple != ():
