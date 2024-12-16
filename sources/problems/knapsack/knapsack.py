@@ -84,7 +84,7 @@ def main(argv: list[str]):
     hof = base.HallOfFame(10)
 
     # sequential execution
-    best, stats = algorithms.elitist(
+    best, stats = algorithms.simple(
         toolbox=toolbox,
         population_size=N,
         keep=0.3,
@@ -97,12 +97,10 @@ def main(argv: list[str]):
     value, weight = show_solution(best[0].chromosome, items)
     logger.info(f"sequential best solution: ({value:.3f}, {weight:.3f})")
     logger.info(f"sequential best fitnes: {best[0].fitness}")
-    with open("results/knapsack.json", "w") as file:
-        print(hof, file=file)
 
     # parallel execution
     hof.clear()
-    pbest, pstats = algorithms.pelitist(
+    pbest, pstats = algorithms.simple(
         toolbox=toolbox,
         population_size=N,
         keep=0.1,
@@ -110,14 +108,12 @@ def main(argv: list[str]):
         mutpb=0.2,
         max_generations=G,
         hall_of_fame=hof,
+        workers_num=-1,
     )
 
     value, weight = show_solution(pbest[0].chromosome, items)
     logger.info(f"queue best solution: ({value:.3f}, {weight:.3f})")
     logger.info(f"queue best fitness: {pbest[0].fitness}")
-
-    with open("results/knapsack.json", "w") as file:
-        print(hof, file=file)
 
     # plotting
     if logger.level <= logging.INFO:
