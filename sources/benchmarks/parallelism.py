@@ -35,24 +35,40 @@ if __name__ == "__main__":
     logger.setLevel("INFO")
 
     df = pd.read_csv("datasets/classification_100_2_2_1_0.csv")
-    # clf = MLPClassifier()
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
+    population_sizes = [1000, 2000, 4000]
+    workers = [1, 2, 4]
+    # workers = [1, 2, 4, 8, 16, 32]
+
+    results = {
+        "classifier": [],
+        "population_size": [],
+        "workers": [],
+        "time": [],
+        "time_std": [],
+    }
+
     for clf in classifiers:
-        X, y = make_predictions(clf, df, 0.1)
+        X, y = make_predictions(clf, df, 0.3)
         toolbox = create_toolbox(X)
         toolbox = update_toolbox(toolbox, X[0], y[0], clf)
+        for ps in population_sizes:
+            for w in workers:
+                times = []
+                for i in range(10):
+                    hof = base.HallOfFame(500)
+                    start = time.perf_counter()
+                    algorithms.simple(toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
+                    end = time.perf_counter()
+                    times.append(end - start)
 
-        hof = base.HallOfFame(500)
-        start = time.perf_counter()
-        algorithms.simple(toolbox, 1000, 0.1, 0.8, 0.2, 10, hof)
-        end = time.perf_counter()
-        stime = end - start
-        logger.info(f"sequential time: {stime} seconds")
+                results["classifier"].append(str(clf).removesuffix("()"))
+                results["population_size"].append(ps)
+                results["workers"].append(w)
+                results["time"].append(np.mean(times))
+                results["time_std"].append(np.std(times))
+                logger.info(f"classifier: {str(clf).removesuffix('()')}")
+                logger.info(f"population_size: {ps}")
+                logger.info(f"workers: {w}")
 
-        hof = base.HallOfFame(500)
-        start = time.perf_counter()
-        algorithms.simple(toolbox, 1000, 0.1, 0.8, 0.2, 10, hof, -1)
-        end = time.perf_counter()
-        ptime = end - start
-        logger.info(f"parallel time: {ptime} seconds")
-        logger.info(f"speed up: {stime / ptime}")
+    print(pd.DataFrame(results))
