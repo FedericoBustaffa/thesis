@@ -36,9 +36,8 @@ if __name__ == "__main__":
 
     df = pd.read_csv("datasets/classification_100_2_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
-    population_sizes = [1000, 2000, 4000]
-    workers = [1, 2, 4]
-    # workers = [1, 2, 4, 8, 16, 32]
+    population_sizes = [1000, 2000, 4000, 8000, 16000]
+    workers = [1, 2, 4, 8, 16, 32]
 
     results = {
         "classifier": [],
@@ -56,7 +55,7 @@ if __name__ == "__main__":
             for w in workers:
                 times = []
                 for i in range(10):
-                    hof = base.HallOfFame(500)
+                    hof = base.HallOfFame(ps)
                     start = time.perf_counter()
                     algorithms.simple(toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
                     end = time.perf_counter()
@@ -71,4 +70,6 @@ if __name__ == "__main__":
                 logger.info(f"population_size: {ps}")
                 logger.info(f"workers: {w}")
 
-    print(pd.DataFrame(results))
+    results = pd.DataFrame(results)
+    results.to_csv("datasets/speed.csv", index=False, header=True)
+    print(results)

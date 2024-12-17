@@ -1,0 +1,7 @@
+classifier,population_size,workers,time,time_std
+RandomForestClassifier,100,1,2.3446482969993667,0.0
+RandomForestClassifier,100,2,1.3034143340009905,0.0
+SVC,100,1,0.09321182799976668,0.0
+SVC,100,2,0.09002328299902729,0.0
+MLPClassifier,100,1,0.07895684700088168,0.0
+MLPClassifier,100,2,0.08791002699945238,0.0
