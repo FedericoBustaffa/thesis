@@ -38,10 +38,8 @@ if __name__ == "__main__":
 
     df = pd.read_csv("datasets/classification_100_2_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
-    # population_sizes = [1000, 2000, 4000, 8000, 16000]
-    population_sizes = [1000, 2000]
-    # workers = [1, 2, 4, 8, 16, 32]
-    workers = [1, 2, 4]
+    population_sizes = [1000, 2000, 4000, 8000, 16000]
+    workers = [1, 2, 4, 8, 16, 32]
 
     results = {
         "classifier": [],
@@ -90,7 +88,7 @@ if __name__ == "__main__":
                 else:
                     toolbox.register("map", mp.Pool(w).map)
 
-                for i in range(1):
+                for i in range(10):
                     pop = getattr(toolbox, "population")(n=ps)
                     hof = tools.HallOfFame(ps, similar=np.array_equal)
                     start = time.perf_counter()
