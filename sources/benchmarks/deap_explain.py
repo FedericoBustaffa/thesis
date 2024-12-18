@@ -51,7 +51,10 @@ if __name__ == "__main__":
 
     for clf in classifiers:
         X, y = make_predictions(clf, df, 0.3)
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+        creator.create("Individual", np.ndarray, fitness=getattr(creator, "FitnessMax"))
         toolbox = base.Toolbox()
+        toolbox.register("attr_float", np.copy)
         toolbox = create_toolbox(X)
         toolbox = update_toolbox(toolbox, X[0], y[0], clf)
         for ps in population_sizes:
