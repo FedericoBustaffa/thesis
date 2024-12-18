@@ -12,7 +12,8 @@ from ppga import algorithms, base, log
 
 
 def make_predictions(model, data: pd.DataFrame, test_size: float = 0.3):
-    features_index = [col for col in data.columns if col.startswith("feature_")]
+    features_index = [
+        col for col in data.columns if col.startswith("feature_")]
     X = data[features_index].to_numpy()
     y = data["outcome"].to_numpy()
 
