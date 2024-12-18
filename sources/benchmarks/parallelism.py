@@ -12,8 +12,7 @@ from ppga import algorithms, base, log
 
 
 def make_predictions(model, data: pd.DataFrame, test_size: float = 0.3):
-    features_index = [
-        col for col in data.columns if col.startswith("feature_")]
+    features_index = [col for col in data.columns if col.startswith("feature_")]
     X = data[features_index].to_numpy()
     y = data["outcome"].to_numpy()
 
@@ -72,5 +71,5 @@ if __name__ == "__main__":
                 logger.info(f"workers: {w}")
 
     results = pd.DataFrame(results)
-    results.to_csv("datasets/speed.csv", index=False, header=True)
+    results.to_csv("datasets/ppga_benchmark.csv", index=False, header=True)
     print(results)

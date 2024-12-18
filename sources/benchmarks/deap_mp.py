@@ -3,13 +3,13 @@ import time
 
 import numpy as np
 import pandas as pd
-from deap import algorithms, base, creator
-from scoop import futures
+from deap import algorithms, base, creator, tools
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
+from explain import genetic
 from ppga import log
 
 
@@ -38,8 +38,10 @@ if __name__ == "__main__":
 
     df = pd.read_csv("datasets/classification_100_2_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
-    population_sizes = [1000, 2000, 4000, 8000, 16000]
-    workers = [1, 2, 4, 8, 16, 32]
+    # population_sizes = [1000, 2000, 4000, 8000, 16000]
+    population_sizes = [1000, 2000]
+    # workers = [1, 2, 4, 8, 16, 32]
+    workers = [1, 2, 4]
 
     results = {
         "classifier": [],
@@ -52,18 +54,47 @@ if __name__ == "__main__":
     for clf in classifiers:
         X, y = make_predictions(clf, df, 0.3)
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        creator.create("Individual", np.ndarray, fitness=getattr(creator, "FitnessMax"))
+        creator.create("Individual", np.ndarray, fitness=getattr(creator, "FitnessMin"))
         toolbox = base.Toolbox()
-        toolbox.register("attr_float", np.copy)
-        toolbox = create_toolbox(X)
-        toolbox = update_toolbox(toolbox, X[0], y[0], clf)
+        point = X[0]
+        target = y[0]
+        toolbox.register("features", np.copy, point)
+        toolbox.register(
+            "individual",
+            tools.initIterate,
+            getattr(creator, "Individual"),
+            getattr(toolbox, "features"),
+        )
+
+        toolbox.register(
+            "population", tools.initRepeat, list, getattr(toolbox, "individual")
+        )
+
+        toolbox.register(
+            "evaluate", genetic.evaluate, point=point, target=target, blackbox=clf
+        )
+        toolbox.register("select", tools.selTournament, tournsize=3)
+        toolbox.register("mate", tools.cxOnePoint)
+        toolbox.register(
+            "mutate",
+            tools.mutGaussian,
+            mu=X.mean(),
+            sigma=X.std(),
+            indpb=0.5,
+        )
         for ps in population_sizes:
             for w in workers:
                 times = []
-                for i in range(10):
-                    hof = base.HallOfFame(ps)
+                if w == 1:
+                    toolbox.register("map", map)
+                else:
+                    toolbox.register("map", mp.Pool(w).map)
+
+                for i in range(1):
+                    pop = getattr(toolbox, "population")(n=ps)
+                    hof = tools.HallOfFame(ps, similar=np.array_equal)
                     start = time.perf_counter()
-                    algorithms.simple(toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
+                    algorithms.eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
                     end = time.perf_counter()
                     times.append(end - start)
 
@@ -77,5 +108,5 @@ if __name__ == "__main__":
                 logger.info(f"workers: {w}")
 
     results = pd.DataFrame(results)
-    results.to_csv("datasets/speed.csv", index=False, header=True)
+    results.to_csv("datasets/deap_mp.csv", index=False, header=True)
     print(results)
