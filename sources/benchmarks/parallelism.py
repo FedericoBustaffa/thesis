@@ -34,7 +34,7 @@ if __name__ == "__main__":
     logger = log.getUserLogger()
     logger.setLevel("INFO")
 
-    df = pd.read_csv("datasets/classification_100_2_2_1_0.csv")
+    df = pd.read_csv("datasets/classification_100_16_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
     population_sizes = [1000, 2000, 4000, 8000, 16000]
     workers = [1, 2, 4, 8, 16, 32]
@@ -71,5 +71,5 @@ if __name__ == "__main__":
                 logger.info(f"workers: {w}")
 
     results = pd.DataFrame(results)
-    results.to_csv("datasets/ppga_benchmark.csv", index=False, header=True)
+    results.to_csv("datasets/ppga_benchmark_16.csv", index=False, header=True)
     print(results)
