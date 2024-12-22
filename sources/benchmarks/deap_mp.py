@@ -1,9 +1,10 @@
 import multiprocessing as mp
+import random
 import time
 
 import numpy as np
 import pandas as pd
-from deap import algorithms, base, creator, tools
+from deap import base, creator, tools
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
@@ -30,6 +31,61 @@ def make_predictions(model, data: pd.DataFrame, test_size: float = 0.3):
     to_explain = np.asarray(model.predict(X_test))
 
     return np.asarray(X_test), to_explain
+
+
+def varAnd(population, toolbox, cxpb, mutpb):
+    offspring = [toolbox.clone(ind) for ind in population]
+
+    # Apply crossover and mutation on the offspring
+    for i in range(1, len(offspring), 2):
+        if random.random() < cxpb:
+            offspring[i - 1], offspring[i] = toolbox.mate(
+                offspring[i - 1], offspring[i]
+            )
+            del offspring[i - 1].fitness.values, offspring[i].fitness.values
+
+    for i in range(len(offspring)):
+        if random.random() < mutpb:
+            (offspring[i],) = toolbox.mutate(offspring[i])
+            del offspring[i].fitness.values
+
+    return offspring
+
+
+def eaSimple(population, toolbox, cxpb, mutpb, ngen, halloffame):
+    invalid_ind = [ind for ind in population if not ind.fitness.valid]
+    fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+    for ind, fit in zip(invalid_ind, fitnesses):
+        ind.fitness.values = fit
+
+    if halloffame is not None:
+        halloffame.update(population)
+
+    ptime = 0.0
+    # Begin the generational process
+    for gen in range(1, ngen + 1):
+        # Select the next generation individuals
+        offspring = toolbox.select(population, len(population))
+
+        # Vary the pool of individuals
+        offspring = varAnd(offspring, toolbox, cxpb, mutpb)
+
+        # Evaluate the individuals with an invalid fitness
+        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        start = time.perf_counter()
+        fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+        ptime += time.perf_counter() - start
+        for ind, fit in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit
+
+        # Update the hall of fame with the generated individuals
+        if halloffame is not None:
+            halloffame.update(offspring)
+
+        # Replace the current population by the offspring
+        population[:] = offspring
+
+    return population, ptime
 
 
 if __name__ == "__main__":
@@ -83,6 +139,7 @@ if __name__ == "__main__":
         for ps in population_sizes:
             for w in workers:
                 times = []
+                ptimes = []
                 if w == 1:
                     toolbox.register("map", map)
                 else:
@@ -92,15 +149,21 @@ if __name__ == "__main__":
                     pop = getattr(toolbox, "population")(n=ps)
                     hof = tools.HallOfFame(ps, similar=np.array_equal)
                     start = time.perf_counter()
-                    algorithms.eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
+                    ptime = eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
                     end = time.perf_counter()
                     times.append(end - start)
+                    ptimes.append(ptime)
 
                 results["classifier"].append(str(clf).removesuffix("()"))
                 results["population_size"].append(ps)
                 results["workers"].append(w)
+
                 results["time"].append(np.mean(times))
                 results["time_std"].append(np.std(times))
+
+                results["ptime"].append(np.mean(ptimes))
+                results["ptime_std"].append(np.std(ptimes))
+
                 logger.info(f"classifier: {str(clf).removesuffix('()')}")
                 logger.info(f"population_size: {ps}")
                 logger.info(f"workers: {w}")
