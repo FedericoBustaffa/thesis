@@ -36,8 +36,10 @@ if __name__ == "__main__":
 
     df = pd.read_csv("datasets/classification_100_32_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
-    population_sizes = [1000, 2000, 4000, 8000, 16000]
-    workers = [1, 2, 4, 8, 16, 32]
+    # population_sizes = [1000, 2000, 4000, 8000, 16000]
+    population_sizes = [1000]
+    # workers = [1, 2, 4, 8, 16, 32]
+    workers = [1, 4]
 
     results = {
         "classifier": [],
@@ -45,6 +47,8 @@ if __name__ == "__main__":
         "workers": [],
         "time": [],
         "time_std": [],
+        "ptime": [],
+        "ptime_std": [],
     }
 
     for clf in classifiers:
@@ -54,18 +58,29 @@ if __name__ == "__main__":
         for ps in population_sizes:
             for w in workers:
                 times = []
+                ptimes = []  # only parallel time
                 for i in range(10):
                     hof = base.HallOfFame(ps)
                     start = time.perf_counter()
-                    algorithms.simple(toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
+                    pop, stats = algorithms.simple(
+                        toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w
+                    )
                     end = time.perf_counter()
                     times.append(end - start)
+                    ptimes.append(np.sum(stats.times))
 
                 results["classifier"].append(str(clf).removesuffix("()"))
                 results["population_size"].append(ps)
                 results["workers"].append(w)
+
+                # total work time
                 results["time"].append(np.mean(times))
                 results["time_std"].append(np.std(times))
+
+                # only parallel time
+                results["ptime"].append(np.mean(ptimes))
+                results["ptime_std"].append(np.std(ptimes))
+
                 logger.info(f"classifier: {str(clf).removesuffix('()')}")
                 logger.info(f"population_size: {ps}")
                 logger.info(f"workers: {w}")
