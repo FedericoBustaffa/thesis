@@ -36,10 +36,8 @@ if __name__ == "__main__":
 
     df = pd.read_csv("datasets/classification_100_32_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
-    # population_sizes = [1000, 2000, 4000, 8000, 16000]
-    population_sizes = [1000]
-    # workers = [1, 2, 4, 8, 16, 32]
-    workers = [1, 4]
+    population_sizes = [1000, 2000, 4000, 8000, 16000]
+    workers = [1, 2, 4, 8, 16, 32]
 
     results = {
         "classifier": [],
