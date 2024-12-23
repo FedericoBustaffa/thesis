@@ -64,6 +64,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, halloffame):
     ptime = 0.0
     # Begin the generational process
     for gen in range(1, ngen + 1):
+        print(f"generation: {gen}")
         # Select the next generation individuals
         offspring = toolbox.select(population, len(population))
 
@@ -85,7 +86,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, halloffame):
         # Replace the current population by the offspring
         population[:] = offspring
 
-    return population, ptime
+    return ptime
 
 
 if __name__ == "__main__":
@@ -103,6 +104,8 @@ if __name__ == "__main__":
         "workers": [],
         "time": [],
         "time_std": [],
+        "ptime": [],
+        "ptime_std": [],
     }
 
     for clf in classifiers:
@@ -143,7 +146,7 @@ if __name__ == "__main__":
                 if w == 1:
                     toolbox.register("map", map)
                 else:
-                    toolbox.register("map", mp.Pool(w).map)
+                    toolbox.register("map", mp.Pool(processes=w).map)
 
                 for i in range(10):
                     pop = getattr(toolbox, "population")(n=ps)
