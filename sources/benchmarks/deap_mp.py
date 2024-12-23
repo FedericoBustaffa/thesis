@@ -1,3 +1,4 @@
+import argparse
 import multiprocessing as mp
 import random
 import time
@@ -90,11 +91,33 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, halloffame):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "model",
+        type=str,
+        required=True,
+        help="specify the model to benchmark",
+    )
+
+    parser.add_argument(
+        "--log",
+        type=str,
+        required=False,
+        default="INFO",
+        help="specify the logging level",
+    )
+
+    args = parser.parse_args()
+
     logger = log.getUserLogger()
-    logger.setLevel("INFO")
+    logger.setLevel(args.log.upper())
 
     df = pd.read_csv("datasets/classification_100_32_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
+    clf = classifiers[
+        ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
+    ]
     population_sizes = [1000, 2000, 4000, 8000, 16000]
     workers = [1, 2, 4, 8, 16, 32]
 
@@ -172,5 +195,5 @@ if __name__ == "__main__":
                 logger.info(f"workers: {w}")
 
     results = pd.DataFrame(results)
-    results.to_csv("datasets/deap_mp_32.csv", index=False, header=True)
+    results.to_csv(f"datasets/deap_mp_{args.model}_32.csv", index=False, header=True)
     print(results)
