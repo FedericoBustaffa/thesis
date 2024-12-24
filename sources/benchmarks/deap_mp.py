@@ -96,14 +96,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "model",
         type=str,
-        required=True,
         help="specify the model to benchmark",
     )
 
     parser.add_argument(
         "--log",
         type=str,
-        required=False,
         default="INFO",
         help="specify the logging level",
     )
@@ -131,68 +129,67 @@ if __name__ == "__main__":
         "ptime_std": [],
     }
 
-    for clf in classifiers:
-        X, y = make_predictions(clf, df, 0.3)
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        creator.create("Individual", np.ndarray, fitness=getattr(creator, "FitnessMin"))
-        toolbox = base.Toolbox()
-        point = X[0]
-        target = y[0]
-        toolbox.register("features", np.copy, point)
-        toolbox.register(
-            "individual",
-            tools.initIterate,
-            getattr(creator, "Individual"),
-            getattr(toolbox, "features"),
-        )
+    X, y = make_predictions(clf, df, 0.3)
+    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+    creator.create("Individual", np.ndarray, fitness=getattr(creator, "FitnessMin"))
+    toolbox = base.Toolbox()
+    point = X[0]
+    target = y[0]
+    toolbox.register("features", np.copy, point)
+    toolbox.register(
+        "individual",
+        tools.initIterate,
+        getattr(creator, "Individual"),
+        getattr(toolbox, "features"),
+    )
 
-        toolbox.register(
-            "population", tools.initRepeat, list, getattr(toolbox, "individual")
-        )
+    toolbox.register(
+        "population", tools.initRepeat, list, getattr(toolbox, "individual")
+    )
 
-        toolbox.register(
-            "evaluate", genetic.evaluate, point=point, target=target, blackbox=clf
-        )
-        toolbox.register("select", tools.selTournament, tournsize=3)
-        toolbox.register("mate", tools.cxOnePoint)
-        toolbox.register(
-            "mutate",
-            tools.mutGaussian,
-            mu=X.mean(),
-            sigma=X.std(),
-            indpb=0.5,
-        )
-        for ps in population_sizes:
-            for w in workers:
-                times = []
-                ptimes = []
-                if w == 1:
-                    toolbox.register("map", map)
-                else:
-                    toolbox.register("map", mp.Pool(processes=w).map)
+    toolbox.register(
+        "evaluate", genetic.evaluate, point=point, target=target, blackbox=clf
+    )
+    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("mate", tools.cxOnePoint)
+    toolbox.register(
+        "mutate",
+        tools.mutGaussian,
+        mu=X.mean(),
+        sigma=X.std(),
+        indpb=0.5,
+    )
+    for ps in population_sizes:
+        for w in workers:
+            times = []
+            ptimes = []
+            if w == 1:
+                toolbox.register("map", map)
+            else:
+                toolbox.register("map", mp.Pool(processes=w).map)
 
-                for i in range(10):
-                    pop = getattr(toolbox, "population")(n=ps)
-                    hof = tools.HallOfFame(ps, similar=np.array_equal)
-                    start = time.perf_counter()
-                    ptime = eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
-                    end = time.perf_counter()
-                    times.append(end - start)
-                    ptimes.append(ptime)
+            for i in range(10):
+                pop = getattr(toolbox, "population")(n=ps)
+                hof = tools.HallOfFame(ps, similar=np.array_equal)
+                start = time.perf_counter()
+                ptime = eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
+                end = time.perf_counter()
+                times.append(end - start)
+                ptimes.append(ptime)
 
-                results["classifier"].append(str(clf).removesuffix("()"))
-                results["population_size"].append(ps)
-                results["workers"].append(w)
+            results["classifier"].append(str(clf).removesuffix("()"))
+            results["population_size"].append(ps)
+            results["workers"].append(w)
 
-                results["time"].append(np.mean(times))
-                results["time_std"].append(np.std(times))
+            results["time"].append(np.mean(times))
+            results["time_std"].append(np.std(times))
 
-                results["ptime"].append(np.mean(ptimes))
-                results["ptime_std"].append(np.std(ptimes))
+            results["ptime"].append(np.mean(ptimes))
+            results["ptime_std"].append(np.std(ptimes))
 
-                logger.info(f"classifier: {str(clf).removesuffix('()')}")
-                logger.info(f"population_size: {ps}")
-                logger.info(f"workers: {w}")
+            logger.info(f"classifier: {str(clf).removesuffix('()')}")
+            logger.info(f"population_size: {ps}")
+            logger.info(f"workers: {w}")
 
     results = pd.DataFrame(results)
     results.to_csv(f"datasets/deap_mp_{args.model}_32.csv", index=False, header=True)
