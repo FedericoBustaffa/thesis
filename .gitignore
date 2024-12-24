@@ -28,3 +28,6 @@ results/
 *.pygtex
 *.pygstyle
 *.Identifier
+*.bbl
+*.blg
+*.lof
