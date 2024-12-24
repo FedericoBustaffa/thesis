@@ -159,15 +159,20 @@ if __name__ == "__main__":
         sigma=X.std(),
         indpb=0.5,
     )
-    for ps in population_sizes:
-        for w in workers:
+
+    for w in workers:
+        if w == 1:
+            toolbox.register("map", map)
+        else:
+            toolbox.register("map", mp.Pool(processes=w).map)
+
+        for ps in population_sizes:
+            logger.info(f"classifier: {args.model}")
+            logger.info(f"population size: {ps}")
+            logger.info(f"workers: {w}")
+
             times = []
             ptimes = []
-            if w == 1:
-                toolbox.register("map", map)
-            else:
-                toolbox.register("map", mp.Pool(processes=w).map)
-
             for i in range(10):
                 pop = getattr(toolbox, "population")(n=ps)
                 hof = tools.HallOfFame(ps, similar=np.array_equal)
@@ -186,10 +191,6 @@ if __name__ == "__main__":
 
             results["ptime"].append(np.mean(ptimes))
             results["ptime_std"].append(np.std(ptimes))
-
-            logger.info(f"classifier: {str(clf).removesuffix('()')}")
-            logger.info(f"population_size: {ps}")
-            logger.info(f"workers: {w}")
 
     results = pd.DataFrame(results)
     results.to_csv(f"datasets/deap_mp_{args.model}_32.csv", index=False, header=True)

@@ -13,7 +13,8 @@ from ppga import algorithms, base, log
 
 
 def make_predictions(model, data: pd.DataFrame, test_size: float = 0.3):
-    features_index = [col for col in data.columns if col.startswith("feature_")]
+    features_index = [
+        col for col in data.columns if col.startswith("feature_")]
     X = data[features_index].to_numpy()
     y = data["outcome"].to_numpy()
 
@@ -74,14 +75,19 @@ if __name__ == "__main__":
     X, y = make_predictions(clf, df, 0.3)
     toolbox = create_toolbox(X)
     toolbox = update_toolbox(toolbox, X[0], y[0], clf)
-    for ps in population_sizes:
-        for w in workers:
+    for w in workers:
+        for ps in population_sizes:
+            logger.info(f"classifier: {args.model}")
+            logger.info(f"population_size: {ps}")
+            logger.info(f"workers: {w}")
+
             times = []
             ptimes = []  # only parallel time
             for i in range(10):
                 hof = base.HallOfFame(ps)
                 start = time.perf_counter()
-                pop, stats = algorithms.simple(toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
+                pop, stats = algorithms.simple(
+                    toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
                 end = time.perf_counter()
                 times.append(end - start)
                 ptimes.append(np.sum(stats.times))
@@ -97,10 +103,6 @@ if __name__ == "__main__":
             # only parallel time
             results["ptime"].append(np.mean(ptimes))
             results["ptime_std"].append(np.std(ptimes))
-
-            logger.info(f"classifier: {str(clf).removesuffix('()')}")
-            logger.info(f"population_size: {ps}")
-            logger.info(f"workers: {w}")
 
     results = pd.DataFrame(results)
     results.to_csv(
