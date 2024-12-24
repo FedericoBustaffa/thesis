@@ -13,8 +13,7 @@ from ppga import algorithms, base, log
 
 
 def make_predictions(model, data: pd.DataFrame, test_size: float = 0.3):
-    features_index = [
-        col for col in data.columns if col.startswith("feature_")]
+    features_index = [col for col in data.columns if col.startswith("feature_")]
     X = data[features_index].to_numpy()
     y = data["outcome"].to_numpy()
 
@@ -86,8 +85,7 @@ if __name__ == "__main__":
             for i in range(10):
                 hof = base.HallOfFame(ps)
                 start = time.perf_counter()
-                pop, stats = algorithms.simple(
-                    toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
+                pop, stats = algorithms.simple(toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
                 end = time.perf_counter()
                 times.append(end - start)
                 ptimes.append(np.sum(stats.times))
