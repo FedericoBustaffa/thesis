@@ -100,6 +100,18 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "population_size",
+        type=int,
+        help="specify the population size",
+    )
+
+    parser.add_argument(
+        "workers",
+        type=int,
+        help="specify the number of workers",
+    )
+
+    parser.add_argument(
         "--log",
         type=str,
         default="INFO",
@@ -116,8 +128,6 @@ if __name__ == "__main__":
     clf = classifiers[
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
-    population_sizes = [1000, 2000, 4000, 8000, 16000]
-    workers = [1, 2, 4, 8, 16, 32]
 
     results = {
         "classifier": [],
@@ -160,38 +170,38 @@ if __name__ == "__main__":
         indpb=0.5,
     )
 
-    for w in workers:
-        if w == 1:
-            toolbox.register("map", map)
-        else:
-            toolbox.register("map", mp.Pool(processes=w).map)
+    if args.workers > 1:
+        toolbox.register("map", mp.Pool(processes=args.workers).map)
 
-        for ps in population_sizes:
-            logger.info(f"classifier: {args.model}")
-            logger.info(f"population size: {ps}")
-            logger.info(f"workers: {w}")
+    logger.info(f"classifier: {args.model}")
+    logger.info(f"population size: {args.population_size}")
+    logger.info(f"workers: {args.workers}")
 
-            times = []
-            ptimes = []
-            for i in range(10):
-                pop = getattr(toolbox, "population")(n=ps)
-                hof = tools.HallOfFame(ps, similar=np.array_equal)
-                start = time.perf_counter()
-                ptime = eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
-                end = time.perf_counter()
-                times.append(end - start)
-                ptimes.append(ptime)
+    times = []
+    ptimes = []
+    for i in range(10):
+        pop = getattr(toolbox, "population")(n=args.population_size)
+        hof = tools.HallOfFame(args.population_size, similar=np.array_equal)
+        start = time.perf_counter()
+        ptime = eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
+        end = time.perf_counter()
+        times.append(end - start)
+        ptimes.append(ptime)
 
-            results["classifier"].append(str(clf).removesuffix("()"))
-            results["population_size"].append(ps)
-            results["workers"].append(w)
+    results["classifier"].append(str(clf).removesuffix("()"))
+    results["population_size"].append(args.population_size)
+    results["workers"].append(args.workers)
 
-            results["time"].append(np.mean(times))
-            results["time_std"].append(np.std(times))
+    results["time"].append(np.mean(times))
+    results["time_std"].append(np.std(times))
 
-            results["ptime"].append(np.mean(ptimes))
-            results["ptime_std"].append(np.std(ptimes))
+    results["ptime"].append(np.mean(ptimes))
+    results["ptime_std"].append(np.std(ptimes))
 
     results = pd.DataFrame(results)
-    results.to_csv(f"datasets/deap_mp_{args.model}_32.csv", index=False, header=True)
+    results.to_csv(
+        f"datasets/deap_mp_{args.model}_{args.population_size}P_{args.workers}W_32F.csv",
+        index=False,
+        header=True,
+    )
     print(results)
