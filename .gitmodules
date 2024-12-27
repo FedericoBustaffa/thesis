@@ -1,6 +1,6 @@
 [submodule "sources/ppga"]
 	path = sources/ppga
 	url = git@github.com:FedericoBustaffa/ppga.git
-[submodule "sources/explain"]
+[submodule "sources/neighborhood_generator"]
 	path = sources/neighborhood_generator
 	url = git@github.com:FedericoBustaffa/neighborhood_generator.git
