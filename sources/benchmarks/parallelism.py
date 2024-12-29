@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-from explain.genetic import create_toolbox, update_toolbox
+from neighborhood_generator.genetic import create_toolbox, update_toolbox
 from ppga import algorithms, base, log
 
 
@@ -37,21 +37,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "model",
         type=str,
-        required=True,
         help="specify the model to benchmark",
     )
 
     parser.add_argument(
         "--log",
         type=str,
-        required=False,
         default="INFO",
         help="specify the logging level",
     )
 
     args = parser.parse_args()
+
+    # set the logger
     logger = log.getUserLogger()
-    logger.setLevel("INFO")
+    logger.setLevel(args.log.upper())
 
     df = pd.read_csv("datasets/classification_100_32_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
@@ -104,6 +104,8 @@ if __name__ == "__main__":
 
     results = pd.DataFrame(results)
     results.to_csv(
-        f"datasets/ppga_benchmark_{args.model}_32.csv", index=False, header=True
+        f"datasets/ppga_benchmark_{args.model}_32.csv",
+        index=False,
+        header=True,
     )
     print(results)

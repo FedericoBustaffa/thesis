@@ -6,32 +6,47 @@ import time
 import numpy as np
 import pandas as pd
 from deap import base, creator, tools
-from explain import genetic
+from parallelism import make_predictions
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
+from neighborhood_generator import genetic
 from ppga import log
 
 
-def make_predictions(model, data: pd.DataFrame, test_size: float = 0.3):
-    features_index = [col for col in data.columns if col.startswith("feature_")]
-    X = data[features_index].to_numpy()
-    y = data["outcome"].to_numpy()
-
-    # split train and test set
-    X_train, X_test, y_train, _ = train_test_split(
-        X, y, test_size=test_size, random_state=0
+def create_toolbox(X: np.ndarray) -> base.Toolbox:
+    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+    creator.create("Individual", np.ndarray, fitness=getattr(creator, "FitnessMin"))
+    toolbox = base.Toolbox()
+    point = X[0]
+    target = y[0]
+    toolbox.register("features", np.copy, point)
+    toolbox.register(
+        "individual",
+        tools.initIterate,
+        getattr(creator, "Individual"),
+        getattr(toolbox, "features"),
     )
 
-    # train the model
-    model.fit(X_train, y_train)
+    toolbox.register(
+        "population", tools.initRepeat, list, getattr(toolbox, "individual")
+    )
 
-    # these will be the data to explain
-    to_explain = np.asarray(model.predict(X_test))
+    toolbox.register(
+        "evaluate", genetic.evaluate, point=point, target=target, blackbox=clf
+    )
+    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("mate", tools.cxOnePoint)
+    toolbox.register(
+        "mutate",
+        tools.mutGaussian,
+        mu=X.mean(),
+        sigma=X.std(),
+        indpb=0.5,
+    )
 
-    return np.asarray(X_test), to_explain
+    return toolbox
 
 
 def varAnd(population, toolbox, cxpb, mutpb):
@@ -100,18 +115,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "population_size",
-        type=int,
-        help="specify the population size",
-    )
-
-    parser.add_argument(
-        "workers",
-        type=int,
-        help="specify the number of workers",
-    )
-
-    parser.add_argument(
         "--log",
         type=str,
         default="INFO",
@@ -119,8 +122,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    print(type(args.workers))
 
+    # set the log level
     logger = log.getUserLogger()
     logger.setLevel(args.log.upper())
 
@@ -129,6 +132,8 @@ if __name__ == "__main__":
     clf = classifiers[
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
+    population_sizes = [1000, 2000, 4000, 8000, 16000]
+    workers = [1, 2, 4, 8, 16, 32]
 
     results = {
         "classifier": [],
@@ -141,67 +146,50 @@ if __name__ == "__main__":
     }
 
     X, y = make_predictions(clf, df, 0.3)
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", np.ndarray, fitness=getattr(creator, "FitnessMin"))
-    toolbox = base.Toolbox()
-    point = X[0]
-    target = y[0]
-    toolbox.register("features", np.copy, point)
-    toolbox.register(
-        "individual",
-        tools.initIterate,
-        getattr(creator, "Individual"),
-        getattr(toolbox, "features"),
-    )
 
-    toolbox.register(
-        "population", tools.initRepeat, list, getattr(toolbox, "individual")
-    )
+    toolbox = create_toolbox(X)
 
-    toolbox.register(
-        "evaluate", genetic.evaluate, point=point, target=target, blackbox=clf
-    )
-    toolbox.register("select", tools.selTournament, tournsize=3)
-    toolbox.register("mate", tools.cxOnePoint)
-    toolbox.register(
-        "mutate",
-        tools.mutGaussian,
-        mu=X.mean(),
-        sigma=X.std(),
-        indpb=0.5,
-    )
+    for w in workers:
+        pool = None
+        if w > 1:
+            pool = mp.Pool(w)
+            toolbox.register("map", pool.map)
+        else:
+            toolbox.register("map", map)
 
-    if args.workers > 1:
-        toolbox.register("map", mp.Pool(processes=args.workers).map)
+        for ps in population_sizes:
+            logger.info(f"classifier: {args.model}")
+            logger.info(f"population size: {ps}")
+            logger.info(f"workers: {w}")
+            times = []
+            ptimes = []
+            for i in range(10):
+                pop = getattr(toolbox, "population")(n=ps)
+                hof = tools.HallOfFame(ps, similar=np.array_equal)
+                start = time.perf_counter()
+                ptime = eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
+                end = time.perf_counter()
+                times.append(end - start)
+                ptimes.append(ptime)
 
-    logger.info(f"classifier: {args.model}")
-    logger.info(f"population size: {args.population_size}")
-    logger.info(f"workers: {args.workers}")
+            results["classifier"].append(str(clf).removesuffix("()"))
+            results["population_size"].append(ps)
+            results["workers"].append(w)
 
-    times = []
-    ptimes = []
-    for i in range(10):
-        pop = getattr(toolbox, "population")(n=args.population_size)
-        hof = tools.HallOfFame(args.population_size, similar=np.array_equal)
-        start = time.perf_counter()
-        ptime = eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
-        end = time.perf_counter()
-        times.append(end - start)
-        ptimes.append(ptime)
+            # total work time
+            results["time"].append(np.mean(times))
+            results["time_std"].append(np.std(times))
 
-    results["classifier"].append(str(clf).removesuffix("()"))
-    results["population_size"].append(args.population_size)
-    results["workers"].append(args.workers)
+            # only parallel time
+            results["ptime"].append(np.mean(ptimes))
+            results["ptime_std"].append(np.std(ptimes))
 
-    results["time"].append(np.mean(times))
-    results["time_std"].append(np.std(times))
-
-    results["ptime"].append(np.mean(ptimes))
-    results["ptime_std"].append(np.std(ptimes))
+        pool.join()
+        pool.close()
 
     results = pd.DataFrame(results)
     results.to_csv(
-        f"datasets/deap_mp_{args.model}_{args.population_size}P_{args.workers}W_32F.csv",
+        f"results/deap_benchmark_{args.model}_32.csv",
         index=False,
         header=True,
     )
