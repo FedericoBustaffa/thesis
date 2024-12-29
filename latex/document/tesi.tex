@@ -19,6 +19,7 @@
 \usepackage[italian]{babel} % applicazione regole di scrittura per la lingua italiana 
 \usepackage[utf8]{inputenc} % codifica UTF-8
 \usepackage{scrlayer-scrpage} % stili pagina per il frontespizio
+\usepackage[hidelinks]{hyperref} % collegamenti ipertestuali
 \ifoot[]{}
 \cfoot[]{}
 \ofoot[\pagemark]{\pagemark}
@@ -26,7 +27,7 @@
 % \usepackage{mathptmx} % font Times New Roman (simile)
 \usepackage{graphicx} % inserimento di immagini
 \usepackage{csquotes} % per le citazioni "in blocco"
-%\usepackage[backend=biber, sorting=nty, ]{biblatex} % bibliografia con pacchetto biblatex (https://ctan.org/pkg/biblatex?lang=en)
+% \usepackage[backend=biber, sorting=nty, ]{biblatex} % bibliografia con pacchetto biblatex (https://ctan.org/pkg/biblatex?lang=en)
 \appto{\bibsetup}{\raggedright}
 
 \usepackage{titlesec} % per la formattazione dei titoli delle sezioni, capitoli etc.
@@ -178,9 +179,10 @@
 \addcontentsline{toc}{chapter}{Conclusioni} % Capitolo non numerato
 \input{conclusions.tex}
 
-\bibliographystyle{plain} % We choose the "plain" reference style
+
+\bibliographystyle{plain}
 \bibliography{bibliography} % Entries are in the refs.bib file
-%\addbibresource{bibliography.bib}
-%\printbibliography
+% \addbibresource{bibliography.bib}
+% \printbibliography
 
 \end{document}

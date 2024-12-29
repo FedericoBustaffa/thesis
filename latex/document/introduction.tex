@@ -1,2 +1,23 @@
 \chapter*{Introduzione}
 
+Il lavoro di tesi verteva sull'implementazione di una libreria di algoritmi
+genetici, in grado di sfruttare architetture multicore per il calcolo parallelo.
+
+Tale esigenza nasce dalla necessità di ridurre i tempi di esecuzione in un
+contesto di \textit{explainable AI}. Nello specifico si fa riferimento a
+\textit{LORE}, un framework per la generazione di spiegazioni delle scelte
+fatte da modelli di machine learning. La prima fase dell'algoritmo sfrutta un
+algoritmo genetico per la generazione di punti sintetici con determinate
+caratteristiche, utilizzati in seguito per la costruzione di un albero di
+decisione.
+
+Sia \textit{LORE} che la maggior parte di librerie di machine learning
+forniscono un'implementazione Python. Da qui la necessità di avere una API
+Python anche per la libreria implementata. La prima fase del lavoro è stata
+quindi incentrata sull'esplorazione di possibili soluzioni per
+un'implementazione in grado di sfruttare il parallelismo e che fosse
+utilizzabile tramite una API Python.
+
+Si è poi passato ad una fase di benchmark in cui si sono valutate le
+performance e si è effettuato un confronto con la libreria \textit{DEAP},
+attualmente impiegata da \textit{LORE}~\cite{guidotti2018survey}.
