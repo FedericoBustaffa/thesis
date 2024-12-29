@@ -6,12 +6,12 @@ import time
 import numpy as np
 import pandas as pd
 from deap import base, creator, tools
+from explain import genetic
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-from explain import genetic
 from ppga import log
 
 
@@ -119,6 +119,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    print(type(args.workers))
 
     logger = log.getUserLogger()
     logger.setLevel(args.log.upper())
