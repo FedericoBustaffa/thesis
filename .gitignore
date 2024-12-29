@@ -8,7 +8,6 @@ dist/
 utils.egg-info/
 .ipynb_checkpoints/
 logs/
-results/
 
 # latex
 *.aux
