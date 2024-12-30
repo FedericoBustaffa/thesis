@@ -184,8 +184,9 @@ if __name__ == "__main__":
             results["ptime"].append(np.mean(ptimes))
             results["ptime_std"].append(np.std(ptimes))
 
-        pool.join()
-        pool.close()
+        if pool is not None:
+            pool.join()
+            pool.close()
 
     results = pd.DataFrame(results)
     results.to_csv(
