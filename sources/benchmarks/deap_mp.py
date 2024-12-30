@@ -106,7 +106,7 @@ if __name__ == "__main__":
             logger.info(f"workers: {w}")
             times = []
             for i in range(10):
-                pop = getattr(toolbox, "population")(n=ps)
+                pop = toolbox.population(n=ps)
                 hof = tools.HallOfFame(ps, similar=np.array_equal)
                 start = time.perf_counter()
                 pop, lb = algorithms.eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
