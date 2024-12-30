@@ -5,7 +5,7 @@ genetici, in grado di sfruttare architetture multicore per il calcolo parallelo.
 
 Tale esigenza nasce dalla necessità di ridurre i tempi di esecuzione in un
 contesto di \textit{explainable AI}. Nello specifico si fa riferimento al
-progetto \textit{LORE}~\cite{guidotti2018lore}, un framework per la generazione
+progetto \textit{LORE}~\cite{DBLP:journals/corr/abs-1805-10820} la generazione
 di spiegazioni delle decisioni prese da un modello di machine learning. La prima
 fase dell'algoritmo frutta infatti un algoritmo genetico per la generazione di
 punti sintetici con determinate caratteristiche, utilizzati in seguito per la
@@ -18,10 +18,16 @@ incentrata sull'esplorazione di possibili soluzioni per un'implementazione in
 grado di sfruttare il parallelismo e che fosse utilizzabile tramite una API
 Python.
 
-Si è poi passati ad una fase di benchmark in cui si sono valutate le
-performance, il grado di parallelizzazione raggiunto e si è effettuato un
-confronto con \textit{DEAP}~\cite{DEAP_JMLR2012}, attualmente impiegata da
-\textit{LORE}.
+Si è poi passati ad una piccola fase di test su problemi ben noti come il
+problema dello zaino e del commesso viaggiatore. Questo per verificare qualità
+e correttezza dell'implementazione proposta. Si è inoltre valutata la
+correttezza delle versioni sequenziale e parallela sul problema di riferimento.
+
+Una volta testata la correttezza dell'implementazione è seguita una fase di
+benchmark in cui si sono valutate le performance e il grado di parallelismo
+raggiunto. Dato che anche \textit{DEAP} fornisce la possibilità di sfruttare il
+parallelismo, si è deciso di confrontare le performance dei due framework sia
+nelle loro versioni sequenziali che parallelizzate.
 
 Infine sono stati svolti dei test sulla qualità dei risultati prodotti. Qui
 l'obbiettivo è stato quello di verificare che l'implementazione proposta fosse
