@@ -4,20 +4,25 @@ Il lavoro di tesi verteva sull'implementazione di una libreria di algoritmi
 genetici, in grado di sfruttare architetture multicore per il calcolo parallelo.
 
 Tale esigenza nasce dalla necessità di ridurre i tempi di esecuzione in un
-contesto di \textit{explainable AI}. Nello specifico si fa riferimento a
-\textit{LORE}, un framework per la generazione di spiegazioni delle scelte
-fatte da modelli di machine learning. La prima fase dell'algoritmo sfrutta un
-algoritmo genetico per la generazione di punti sintetici con determinate
-caratteristiche, utilizzati in seguito per la costruzione di un albero di
-decisione.
+contesto di \textit{explainable AI}. Nello specifico si fa riferimento al
+progetto \textit{LORE}~\cite{guidotti2018lore}, un framework per la generazione
+di spiegazioni delle decisioni prese da un modello di machine learning. La prima
+fase dell'algoritmo frutta infatti un algoritmo genetico per la generazione di
+punti sintetici con determinate caratteristiche, utilizzati in seguito per la
+costruzione di un albero di decisione, fondamentale per fornire le
+\textit{spiegazioni}.
 
 Sia \textit{LORE} che la maggior parte di librerie di machine learning
-forniscono un'implementazione Python. Da qui la necessità di avere una API
-Python anche per la libreria implementata. La prima fase del lavoro è stata
-quindi incentrata sull'esplorazione di possibili soluzioni per
-un'implementazione in grado di sfruttare il parallelismo e che fosse
-utilizzabile tramite una API Python.
+forniscono un'implementazione Python. La prima fase del lavoro è stata quindi
+incentrata sull'esplorazione di possibili soluzioni per un'implementazione in
+grado di sfruttare il parallelismo e che fosse utilizzabile tramite una API
+Python.
 
-Si è poi passato ad una fase di benchmark in cui si sono valutate le
-performance e si è effettuato un confronto con la libreria \textit{DEAP},
-attualmente impiegata da \textit{LORE}~\cite{guidotti2018survey}.
+Si è poi passati ad una fase di benchmark in cui si sono valutate le
+performance e si è effettuato un confronto con la libreria
+\textit{DEAP}~\cite{DEAP_JMLR2012}, attualmente impiegata da \textit{LORE}.
+
+Infine è stato svolto un benchmark sulla qualità dei risultati prodotti. Qui
+l'obbiettivo è stato quello di verificare che l'implementazione proposta fosse
+in grado di produrre risultati comparabili con quelli ottenuti con tramite
+il modulo \textit{DEAP}.
