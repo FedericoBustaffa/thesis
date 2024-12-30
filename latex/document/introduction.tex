@@ -5,12 +5,12 @@ genetici, in grado di sfruttare architetture multicore per il calcolo parallelo.
 
 Tale esigenza nasce dalla necessità di ridurre i tempi di esecuzione in un
 contesto di \textit{explainable AI}. Nello specifico si fa riferimento al
-progetto \textit{LORE}~\cite{DBLP:journals/corr/abs-1805-10820} la generazione
-di spiegazioni delle decisioni prese da un modello di machine learning. La prima
-fase dell'algoritmo frutta infatti un algoritmo genetico per la generazione di
-punti sintetici con determinate caratteristiche, utilizzati in seguito per la
-costruzione di un albero di decisione, fondamentale per fornire le
-\textit{spiegazioni}.
+progetto \textit{LORE}~\cite{DBLP:journals/corr/abs-1805-10820} per la
+generazione di spiegazioni delle decisioni prese da un modello di machine
+learning. La prima fase dell'algoritmo sfrutta infatti un algoritmo genetico
+implementato dal framework \textit{DEAP}~\cite{DEAP_JMLR2012} per la
+generazione di punti sintetici con determinate caratteristiche, utilizzati in
+seguito per la costruzione delle \textit{spiegazioni}.
 
 Sia \textit{LORE} che la maggior parte di librerie di machine learning
 forniscono un'implementazione Python. La prima fase del lavoro è stata quindi
@@ -18,10 +18,10 @@ incentrata sull'esplorazione di possibili soluzioni per un'implementazione in
 grado di sfruttare il parallelismo e che fosse utilizzabile tramite una API
 Python.
 
-Si è poi passati ad una piccola fase di test su problemi ben noti come il
-problema dello zaino e del commesso viaggiatore. Questo per verificare qualità
-e correttezza dell'implementazione proposta. Si è inoltre valutata la
-correttezza delle versioni sequenziale e parallela sul problema di riferimento.
+Si è poi passati ad una fase di test su problemi ben noti, come il problema
+dello zaino e del commesso viaggiatore, per verificare qualità e correttezza
+dell'implementazione proposta. Si è inoltre valutata la correttezza delle
+versioni sequenziale e parallela sul problema di riferimento.
 
 Una volta testata la correttezza dell'implementazione è seguita una fase di
 benchmark in cui si sono valutate le performance e il grado di parallelismo
