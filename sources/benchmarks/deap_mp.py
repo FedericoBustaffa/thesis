@@ -125,10 +125,10 @@ if __name__ == "__main__":
             pool.close()
             pool.join()
 
-    results = pd.DataFrame(results)
-    results.to_csv(
+    results_df = pd.DataFrame(results)
+    results_df.to_csv(
         f"results/deap_benchmark_{args.model}_32.csv",
         index=False,
         header=True,
     )
-    print(results)
+    print(results_df)
