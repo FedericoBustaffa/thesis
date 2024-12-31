@@ -102,10 +102,10 @@ if __name__ == "__main__":
             results["ptime"].append(np.mean(ptimes))
             results["ptime_std"].append(np.std(ptimes))
 
-    results = pd.DataFrame(results)
-    results.to_csv(
+    results_df = pd.DataFrame(results)
+    results_df.to_csv(
         f"datasets/ppga_benchmark_{args.model}_32.csv",
         index=False,
         header=True,
     )
-    print(results)
+    print(results_df)
