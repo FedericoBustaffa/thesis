@@ -1,10 +1,11 @@
 import argparse
 import multiprocessing as mp
+import random
 import time
 
 import numpy as np
 import pandas as pd
-from deap import algorithms, base, creator, tools
+from deap import base, creator, tools
 from parallelism import make_predictions
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
@@ -48,6 +49,72 @@ def create_toolbox(X: np.ndarray) -> base.Toolbox:
     return toolbox
 
 
+def varAnd(population, toolbox, cxpb, mutpb):
+    offspring = [toolbox.clone(ind) for ind in population]
+
+    # Apply crossover and mutation on the offspring
+    for i in range(1, len(offspring), 2):
+        if random.random() < cxpb:
+            offspring[i - 1], offspring[i] = toolbox.mate(
+                offspring[i - 1], offspring[i]
+            )
+            del offspring[i - 1].fitness.values, offspring[i].fitness.values
+
+    for i in range(len(offspring)):
+        if random.random() < mutpb:
+            (offspring[i],) = toolbox.mutate(offspring[i])
+            del offspring[i].fitness.values
+
+    return offspring
+
+
+def eaSimple(
+    population,
+    toolbox,
+    cxpb,
+    mutpb,
+    ngen,
+    halloffame=None,
+):
+    ptime = 0.0
+    # Evaluate the individuals with an invalid fitness
+    invalid_ind = [ind for ind in population if not ind.fitness.valid]
+    start = time.perf_counter()
+    fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+    for ind, fit in zip(invalid_ind, fitnesses):
+        ind.fitness.values = fit
+    ptime += time.perf_counter() - start
+
+    if halloffame is not None:
+        halloffame.update(population)
+
+    # Begin the generational process
+    for gen in range(1, ngen + 1):
+        print(f"generation: {gen}")
+        # Select the next generation individuals
+        offspring = toolbox.select(population, len(population))
+
+        # Vary the pool of individuals
+        offspring = varAnd(offspring, toolbox, cxpb, mutpb)
+
+        # Evaluate the individuals with an invalid fitness
+        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        start = time.perf_counter()
+        fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+        for ind, fit in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit
+        ptime += time.perf_counter() - start
+
+        # Update the hall of fame with the generated individuals
+        if halloffame is not None:
+            halloffame.update(offspring)
+
+        # Replace the current population by the offspring
+        population[:] = offspring
+
+    return ptime
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -86,6 +153,8 @@ if __name__ == "__main__":
         "workers": [],
         "time": [],
         "time_std": [],
+        "ptime": [],
+        "ptime_std": [],
     }
 
     X, y = make_predictions(clf, df, 0.3)
@@ -93,25 +162,31 @@ if __name__ == "__main__":
     toolbox = create_toolbox(X)
 
     for w in workers:
-        pool = None
-        if w > 1:
-            pool = mp.Pool(w)
-            toolbox.register("map", pool.map)
-        else:
-            toolbox.register("map", map)
-
         for ps in population_sizes:
             logger.info(f"classifier: {args.model}")
             logger.info(f"population size: {ps}")
             logger.info(f"workers: {w}")
             times = []
+            ptimes = []
             for i in range(10):
+                pool = None
+                if w > 1:
+                    pool = mp.Pool(w)
+                    toolbox.register("map", pool.map)
+                else:
+                    toolbox.register("map", map)
+
                 pop = toolbox.population(n=ps)
                 hof = tools.HallOfFame(ps, similar=np.array_equal)
                 start = time.perf_counter()
-                pop, lb = algorithms.eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
+                ptime = eaSimple(pop, toolbox, 0.8, 0.2, 5, hof)
                 end = time.perf_counter()
                 times.append(end - start)
+                ptimes.append(ptime)
+
+                if pool is not None:
+                    pool.close()
+                    pool.join()
 
             results["classifier"].append(str(clf).removesuffix("()"))
             results["population_size"].append(ps)
@@ -120,14 +195,12 @@ if __name__ == "__main__":
             # total work time
             results["time"].append(np.mean(times))
             results["time_std"].append(np.std(times))
-
-        if pool is not None:
-            pool.close()
-            pool.join()
+            results["ptime"].append(np.mean(ptimes))
+            results["ptime_std"].append(np.std(ptimes))
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
-        f"results/deap_benchmark_{args.model}_32.csv",
+        f"results/deap_benchmark_2_{args.model}_32.csv",
         index=False,
         header=True,
     )
