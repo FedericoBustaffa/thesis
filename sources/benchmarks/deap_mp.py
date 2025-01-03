@@ -110,7 +110,7 @@ if __name__ == "__main__":
                     toolbox.register("map", map)
 
                 pop = toolbox.population(n=ps)
-                hof = tools.HallOfFame(ps * 0.1, similar=np.array_equal)
+                hof = tools.HallOfFame(int(ps * 0.1), similar=np.array_equal)
                 start = time.perf_counter()
                 _, _, ptime = algorithms.eaSimple(pop, toolbox, 0.8, 0.2, 5, None, hof)
                 end = time.perf_counter()
