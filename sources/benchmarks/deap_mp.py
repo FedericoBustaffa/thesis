@@ -59,8 +59,14 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "hall_of_fame",
-        type=int,
+        type=float,
         help="specify the hall of fame ratio",
+    )
+
+    parser.add_argument(
+        "suffix",
+        type=str,
+        help="specify the suffix of the output file",
     )
 
     parser.add_argument(
@@ -145,7 +151,7 @@ if __name__ == "__main__":
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
-        f"results/deap_benchmark_2_{args.model}_32.csv",
+        f"results/deap_benchmark_2_{args.model}_32_{args.suffix}.csv",
         index=False,
         header=True,
     )
