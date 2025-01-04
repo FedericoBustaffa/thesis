@@ -1,5 +1,6 @@
 ./ppga/
 ./neighborhood_generator/
+./deap/
 pyarrow
 scikit-learn
 colorama
