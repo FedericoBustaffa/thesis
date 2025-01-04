@@ -66,6 +66,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "suffix",
         type=str,
+        default="",
         help="specify the suffix of the output file",
     )
 
