@@ -58,6 +58,12 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "hall_of_fame",
+        type=int,
+        help="specify the hall of fame ratio",
+    )
+
+    parser.add_argument(
         "--log",
         type=str,
         default="INFO",
@@ -110,7 +116,13 @@ if __name__ == "__main__":
                     toolbox.register("map", map)
 
                 pop = toolbox.population(n=ps)
-                hof = tools.HallOfFame(int(ps * 0.1), similar=np.array_equal)
+                hof = (
+                    tools.HallOfFame(
+                        int(ps * args.hall_of_fame), similar=np.array_equal
+                    )
+                    if args.hall_of_fame > 0
+                    else None
+                )
                 start = time.perf_counter()
                 _, _, ptime = algorithms.eaSimple(pop, toolbox, 0.8, 0.2, 5, None, hof)
                 end = time.perf_counter()
