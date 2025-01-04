@@ -4,3 +4,6 @@
 [submodule "sources/neighborhood_generator"]
 	path = sources/neighborhood_generator
 	url = git@github.com:FedericoBustaffa/neighborhood_generator.git
+[submodule "sources/deap"]
+	path = sources/deap
+	url = git@github.com:FedericoBustaffa/deap.git
