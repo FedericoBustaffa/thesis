@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
-        f"results/deap_benchmark_2_{args.model}_32_{args.suffix}.csv",
+        f"results/deap_{args.model}_32_{args.suffix}.csv",
         index=False,
         header=True,
     )
