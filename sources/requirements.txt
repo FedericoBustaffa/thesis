@@ -6,7 +6,6 @@ colorama
 numpy
 matplotlib
 pandas
-deap
 scoop
 ipykernel
 notebook
