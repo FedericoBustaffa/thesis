@@ -1,21 +1,26 @@
 \chapter*{Introduzione}
 
-Il lavoro di tesi verteva sull'implementazione di una libreria di algoritmi
+Il lavoro di tesi verte sull'implementazione di una libreria di algoritmi
 genetici, in grado di sfruttare architetture multicore per il calcolo parallelo.
 
 Tale esigenza nasce dalla necessità di ridurre i tempi di esecuzione in un
 contesto di \textit{explainable AI}. Nello specifico si fa riferimento al
-progetto \textit{LORE}~\cite{DBLP:journals/corr/abs-1805-10820} per la
-generazione di spiegazioni delle decisioni prese da un modello di machine
-learning. La prima fase dell'algoritmo sfrutta infatti un algoritmo genetico
-implementato dal framework \textit{DEAP}~\cite{DEAP_JMLR2012} per la
-generazione di punti sintetici con determinate caratteristiche, utilizzati in
-seguito per la costruzione delle \textit{spiegazioni}.
+progetto \textit{LORE}~\cite{DBLP:journals/corr/abs-1805-10820}, un metodo per
+fornire la spiegazioni alle decisioni o predizioni fatte da una modello di
+machine learning. In una prima fase \textit{LORE} sfrutta infatti un algoritmo
+genetico, la cui implementazione è attualmente fornita dalla libreria
+\textit{DEAP}~\cite{DEAP_JMLR2012}. Questa libreria garantisce un alto livello
+di modularità e varietà, dando all'utente la possibilità di personalizzare il
+proprio algoritmo come meglio crede. Può inoltre sfruttare il parallelismo
+tramite l'utilizzo di processi multipli ma non fornisce molto controllo
+sull'implementazione del paradigma di calcolo.
 
-Sia \textit{LORE} che la maggior parte di librerie di machine learning
-forniscono un'implementazione Python. La prima fase del lavoro è stata quindi
-incentrata sull'esplorazione di possibili soluzioni per un'implementazione in
-grado di sfruttare il parallelismo e che fosse utilizzabile tramite una API
+Dato che tutti i framework citati fino ad ora, così come la maggior parte delle
+librerie di machine learning, sono scritte in Python, si è scelto di produrre
+qualcosa necessità di avere l'interfaccia nel medesimo linguaggio.
+
+La prima fase del lavoro è stata infatti quella riguardante l'esplorazione di
+possibili soluzioni per implementare un paradigma di calcolo parallelo in
 Python.
 
 Si è poi passati ad una fase di test su problemi ben noti, come il problema
