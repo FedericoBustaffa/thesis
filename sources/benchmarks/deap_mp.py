@@ -118,7 +118,7 @@ if __name__ == "__main__":
                 pool = None
                 if w > 1:
                     pool = mp.Pool(w)
-                    toolbox.register("map", pool.map)
+                    toolbox.register("map", pool.map, chunksize=ps // w)
                 else:
                     toolbox.register("map", map)
 
