@@ -6,35 +6,30 @@ genetici, in grado di sfruttare architetture multicore per il calcolo parallelo.
 Tale esigenza nasce dalla necessità di ridurre i tempi di esecuzione in un
 contesto di \textit{explainable AI}. Nello specifico si fa riferimento al
 progetto \textit{LORE}~\cite{DBLP:journals/corr/abs-1805-10820}, un metodo per
-fornire la spiegazioni alle decisioni o predizioni fatte da una modello di
-machine learning. In una prima fase \textit{LORE} sfrutta infatti un algoritmo
-genetico, la cui implementazione è attualmente fornita dalla libreria
-\textit{DEAP}~\cite{DEAP_JMLR2012}. Questa libreria garantisce un alto livello
-di modularità e varietà, dando all'utente la possibilità di personalizzare il
-proprio algoritmo come meglio crede. Può inoltre sfruttare il parallelismo
-tramite l'utilizzo di processi multipli ma non fornisce molto controllo
-sull'implementazione del paradigma di calcolo.
+fornire spiegazioni a decisioni o predizioni fatte da una modello di machine
+learning. In una prima fase \textit{LORE} sfrutta infatti un algoritmo genetico,
+la cui implementazione è attualmente fornita dalla libreria
+\textit{DEAP}~\cite{DEAP_JMLR2012}. La libreria in questione garantisce un alto
+livello di modularità e varietà, dando all'utente la possibilità di comporre e
+personalizzare il proprio algoritmo come meglio crede. Può inoltre sfruttare il
+parallelismo tramite l'utilizzo di processi multipli ma non fornisce molto
+controllo sull'implementazione del paradigma di calcolo.
 
-Dato che tutti i framework citati fino ad ora, così come la maggior parte delle
-librerie di machine learning, sono scritte in Python, si è scelto di produrre
-qualcosa necessità di avere l'interfaccia nel medesimo linguaggio.
+Dato che \textit{LORE} e gran parte delle librerie di machine learning sono
+scritte in Python, al fine di garantire una sinergia tra i sistemi si è deciso
+di optare per l'implementazione di un qualcosa che avesse una API nello stesso
+linguaggio. Sono state quindi vagliate varie opzioni allo scopo di soddisfare
+tali esigenze, optando alla fine per un'implementazione interamente in Python.
 
-La prima fase del lavoro è stata infatti quella riguardante l'esplorazione di
-possibili soluzioni per implementare un paradigma di calcolo parallelo in
-Python.
+Per valutare qualità e correttezza sono stati svolti test su problemi classici,
+come il problema del commesso viaggiatore e dello zaino o, per valutare il
+comportamento su problemi a valori reali, un semplice caso di regressione
+lineare. Tutti problemi in cui la qualità della soluzione generata fosse
+facilmente verificabile e rappresentabile graficamente.
 
-Si è poi passati ad una fase di test su problemi ben noti, come il problema
-dello zaino e del commesso viaggiatore, per verificare qualità e correttezza
-dell'implementazione proposta. Si è inoltre valutata la correttezza delle
-versioni sequenziale e parallela sul problema di riferimento.
-
-Una volta testata la correttezza dell'implementazione è seguita una fase di
-benchmark in cui si sono valutate le performance e il grado di parallelismo
-raggiunto. Dato che anche \textit{DEAP} fornisce la possibilità di sfruttare il
-parallelismo, si è deciso di confrontare le performance dei due framework sia
-nelle loro versioni sequenziali che parallelizzate.
+Una volta implementata la libreria, si è passati ad una fase di test in cui
+si sono valutate e confrontate qualità e performace con \textit{DEAP}.
 
 Infine sono stati svolti dei test sulla qualità dei risultati prodotti. Qui
 l'obbiettivo è stato quello di verificare che l'implementazione proposta fosse
-in grado di produrre risultati comparabili con quelli ottenuti tramite
-\textit{DEAP}.
+in grado di produrre risultati comparabili con quelli ottenuti da \textit{DEAP}.
