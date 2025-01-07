@@ -2,24 +2,24 @@
 
 Il lavoro di tesi verte sull'implementazione di una libreria di algoritmi
 genetici, in grado di sfruttare architetture multicore per il calcolo parallelo.
+L'esigenza di implementare un algoritmo con queste caratteristiche nasce dalla
+necessità di ottimizzare un precedente lavoro, il quale ne fa largo uso.
 
-Tale esigenza nasce dalla necessità di ridurre i tempi di esecuzione in un
-contesto di \textit{explainable AI}. Nello specifico si fa riferimento al
-progetto \textit{LORE}~\cite{DBLP:journals/corr/abs-1805-10820}, un metodo per
-fornire spiegazioni a decisioni o predizioni fatte da una modello di machine
-learning. In una prima fase \textit{LORE} sfrutta infatti un algoritmo genetico,
-la cui implementazione è attualmente fornita dalla libreria
-\textit{DEAP}~\cite{DEAP_JMLR2012}. La libreria in questione garantisce un alto
-livello di modularità e varietà, dando all'utente la possibilità di comporre e
-personalizzare il proprio algoritmo come meglio crede. Può inoltre sfruttare il
-parallelismo tramite l'utilizzo di processi multipli ma non fornisce molto
-controllo sull'implementazione del paradigma di calcolo.
+Il progetto in questione è \textit{LORE}~\cite{guidotti2018LORE}, il quale si
+colloca nell'ambito dell'explainable AI e che ha quindi l'obbiettivo di
+\textit{spiegare} le decisioni prese da un modello di machine learning.
+Attualmente \textit{LORE} sfrutta \textit{DEAP}~\cite{fortin2012DEAP}, come
+libreria di algoritmi genetici, la quale offre un alto livello di modularità e
+flessibilità, mettendo a disposizione dell'utente la possibilità di sfruttare
+il parallelismo, dando però poco controllo sull'architettura del modello di
+calcolo.
 
-Dato che \textit{LORE} e gran parte delle librerie di machine learning sono
-scritte in Python, al fine di garantire una sinergia tra i sistemi si è deciso
-di optare per l'implementazione di un qualcosa che avesse una API nello stesso
-linguaggio. Sono state quindi vagliate varie opzioni allo scopo di soddisfare
-tali esigenze, optando alla fine per un'implementazione interamente in Python.
+Si è quindi cercato di implementare un'architettura più ottimizzata e specifica,
+in g
+
+Le implementazioni di \textit{LORE} e \textit{DEAP}, così come la maggior parte
+delle librerie di machine learning forniscono una API Python, rendendo quindi
+necessario implementare una libreria con una API nello stesso linguaggio.
 
 Per valutare qualità e correttezza sono stati svolti test su problemi classici,
 come il problema del commesso viaggiatore e dello zaino o, per valutare il
