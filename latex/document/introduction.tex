@@ -2,34 +2,54 @@
 
 Il lavoro di tesi verte sull'implementazione di una libreria di algoritmi
 genetici, in grado di sfruttare architetture multicore per il calcolo parallelo.
-L'esigenza di implementare un algoritmo con queste caratteristiche nasce dalla
-necessità di ottimizzare un precedente lavoro, il quale ne fa largo uso.
+La necessità di un algoritmo genetico con questa struttura nasce in un contesto
+di explainable AI, in particolare si fa riferimento al progetto
+\textit{LORE}~\cite{guidotti2018LORE}, il quale utilizza un'implementazione
+fornita dalla libreria di algoritmi genetici \textit{DEAP}~\cite{fortin2012DEAP}.
 
-Il progetto in questione è \textit{LORE}~\cite{guidotti2018LORE}, il quale si
-colloca nell'ambito dell'explainable AI e che ha quindi l'obbiettivo di
-\textit{spiegare} le decisioni prese da un modello di machine learning.
-Attualmente \textit{LORE} sfrutta \textit{DEAP}~\cite{fortin2012DEAP}, come
-libreria di algoritmi genetici, la quale offre un alto livello di modularità e
-flessibilità, mettendo a disposizione dell'utente la possibilità di sfruttare
-il parallelismo, dando però poco controllo sull'architettura del modello di
-calcolo.
+Il metodo \textit{LORE} si propone di generare spiegazioni a decisioni o
+predizioni fatte da modelli di machine learning, spesso difficili da
+interpretare per via della loro elevata complessità, come ad esempio reti
+neurali profonde o forest casuali. In una prima fase, viene utilizzato un
+algoritmo genetico su ogni istanza del dataset per la generazione di dati
+sintetici con determinate caratteristiche, fondamentali in seguito per la
+costruzione delle spiegazioni.
 
-Si è quindi cercato di implementare un'architettura più ottimizzata e specifica,
-in g
+Il problema principale di questo approccio sono le performace. Risulta infatti
+essere un metodo molto dispendioso soprattutto quando si ha a che fare con
+dataset grandi, si vogliono generare molti punti sintetici oppure il modello
+per la classificazione è particolarmente lento in fase di predizione.
 
-Le implementazioni di \textit{LORE} e \textit{DEAP}, così come la maggior parte
-delle librerie di machine learning forniscono una API Python, rendendo quindi
-necessario implementare una libreria con una API nello stesso linguaggio.
+Scendendo più in dettaglio, le implementazioni di \textit{LORE} e \textit{DEAP},
+così come la maggior parte delle librerie di machine learning, sono
+implementate (o forniscono una API) in Python, rendendo quindi necessario
+implementare (o fornire una API) nello stesso linguaggio.
 
-Per valutare qualità e correttezza sono stati svolti test su problemi classici,
-come il problema del commesso viaggiatore e dello zaino o, per valutare il
-comportamento su problemi a valori reali, un semplice caso di regressione
-lineare. Tutti problemi in cui la qualità della soluzione generata fosse
-facilmente verificabile e rappresentabile graficamente.
+Durante la prima fase del lavoro si sono quindi esplorate possibili soluzioni
+per un'implementazione in grado lavorare in sinergia con le altre componenti in
+gioco e che fosse più performante possibile. Essendo però Python il linguaggio
+scelto, non è possibile un'implementazione multithread a causa del GIL (Global
+Interpreter Lock), il quale non permette l'esecuzione simultanea di thread con
+task ti tipo CPU-bound. Stanno tuttavia emergendo possibili soluzioni a tale
+problema, diventate poi oggetto di ricerca per la tesi.
 
-Una volta implementata la libreria, si è passati ad una fase di test in cui
-si sono valutate e confrontate qualità e performace con \textit{DEAP}.
+Una volta implementata la libreria si è passati ad una fase di test per
+valutarne correttezza e qualità, impiegando l'algoritmo per la risoluzione di
+problemi ben noti in letteratura e che si potessero rappresentare facilmente
+tramite in modo grafico. Tra questi abbiamo il problema dello zaino, del
+commesso viaggiatore e un semplice caso di regressione lineare. Infine è stata
+testata la correttezza sul caso d'uso precedentemente descritto per \textit{LORE}.
 
-Infine sono stati svolti dei test sulla qualità dei risultati prodotti. Qui
-l'obbiettivo è stato quello di verificare che l'implementazione proposta fosse
-in grado di produrre risultati comparabili con quelli ottenuti da \textit{DEAP}.
+% Una volta eseguiti test qualitativi sul correttezza e qualitò delle soluzioni
+% prodotte, si è passati ad un'esplorazione più approfondita nella quale si è 
+
+Dato che anche \textit{DEAP} fornisce la possibilità di sfruttare il
+parallelismo tramite l'impiego di processi multipli, nell'ultima fase sono
+stati effettuati dei benchmark sulle performance, mettendo a confronto i
+tempi impiegati dalle due librerie al variare di diversi parametri come numero
+di \textit{worker}, dimensione dell'input e modello utilizzato per la
+classificazione.
+
+I risultati ottenuti superano DEAP nella maggior parte dei casi, fornendo tempi
+d'esecuzione inferiori e dimostrando una maggiore capacità di sfruttare
+architetture multicore quando si tratta di calcolo intensivo.
