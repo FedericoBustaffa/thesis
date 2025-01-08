@@ -23,10 +23,41 @@ costituiscono la soluzione al problema o una codifica di essa. Nella loro forma
 più comune sono composti da sei fasi:
 
 \begin{enumerate}
-	\item Generazione:
-	\item Selezione:
-	\item Crossover:
-	\item Mutazione:
-	\item Valutazione:
-	\item Rimpiazzo:
+	\item Generazione: viene generata in modo casuale una popolazione di
+	      cromosomi i cui attributi appartengono al dominio del problema.
+	\item Selezione: Vengono selezionati i $k$ migliori individui di una certa
+	      generazione.
+	\item Crossover: due o più individui si scambiano il materiale genetico,
+	      ossia gli attributi dei cromosomi, generando nuovi individui.
+	\item Mutazione: viene applicata una piccola variazione al cromosoma in
+	      favorendo l'esplorazione di più valori nello spazio delle soluzioni.
+	\item Valutazione: ogni individuo viene valutato in base ad una funzione di
+	      che gli attribuisce un valore di \textit{fitness}.
+	\item Rimpiazzo: si decide quali individui tenere e quali scartare tra una
+	      generazione e l'altra.
 \end{enumerate}
+
+Tutte le fasi tranne la prima sono eseguite in un ciclo le cui iterazioni
+rappresentano le generazioni della popolazione. Abbiamo quindi una struttura
+di algoritmo genetico di questo tipo:
+
+% \begin{center}
+% 	\includesvg
+% \end{center}
+
+che è la stessa implementata per il lavoro di tesi.
+
+\subsection{Calcolo parallelo}
+
+Uno degli obbiettivi principali è stato quello di riuscire a sfruttare
+architetture multi-core per svolgere alcune delle fasi dell'algoritmo genetico
+in parallelo. Nel caso di una struttura di algoritmo genetico come quella
+precedentemente descritta, si è proposto un modello di calcolo parallelo di
+questo genere
+
+% \begin{center}
+% 	\includesvg
+% \end{center}
+
+che mira ad implementare un paradigma \textit{map-reduce} per le fasi di
+crossover, mutazione e valutazione.
