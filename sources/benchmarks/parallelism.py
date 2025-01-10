@@ -12,7 +12,7 @@ from neighborhood_generator.genetic import create_toolbox, update_toolbox
 from ppga import algorithms, base, log
 
 
-def make_predictions(model, data: pd.DataFrame, test_size: float = 0.3):
+def make_predictions(model, data: pd.DataFrame, test_size):
     features_index = [col for col in data.columns if col.startswith("feature_")]
     X = data[features_index].to_numpy()
     y = data["outcome"].to_numpy()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     logger = log.getUserLogger()
     logger.setLevel(args.log.upper())
 
-    df = pd.read_csv("datasets/classification_100_32_2_1_0.csv")
+    df = pd.read_csv("datasets/classification_10010_32_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
     clf = classifiers[
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
@@ -71,36 +71,41 @@ if __name__ == "__main__":
         "ptime_std": [],
     }
 
-    X, y = make_predictions(clf, df, 0.3)
+    X, y = make_predictions(clf, df, 10)
     toolbox = create_toolbox(X)
-    toolbox = update_toolbox(toolbox, X[0], y[0], clf)
+
     for w in workers:
         for ps in population_sizes:
-            logger.info(f"classifier: {args.model}")
-            logger.info(f"population_size: {ps}")
-            logger.info(f"workers: {w}")
+            for i, (features, prediction) in enumerate(zip(X, y)):
+                toolbox = update_toolbox(toolbox, features, prediction, clf)
+                logger.info(f"point {i + 1}/{len(y)}")
+                logger.info(f"classifier: {args.model}")
+                logger.info(f"population_size: {ps}")
+                logger.info(f"workers: {w}")
 
-            times = []
-            ptimes = []  # only parallel time
-            for i in range(10):
-                hof = base.HallOfFame(ps)
-                start = time.perf_counter()
-                pop, stats = algorithms.simple(toolbox, ps, 0.1, 0.8, 0.2, 5, hof, w)
-                end = time.perf_counter()
-                times.append(end - start)
-                ptimes.append(np.sum(stats.times))
+                times = []
+                ptimes = []  # only parallel time
+                for i in range(10):
+                    hof = base.HallOfFame(ps)
+                    start = time.perf_counter()
+                    pop, stats = algorithms.simple(
+                        toolbox, ps, 0.1, 0.8, 0.2, 20, hof, w
+                    )
+                    end = time.perf_counter()
+                    times.append(end - start)
+                    ptimes.append(np.sum(stats.times))
 
-            results["classifier"].append(str(clf).removesuffix("()"))
-            results["population_size"].append(ps)
-            results["workers"].append(w)
+                results["classifier"].append(str(clf).removesuffix("()"))
+                results["population_size"].append(ps)
+                results["workers"].append(w)
 
-            # total work time
-            results["time"].append(np.mean(times))
-            results["time_std"].append(np.std(times))
+                # total work time
+                results["time"].append(np.mean(times))
+                results["time_std"].append(np.std(times))
 
-            # only parallel time
-            results["ptime"].append(np.mean(ptimes))
-            results["ptime_std"].append(np.std(ptimes))
+                # only parallel time
+                results["ptime"].append(np.mean(ptimes))
+                results["ptime_std"].append(np.std(ptimes))
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
