@@ -1,53 +1,18 @@
-import argparse
 import time
 
 import numpy as np
 import pandas as pd
+from common import make_predictions, parse_args
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
 from neighborhood_generator.genetic import create_toolbox, update_toolbox
 from ppga import algorithms, base, log
 
-
-def make_predictions(model, data: pd.DataFrame, test_size):
-    features_index = [col for col in data.columns if col.startswith("feature_")]
-    X = data[features_index].to_numpy()
-    y = data["outcome"].to_numpy()
-
-    # split train and test set
-    X_train, X_test, y_train, _ = train_test_split(
-        X, y, test_size=test_size, random_state=0
-    )
-
-    # train the model
-    model.fit(X_train, y_train)
-
-    # these will be the data to explain
-    to_explain = np.asarray(model.predict(X_test))
-
-    return np.asarray(X_test), to_explain
-
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "model",
-        type=str,
-        help="specify the model to benchmark",
-    )
-
-    parser.add_argument(
-        "--log",
-        type=str,
-        default="INFO",
-        help="specify the logging level",
-    )
-
-    args = parser.parse_args()
+    # get CLI args
+    args = parse_args()
 
     # set the logger
     logger = log.getUserLogger()
@@ -58,10 +23,15 @@ if __name__ == "__main__":
     clf = classifiers[
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
-    population_sizes = [1000, 2000, 4000, 8000, 16000]
-    workers = [1, 2, 4, 8, 16, 32]
+    # population_sizes = [1000, 2000, 4000, 8000, 16000]
+    population_sizes = [1000, 2000]
+    # workers = [1, 2, 4, 8, 16, 32]
+    workers = [1, 4, 16]
 
     results = {
+        "point": [],
+        "class": [],
+        "target": [],
         "classifier": [],
         "population_size": [],
         "workers": [],
@@ -71,45 +41,55 @@ if __name__ == "__main__":
         "ptime_std": [],
     }
 
-    X, y = make_predictions(clf, df, 10)
+    X, y = make_predictions(clf, df, 5)
+    outcomes = np.unique(y)
     toolbox = create_toolbox(X)
 
     for w in workers:
         for ps in population_sizes:
-            for i, (features, prediction) in enumerate(zip(X, y)):
-                toolbox = update_toolbox(toolbox, features, prediction, clf)
-                logger.info(f"point {i + 1}/{len(y)}")
-                logger.info(f"classifier: {args.model}")
-                logger.info(f"population_size: {ps}")
-                logger.info(f"workers: {w}")
+            for i, (features, outcome) in enumerate(zip(X, y)):
+                for target in outcomes:
+                    logger.info(f"point {i + 1}/{len(y)}")
+                    logger.info(f"features: {i}")
+                    logger.info(f"class: {outcome}")
+                    logger.info(f"target: {target}")
+                    logger.info(f"classifier: {args.model}")
+                    logger.info(f"population_size: {ps}")
+                    logger.info(f"workers: {w}")
 
-                times = []
-                ptimes = []  # only parallel time
-                for i in range(10):
-                    hof = base.HallOfFame(ps)
-                    start = time.perf_counter()
-                    pop, stats = algorithms.simple(
-                        toolbox, ps, 0.1, 0.8, 0.2, 20, hof, w
-                    )
-                    end = time.perf_counter()
-                    times.append(end - start)
-                    ptimes.append(np.sum(stats.times))
+                    toolbox = update_toolbox(toolbox, features, int(target), clf)
 
-                results["classifier"].append(str(clf).removesuffix("()"))
-                results["population_size"].append(ps)
-                results["workers"].append(w)
+                    times = []
+                    ptimes = []  # only parallel time
+                    for _ in range(10):
+                        hof = base.HallOfFame(ps)
+                        start = time.perf_counter()
+                        pop, stats = algorithms.simple(
+                            toolbox, ps, 0.1, 0.8, 0.2, 20, hof, w
+                        )
+                        end = time.perf_counter()
+                        times.append(end - start)
+                        ptimes.append(np.sum(stats.times))
 
-                # total work time
-                results["time"].append(np.mean(times))
-                results["time_std"].append(np.std(times))
+                    results["point"].append(i)
+                    results["class"].append(outcome)
+                    results["target"].append(target)
 
-                # only parallel time
-                results["ptime"].append(np.mean(ptimes))
-                results["ptime_std"].append(np.std(ptimes))
+                    results["classifier"].append(str(clf).removesuffix("()"))
+                    results["population_size"].append(ps)
+                    results["workers"].append(w)
+
+                    # total work time
+                    results["time"].append(np.mean(times))
+                    results["time_std"].append(np.std(times))
+
+                    # only parallel time
+                    results["ptime"].append(np.mean(ptimes))
+                    results["ptime_std"].append(np.std(ptimes))
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
-        f"results/ppga_{args.model}_32.csv",
+        f"results/ppga_{args.model}_32_{args.suffix}.csv",
         index=False,
         header=True,
     )
