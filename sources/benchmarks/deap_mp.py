@@ -9,7 +9,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
 from deap import algorithms, base, creator, tools
-from neighborhood_generator import genetic
+from neighborhood_generator import genetic_deap as genetic
 from ppga import log
 
 

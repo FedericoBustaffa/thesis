@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-from neighborhood_generator.genetic import create_toolbox, update_toolbox
+from neighborhood_generator import genetic
 from ppga import algorithms, base, log
 
 if __name__ == "__main__":
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     X, y = make_predictions(clf, df, 5)
     outcomes = np.unique(y)
-    toolbox = create_toolbox(X)
+    toolbox = genetic.create_toolbox(X)
 
     for w in workers:
         for ps in population_sizes:
@@ -57,7 +57,9 @@ if __name__ == "__main__":
                     logger.info(f"population_size: {ps}")
                     logger.info(f"workers: {w}")
 
-                    toolbox = update_toolbox(toolbox, features, int(target), clf)
+                    toolbox = genetic.update_toolbox(
+                        toolbox, features, int(target), clf
+                    )
 
                     times = []
                     ptimes = []  # only parallel time
