@@ -8,51 +8,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-from deap import algorithms, base, creator, tools
+from deap import algorithms, tools
 from neighborhood_generator import genetic_deap as genetic
 from ppga import log
-
-
-def create_toolbox(X: np.ndarray) -> base.Toolbox:
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", np.ndarray, fitness=getattr(creator, "FitnessMin"))
-    toolbox = base.Toolbox()
-
-    toolbox.register("select", tools.selTournament, tournsize=3)
-    toolbox.register("mate", tools.cxOnePoint)
-    toolbox.register(
-        "mutate",
-        tools.mutGaussian,
-        mu=X.mean(),
-        sigma=X.std(),
-        indpb=0.5,
-    )
-
-    return toolbox
-
-
-def update_toolbox(
-    toolbox: base.ToolBox, point: np.ndarray, target: int, blackbox
-) -> base.ToolBox:
-    # update the toolbox with new generation and evaluation
-    toolbox.register("features", np.copy, point)
-    toolbox.register(
-        "individual",
-        tools.initIterate,
-        getattr(creator, "Individual"),
-        getattr(toolbox, "features"),
-    )
-
-    toolbox.register(
-        "population", tools.initRepeat, list, getattr(toolbox, "individual")
-    )
-
-    toolbox.register(
-        "evaluate", genetic.evaluate, point=point, target=target, blackbox=blackbox
-    )
-
-    return toolbox
-
 
 if __name__ == "__main__":
     # get CLI args
@@ -85,9 +43,9 @@ if __name__ == "__main__":
         "ptime_std": [],
     }
 
-    X, y = make_predictions(clf, df, 5)
+    X, y = make_predictions(clf, df, 10)
     outcomes = np.unique(y)
-    toolbox = create_toolbox(X)
+    toolbox = genetic.create_toolbox_deap(X)
 
     for w in workers:
         for ps in population_sizes:
@@ -101,7 +59,9 @@ if __name__ == "__main__":
                     logger.info(f"population_size: {ps}")
                     logger.info(f"workers: {w}")
 
-                    toolbox = update_toolbox(toolbox, features, int(target), clf)
+                    toolbox = genetic.update_toolbox_deap(
+                        toolbox, features, int(target), clf
+                    )
 
                     times = []
                     ptimes = []
@@ -109,16 +69,13 @@ if __name__ == "__main__":
                         pool = None
                         if w > 1:
                             pool = mp.Pool(w)
-                            toolbox.register("map", pool.map, chunksize=ps // w)
+                            toolbox.register("map", pool.map)
+                            # toolbox.register("map", pool.map, chunksize=ps // w)
                         else:
                             toolbox.register("map", map)
 
                         pop = toolbox.population(n=ps)
-                        hof = (
-                            tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
-                            if args.hall_of_fame > 0
-                            else None
-                        )
+                        hof = tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
                         start = time.perf_counter()
                         _, _, ptime = algorithms.eaSimple(
                             pop, toolbox, 0.8, 0.2, 20, None, hof

@@ -41,7 +41,7 @@ if __name__ == "__main__":
         "ptime_std": [],
     }
 
-    X, y = make_predictions(clf, df, 5)
+    X, y = make_predictions(clf, df, 10)
     outcomes = np.unique(y)
     toolbox = genetic.create_toolbox(X)
 
