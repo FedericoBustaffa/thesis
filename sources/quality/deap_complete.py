@@ -1,12 +1,12 @@
 import os
 
 import pandas as pd
+from common import get_args, make_predictions
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
 import neighborhood_generator as ng
-from complete import get_args, make_predictions
 from ppga import log
 
 if __name__ == "__main__":
