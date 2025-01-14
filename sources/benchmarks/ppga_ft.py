@@ -1,3 +1,4 @@
+import os
 import time
 
 import numpy as np
@@ -14,22 +15,24 @@ if __name__ == "__main__":
     # get CLI args
     args = parse_args()
 
-    # set the logger
+    # set the log level
     logger = log.getUserLogger()
     logger.setLevel(args.log.upper())
 
-    df = pd.read_csv("datasets/classification_10010_32_2_1_0.csv")
+    filepaths = os.listdir("datasets/")
+    datasets = [pd.read_csv(f"datasets/{fp}") for fp in filepaths]
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
     clf = classifiers[
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
-    # population_sizes = [1000, 2000, 4000, 8000, 16000]
-    population_sizes = [1000, 2000]
-    # workers = [1, 2, 4, 8, 16, 32]
-    workers = [1, 4, 16]
+
+    ps = 8000
+    workers = [1, 2, 4, 8, 16, 32]
+    # workers = [4]
 
     results = {
         "point": [],
+        "features": [],
         "class": [],
         "target": [],
         "classifier": [],
@@ -41,16 +44,15 @@ if __name__ == "__main__":
         "ptime_std": [],
     }
 
-    X, y = make_predictions(clf, df, 10)
-    outcomes = np.unique(y)
-    toolbox = genetic.create_toolbox(X)
-
     for w in workers:
-        for ps in population_sizes:
+        for df in datasets:
+            X, y = make_predictions(clf, df, 10)
+            outcomes = np.unique(y)
+            toolbox = genetic.create_toolbox(X)
             for i, (features, outcome) in enumerate(zip(X, y)):
                 for target in outcomes:
                     logger.info(f"point {i + 1}/{len(y)}")
-                    logger.info(f"features: {i}")
+                    logger.info(f"features: {len(X[0])}")
                     logger.info(f"class: {outcome}")
                     logger.info(f"target: {target}")
                     logger.info(f"classifier: {args.model}")
@@ -62,8 +64,8 @@ if __name__ == "__main__":
                     )
 
                     times = []
-                    ptimes = []  # only parallel time
-                    for _ in range(10):
+                    ptimes = []
+                    for i in range(10):
                         hof = base.HallOfFame(ps)
                         start = time.perf_counter()
                         pop, stats = algorithms.simple(
@@ -74,6 +76,7 @@ if __name__ == "__main__":
                         ptimes.append(np.sum(stats.times))
 
                     results["point"].append(i)
+                    results["features"].append(len(X[0]))
                     results["class"].append(outcome)
                     results["target"].append(target)
 
