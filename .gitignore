@@ -9,24 +9,3 @@ utils.egg-info/
 .ipynb_checkpoints/
 logs/
 
-# latex
-*.aux
-*.fdb_latexmk
-*.fls
-*.toc
-*.log
-*.out
-*.gz
-*.pdf
-*.snm
-*.nav
-*.pgf
-*.vcd
-*.vpp.bak*
-*.lck
-*.pygtex
-*.pygstyle
-*.Identifier
-*.bbl
-*.blg
-*.lof

@@ -35,6 +35,7 @@ def main(argv: list[str]):
     if len(argv) < 5:
         argv.append("success")
 
+    log.setLevel(argv[4].upper())
     logger = log.getUserLogger()
     logger.setLevel(argv[4].upper())
 
