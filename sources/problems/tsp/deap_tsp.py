@@ -5,10 +5,10 @@ import time
 from functools import partial
 
 import pandas as pd
-from deap import algorithms, base, creator, tools
 from scoop import futures
-
 from utils import plotting
+
+from deap import algorithms, base, creator, tools
 
 
 class Town:

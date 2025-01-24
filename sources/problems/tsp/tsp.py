@@ -39,7 +39,7 @@ def main(argv: list[str]):
     logger = log.getUserLogger()
     logger.setLevel(argv[4].upper())
 
-    data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
+    data = pd.read_csv(f"problems/tsp/datasets/towns_{argv[1]}.csv")
     x_coords = data["x"]
     y_coords = data["y"]
     towns = [Town(x, y) for x, y in zip(x_coords, y_coords)]
