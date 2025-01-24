@@ -1,32 +1,14 @@
-import math
 import random
 import sys
 import time
 from functools import partial
 
 import pandas as pd
+from common import Town, evaluate
 from scoop import futures
 from utils import plotting
 
 from deap import algorithms, base, creator, tools
-
-
-class Town:
-    def __init__(self, x: float, y: float) -> None:
-        self.x = x
-        self.y = y
-
-
-def distance(t1: Town, t2: Town) -> float:
-    return math.sqrt(math.pow(t1.x - t2.x, 2) + math.pow(t1.y - t2.y, 2))
-
-
-def evaluate(towns: list[Town], chromosome) -> tuple[float]:
-    total_distance = 0.0
-    for i in range(len(chromosome) - 1):
-        total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
-
-    return (total_distance,)
 
 
 def main(argv: list[str]):
