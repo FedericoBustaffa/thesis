@@ -38,11 +38,12 @@ if __name__ == "__main__":
     pop, stats = algorithms.simple(toolbox, 500, 0.1, 0.7, 0.3, 500, hof)
 
     genetic_slope, genetic_intercept = hof[0].chromosome
-    plt.figure(figsize=(16, 9), dpi=150)
-    plt.scatter(x, y, label="samples")
-    plt.plot(x, m * x + q, c="r", label="linear regression")
+    plt.figure(figsize=(16, 9), dpi=300)
+    plt.title("Regressione lineare genetica")
+    plt.scatter(x, y, ec="w")
+    plt.plot(x, m * x + q, c="r", label="regressione standard")
     plt.plot(
-        x, genetic_slope * x + genetic_intercept, c="g", label="genetic regression"
+        x, genetic_slope * x + genetic_intercept, c="g", label="regressione genetica"
     )
 
     plt.grid()

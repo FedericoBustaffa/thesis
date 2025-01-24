@@ -10,7 +10,7 @@ def draw_graph(towns: pd.DataFrame, best):
     x = [towns["x"][i] for i in best]
     y = [towns["y"][i] for i in best]
 
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, dpi=200)
     plt.title("Best path found")
     plt.xlabel("X coordinates")
     plt.ylabel("Y coordinates")
