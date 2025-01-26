@@ -19,7 +19,7 @@ def build_neighborhood(
     # update the point for the generation
     toolbox = genetic.update_toolbox(toolbox, point, target, blackbox)
     hof, _ = genetic.run(toolbox, population_size, workers_num)
-    return hof.to_dict()
+    return hof.to_list()
 
 
 def generate(

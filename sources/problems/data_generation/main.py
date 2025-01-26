@@ -21,7 +21,7 @@ if __name__ == "__main__":
     neighbors = generator.generate(X_test, predictions, mlp, 1000, 8)
 
     with open("results/toy_neighborhood.json", "w") as fp:
-        json.dump(neighbors, fp)
+        json.dump(neighbors, fp, indent=2)
 
     blues = X_test[predictions == 0]
     reds = X_test[predictions == 1]
