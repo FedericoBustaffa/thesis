@@ -19,5 +19,7 @@ if __name__ == "__main__":
         }
     )
     print(f"{T} towns generated")
-    data.to_csv(path_or_buf=f"datasets/towns_{T}.csv", sep=",", index=False)
+    data.to_csv(
+        path_or_buf=f"problems/tsp/datasets/towns_{T}.csv", sep=",", index=False
+    )
     print(f"File generated: datasets/towns_{T}.csv")

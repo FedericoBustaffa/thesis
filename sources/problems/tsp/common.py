@@ -5,6 +5,10 @@ class Town:
     def __init__(self, x: float, y: float) -> None:
         self.x = x
         self.y = y
+        self.visited = False
+
+    def __repr__(self) -> str:
+        return f"{self.x}, {self.y}"
 
 
 def distance(t1: Town, t2: Town) -> float:

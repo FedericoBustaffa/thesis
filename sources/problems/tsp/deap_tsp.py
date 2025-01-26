@@ -1,82 +1,74 @@
 import random
-import sys
-import time
-from functools import partial
 
+import numpy as np
 import pandas as pd
 from common import Town, evaluate
-from scoop import futures
+
+# from scoop import futures
 from utils import plotting
 
 from deap import algorithms, base, creator, tools
 
 
-def main(argv: list[str]):
-    if len(argv) < 4:
-        print(f"USAGE: py {argv[0]} <T> <N> <G>")
-        exit(1)
+def mut_rotation(chromosome: np.ndarray):
+    a, b = np.random.choice(
+        [i for i in range(len(chromosome) + 1)], size=2, replace=False
+    )
+    if a > b:
+        a, b = b, a
+    chromosome[a:b] = np.flip(chromosome[a:b])
 
-    data = pd.read_csv(f"datasets/towns_{argv[1]}.csv")
-    x_coords = data["x"]
-    y_coords = data["y"]
-    towns = [Town(x, y) for x, y in zip(x_coords, y_coords)]
+    return (chromosome,)
 
-    L = int(argv[1])
 
-    # Initial population size
-    N = int(argv[2])
-
+if __name__ == "__main__":
     # Max generations
-    G = int(argv[3])
-
-    # crossover rate
-    cxpb = 0.7
-
-    # mutation rate
-    mutpb = 0.3
+    G = 500
 
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMin)
 
-    toolbox = base.Toolbox()
-    toolbox.register("indices", random.sample, range(L), L)
-    toolbox.register(
-        "individual", tools.initIterate, creator.Individual, toolbox.indices
-    )
+    towns_num = [10, 20, 50, 100]
+    population_sizes = [100, 200, 400, 800]
+    df = {"towns": [], "population_size": [], "distance": []}
 
-    hall_of_fame = tools.HallOfFame(5)
+    for tn in towns_num:
+        for ps in population_sizes:
+            data = pd.read_csv(f"problems/tsp/datasets/towns_{tn}.csv")
+            x_coords = data["x"]
+            y_coords = data["y"]
+            towns = [Town(x, y) for x, y in zip(x_coords, y_coords)]
 
-    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-    toolbox.register("evaluate", partial(evaluate, towns))
-    toolbox.register("mate", tools.cxOrdered)
-    toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.01)
-    toolbox.register("select", tools.selTournament, tournsize=2)
-    toolbox.register("map", futures.map)
+            toolbox = base.Toolbox()
+            toolbox.register("indices", random.sample, range(tn), tn)
+            toolbox.register(
+                "individual", tools.initIterate, creator.Individual, toolbox.indices
+            )
 
-    start = time.perf_counter()
-    best, logbook = algorithms.eaSimple(
-        toolbox.population(n=N),
-        toolbox=toolbox,
-        cxpb=cxpb,
-        mutpb=mutpb,
-        ngen=G,
-        halloffame=hall_of_fame,
-    )
-    end = time.perf_counter()
+            toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+            toolbox.register("mate", tools.cxOrdered)
+            toolbox.register("mutate", mut_rotation)
+            toolbox.register("select", tools.selTournament, tournsize=2)
+            toolbox.register("evaluate", evaluate, towns=towns)
 
-    for i in best:
-        print(f"{i.fitness}")
+            hall_of_fame = tools.HallOfFame(5)
 
-    print("HOF")
-    for i in hall_of_fame:
-        print(f"{i.fitness}")
+            algorithms.eaSimple(
+                toolbox.population(n=ps),
+                toolbox=toolbox,
+                cxpb=0.7,
+                mutpb=0.3,
+                ngen=G,
+                halloffame=hall_of_fame,
+            )
 
-    print(f"DEAP time: {end - start:.4f} seconds")
-    plotting.draw_graph(
-        data, sorted([ind for ind in best], key=lambda x: x.fitness, reverse=True)[0]
-    )
-    plotting.draw_graph(data, hall_of_fame[0])
+            df["towns"].append(tn)
+            df["population_size"].append(ps)
+            df["distance"].append(evaluate(hall_of_fame[0], towns)[0])
 
+    df = pd.DataFrame(df)
+    df.to_csv("problems/tsp/results/deap_tsp.csv", index=False, header=True)
+    print(df)
 
-if __name__ == "__main__":
-    main(sys.argv)
+    # plotting the best solution ever recorded
+    # plotting.draw_graph(data, hall_of_fame[0])

@@ -1,6 +1,4 @@
 import logging
-import sys
-import time
 
 import pandas as pd
 from common import Town, evaluate
@@ -8,98 +6,65 @@ from utils import plotting
 
 from ppga import algorithms, base, log, tools
 
-
-def main(argv: list[str]):
-    if len(argv) < 4:
-        print(f"USAGE: py {argv[0]} <T> <N> <G> <LOG-LEVEL>")
-        exit(1)
-
-    if len(argv) < 5:
-        argv.append("success")
-
-    log.setLevel(argv[4].upper())
+if __name__ == "__main__":
+    log.setLevel("INFO")
     logger = log.getUserLogger()
-    logger.setLevel(argv[4].upper())
-
-    data = pd.read_csv(f"problems/tsp/datasets/towns_{argv[1]}.csv")
-    x_coords = data["x"]
-    y_coords = data["y"]
-    towns = [Town(x, y) for x, y in zip(x_coords, y_coords)]
-
-    # Initial population size
-    N = int(argv[2])
+    logger.setLevel("INFO")
 
     # Max generations
-    G = int(argv[3])
+    G = 500
 
-    toolbox = base.ToolBox()
-    toolbox.set_weights((-1.0,))
-    toolbox.set_generation(tools.gen_permutation, range(len(towns)))
-    toolbox.set_selection(tools.sel_tournament, tournsize=2)
-    toolbox.set_crossover(tools.cx_one_point_ordered)
-    toolbox.set_mutation(tools.mut_rotation)
-    toolbox.set_evaluation(evaluate, towns)
-
-    hall_of_fame = base.HallOfFame(5)
+    towns_num = [10, 20, 50, 100]
+    population_sizes = [100, 200, 400, 800]
+    df = {"towns": [], "population_size": [], "distance": []}
 
     # sequential execution
-    start = time.perf_counter()
-    best, stats = algorithms.simple(
-        toolbox=toolbox,
-        population_size=N,
-        keep=0.3,
-        cxpb=0.7,
-        mutpb=0.3,
-        max_generations=G,
-        hall_of_fame=hall_of_fame,
-    )
-    solution = hall_of_fame[0]
-    solution2 = hall_of_fame[1]
-    stime = time.perf_counter() - start
-    logger.info(f"sequential best score: {best[0].fitness}")
-    for i, ind in enumerate(hall_of_fame):
-        logger.info(f"{i + 1}. {ind.values}")
-    logger.info(f"sequential time: {stime}")
+    for tn in towns_num:
+        for ps in population_sizes:
+            data = pd.read_csv(f"problems/tsp/datasets/towns_{tn}.csv")
+            x_coords = data["x"]
+            y_coords = data["y"]
+            towns = [Town(x, y) for x, y in zip(x_coords, y_coords)]
 
-    # parallel execution
-    hall_of_fame.clear()
-    start = time.perf_counter()
-    pbest, pstats = algorithms.simple(
-        toolbox=toolbox,
-        population_size=N,
-        keep=0.3,
-        cxpb=0.7,
-        mutpb=0.3,
-        max_generations=G,
-        hall_of_fame=hall_of_fame,
-        workers_num=-1,
-    )
-    ptime = time.perf_counter() - start
-    logger.info(f"parallel best score: {pbest[0].fitness}")
-    for i, ind in enumerate(hall_of_fame):
-        logger.info(f"{i + 1}. {ind.values}")
-    logger.info(f"parallel time: {ptime}")
+            toolbox = base.ToolBox()
+            toolbox.set_weights((-1.0,))
+            toolbox.set_generation(tools.gen_permutation, range(len(towns)))
+            toolbox.set_selection(tools.sel_tournament, tournsize=2)
+            toolbox.set_crossover(tools.cx_one_point_ordered)
+            toolbox.set_mutation(tools.mut_rotation)
+            toolbox.set_evaluation(evaluate, towns)
 
-    if stime / ptime >= 1.0:
-        logger.log(15, f"speed up: {stime / ptime}")
-    else:
-        logger.warning(f"speed up: {stime / ptime}")
+            hall_of_fame = base.HallOfFame(5)
+
+            best, stats = algorithms.simple(
+                toolbox=toolbox,
+                population_size=ps,
+                keep=0.2,
+                cxpb=0.7,
+                mutpb=0.3,
+                max_generations=G,
+                hall_of_fame=hall_of_fame,
+            )
+            df["towns"].append(tn)
+            df["population_size"].append(ps)
+            df["distance"].append(evaluate(hall_of_fame[0].chromosome, towns)[0])
+            logger.info(f"sequential best score: {best[0].fitness}")
+
+    df = pd.DataFrame(df)
+    df.to_csv("problems/tsp/results/ppga_tsp.csv", index=False, header=True)
+    print(df)
 
     # statistics data plot
     if logger.level <= logging.DEBUG:
-        plotting.draw_graph(data, solution.chromosome)
-        plotting.draw_graph(data, solution2.chromosome)
-        print(solution.chromosome)
-        print(solution2.chromosome)
+        # plotting.draw_graph(data, solution.chromosome)
+        # plotting.draw_graph(data, solution2.chromosome)
+        # print(solution.chromosome)
+        # print(solution2.chromosome)
         plotting.fitness_trend(stats)
         plotting.biodiversity_trend(stats)
 
         plotting.draw_graph(data, hall_of_fame[0].chromosome)
-        plotting.fitness_trend(pstats)
-        plotting.biodiversity_trend(pstats)
+        # plotting.fitness_trend(pstats)
+        # plotting.biodiversity_trend(pstats)
 
         plotting.evals(stats.evals)
-
-
-if __name__ == "__main__":
-    main(sys.argv)
