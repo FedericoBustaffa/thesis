@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     ps = 1000
     workers = [1, 2, 4, 8, 16, 32]
-    workers = [4]
+    # workers = [4]
 
     results = {
         "point": [],
