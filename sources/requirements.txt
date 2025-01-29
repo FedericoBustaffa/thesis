@@ -5,6 +5,7 @@ pyarrow
 scikit-learn
 colorama
 numpy
+scipy
 matplotlib
 pandas
 scoop
