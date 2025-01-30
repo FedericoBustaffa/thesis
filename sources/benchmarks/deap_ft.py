@@ -78,11 +78,11 @@ if __name__ == "__main__":
 
                         pop = toolbox.population(n=ps)
                         hof = tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
-                        start = time.perf_counter()
+                        start = time.process_time()
                         _, _, ptime = algorithms.eaSimple(
                             pop, toolbox, 0.8, 0.2, 20, None, hof
                         )
-                        end = time.perf_counter()
+                        end = time.process_time()
                         times.append(end - start)
                         ptimes.append(ptime)
 

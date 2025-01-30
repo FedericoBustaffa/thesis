@@ -67,11 +67,11 @@ if __name__ == "__main__":
                     ptimes = []
                     for i in range(10):
                         hof = base.HallOfFame(ps)
-                        start = time.perf_counter()
+                        start = time.process_time()
                         pop, stats = algorithms.simple(
                             toolbox, ps, 0.1, 0.8, 0.2, 20, hof, w
                         )
-                        end = time.perf_counter()
+                        end = time.process_time()
                         times.append(end - start)
                         ptimes.append(np.sum(stats.times))
 
