@@ -26,9 +26,9 @@ if __name__ == "__main__":
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
     population_sizes = [1000, 2000, 4000, 8000, 16000]
-    # population_sizes = [1000]
+    population_sizes = [1000]
     workers = [1, 2, 4, 8, 16, 32]
-    # workers = [4]
+    workers = [1, 4, 16]
 
     results = {
         "point": [],

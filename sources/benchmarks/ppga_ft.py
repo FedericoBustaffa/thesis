@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     ps = 8000
     workers = [1, 2, 4, 8, 16, 32]
-    # workers = [4]
+    workers = [1, 4, 8]
 
     results = {
         "point": [],
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     for w in workers:
         for df in datasets:
-            X, y = make_predictions(clf, df, 10)
+            X, y = make_predictions(clf, df, 1)
             outcomes = np.unique(y)
             toolbox = genetic.create_toolbox(X)
             for i, (features, outcome) in enumerate(zip(X, y)):
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
                     times = []
                     ptimes = []
-                    for i in range(10):
+                    for i in range(1):
                         hof = base.HallOfFame(ps)
                         start = time.process_time()
                         pop, stats = algorithms.simple(
@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
-        f"results/ppga_{args.model}_32_{args.suffix}.csv",
+        f"results/ppga_{args.model}_feature_{args.suffix}.csv",
         index=False,
         header=True,
     )
