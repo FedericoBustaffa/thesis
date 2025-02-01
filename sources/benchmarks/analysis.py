@@ -5,6 +5,13 @@ import pandas as pd
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "filepath",
+        type=str,
+        help="specify the dataset file to analyze",
+    )
+
     parser.add_argument(
         "population_size",
         type=int,
@@ -19,7 +26,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    df = pd.read_csv("results/ppga_MLPClassifier_32_multi.csv")
+    df = pd.read_csv(args.filepath)
 
     df1 = df[
         (df["population_size"] == args.population_size)
@@ -45,5 +52,7 @@ if __name__ == "__main__":
         width=0.1,
         label="different class",
     )
+
+    plt.legend()
     plt.grid()
     plt.show()

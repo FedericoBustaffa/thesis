@@ -24,12 +24,13 @@ if __name__ == "__main__":
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
     population_sizes = [1000, 2000, 4000, 8000, 16000]
-    # population_sizes = [1000, 2000]
+    population_sizes = [1000]
     workers = [1, 2, 4, 8, 16, 32]
-    # workers = [1, 4, 16]
+    workers = [1, 4, 16]
 
     results = {
         "point": [],
+        "features": [],
         "class": [],
         "target": [],
         "classifier": [],
@@ -41,7 +42,7 @@ if __name__ == "__main__":
         "ptime_std": [],
     }
 
-    X, y = make_predictions(clf, df, 10)
+    X, y = make_predictions(clf, df, 5)
     outcomes = np.unique(y)
     toolbox = genetic.create_toolbox(X)
 
@@ -63,15 +64,16 @@ if __name__ == "__main__":
 
                     times = []
                     ptimes = []  # only parallel time
-                    for _ in range(10):
+                    for _ in range(1):
                         hof = base.HallOfFame(ps)
                         start = time.process_time()
                         pop, stats = algorithms.simple(
                             toolbox, ps, 0.1, 0.8, 0.2, 20, hof, w
                         )
                         end = time.process_time()
-                        times.append(end - start)
-                        ptimes.append(np.sum(stats.times))
+                        ptime = np.sum(stats.times)
+                        times.append((end - start) + ptime)
+                        ptimes.append(ptime)
 
                     results["point"].append(i)
                     results["features"].append(len(X[0]))
