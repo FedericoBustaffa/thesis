@@ -51,7 +51,7 @@ if __name__ == "__main__":
         "accuracy": [],
     }
 
-    population_sizes = [2000, 8000, 16000]
+    population_sizes = [1000, 4000]
     for ps in population_sizes:
         for i, (fp, df) in enumerate(zip(filepaths, datasets)):
             logger.info(f"dataset {i + 1}/{len(datasets)}")
@@ -88,6 +88,8 @@ if __name__ == "__main__":
 
             results_df = pd.DataFrame(results)
             results_df.to_csv(
-                f"results/{args.output}_{args.model}.csv", header=True, index=False
+                f"results/ppga_{args.model}_quality_{args.output}.csv",
+                header=True,
+                index=False,
             )
             print(results_df)
