@@ -28,9 +28,9 @@ if __name__ == "__main__":
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
 
-    ps = 2000
+    ps = 1000
     workers = [1, 2, 4, 8, 16, 32]
-    # workers = [4]
+    workers = [1, 2, 4]
 
     results = {
         "point": [],
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     for w in workers:
         for df in datasets:
-            X, y = make_predictions(clf, df, 10)
+            X, y = make_predictions(clf, df, 2)
             outcomes = np.unique(y)
             toolbox = genetic_deap.create_toolbox_deap(X)
             for i, (point, outcome) in enumerate(zip(X, y)):
@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
                     times = []
                     ptimes = []
-                    for i in range(10):
+                    for i in range(2):
                         pool = None
                         if w > 1:
                             pool = mp.Pool(w)
@@ -78,11 +78,11 @@ if __name__ == "__main__":
 
                         pop = toolbox.population(n=ps)
                         hof = tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
-                        start = time.process_time()
+                        start = time.perf_counter()
                         _, _, ptime = algorithms.eaSimple(
                             pop, toolbox, 0.8, 0.2, 20, None, hof
                         )
-                        end = time.process_time()
+                        end = time.perf_counter()
                         times.append(end - start)
                         ptimes.append(ptime)
 
