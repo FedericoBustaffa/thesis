@@ -28,7 +28,7 @@ if __name__ == "__main__":
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
 
-    ps = 1000
+    ps = 2000
     workers = [1, 2, 4, 8, 16, 32]
     # workers = [4]
 
@@ -51,10 +51,10 @@ if __name__ == "__main__":
             X, y = make_predictions(clf, df, 10)
             outcomes = np.unique(y)
             toolbox = genetic_deap.create_toolbox_deap(X)
-            for i, (features, outcome) in enumerate(zip(X, y)):
+            for i, (point, outcome) in enumerate(zip(X, y)):
                 for target in outcomes:
                     logger.info(f"point {i + 1}/{len(y)}")
-                    logger.info(f"features: {len(X[0])}")
+                    logger.info(f"features: {len(point)}")
                     logger.info(f"class: {outcome}")
                     logger.info(f"target: {target}")
                     logger.info(f"classifier: {args.model}")
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                     logger.info(f"workers: {w}")
 
                     toolbox = genetic_deap.update_toolbox_deap(
-                        toolbox, features, int(target), clf
+                        toolbox, point, int(target), clf
                     )
 
                     times = []
@@ -91,7 +91,7 @@ if __name__ == "__main__":
                             pool.join()
 
                     results["point"].append(i)
-                    results["features"].append(len(X[0]))
+                    results["features"].append(len(point))
                     results["class"].append(outcome)
                     results["target"].append(target)
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
-        f"results/deap_{args.model}_32_{args.suffix}.csv",
+        f"results/performance/deap_{args.model}_feature_{args.suffix}.csv",
         index=False,
         header=True,
     )

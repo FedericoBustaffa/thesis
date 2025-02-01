@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
             results_df = pd.DataFrame(results)
             results_df.to_csv(
-                f"results/deap_{args.model}_quality_{args.output}.csv",
+                f"results/quality/deap_{args.model}_{args.output}.csv",
                 header=True,
                 index=False,
             )

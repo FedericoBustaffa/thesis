@@ -49,19 +49,17 @@ if __name__ == "__main__":
             X, y = make_predictions(clf, df, 1)
             outcomes = np.unique(y)
             toolbox = genetic.create_toolbox(X)
-            for i, (features, outcome) in enumerate(zip(X, y)):
+            for i, (point, outcome) in enumerate(zip(X, y)):
                 for target in outcomes:
                     logger.info(f"point {i + 1}/{len(y)}")
-                    logger.info(f"features: {len(X[0])}")
+                    logger.info(f"features: {len(point)}")
                     logger.info(f"class: {outcome}")
                     logger.info(f"target: {target}")
                     logger.info(f"classifier: {args.model}")
                     logger.info(f"population_size: {ps}")
                     logger.info(f"workers: {w}")
 
-                    toolbox = genetic.update_toolbox(
-                        toolbox, features, int(target), clf
-                    )
+                    toolbox = genetic.update_toolbox(toolbox, point, int(target), clf)
 
                     times = []
                     ptimes = []
@@ -76,7 +74,7 @@ if __name__ == "__main__":
                         ptimes.append(np.sum(stats.times))
 
                     results["point"].append(i)
-                    results["features"].append(len(X[0]))
+                    results["features"].append(len(point))
                     results["class"].append(outcome)
                     results["target"].append(target)
 
@@ -94,7 +92,7 @@ if __name__ == "__main__":
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
-        f"results/ppga_{args.model}_feature_{args.suffix}.csv",
+        f"results/performance/ppga_{args.model}_feature_{args.suffix}.csv",
         index=False,
         header=True,
     )

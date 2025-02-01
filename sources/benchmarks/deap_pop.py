@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
     results = {
         "point": [],
+        "features": [],
         "class": [],
         "target": [],
         "classifier": [],
@@ -49,10 +50,10 @@ if __name__ == "__main__":
 
     for w in workers:
         for ps in population_sizes:
-            for i, (features, outcome) in enumerate(zip(X, y)):
+            for i, (point, outcome) in enumerate(zip(X, y)):
                 for target in outcomes:
                     logger.info(f"point {i + 1}/{len(y)}")
-                    logger.info(f"features: {i}")
+                    logger.info(f"features: {len(point)}")
                     logger.info(f"class: {outcome}")
                     logger.info(f"target: {target}")
                     logger.info(f"classifier: {args.model}")
@@ -60,7 +61,7 @@ if __name__ == "__main__":
                     logger.info(f"workers: {w}")
 
                     toolbox = genetic.update_toolbox_deap(
-                        toolbox, features, int(target), clf
+                        toolbox, point, int(target), clf
                     )
 
                     times = []
@@ -89,6 +90,7 @@ if __name__ == "__main__":
                             pool.join()
 
                     results["point"].append(i)
+                    results["features"].append(len(point))
                     results["class"].append(outcome)
                     results["target"].append(target)
 
@@ -106,7 +108,7 @@ if __name__ == "__main__":
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(
-        f"results/deap_{args.model}_32_{args.suffix}.csv",
+        f"results/performance/deap_{args.model}_pop_{args.suffix}.csv",
         index=False,
         header=True,
     )
