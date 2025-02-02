@@ -28,9 +28,8 @@ if __name__ == "__main__":
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
 
-    ps = 1000
+    ps = 4000
     workers = [1, 2, 4, 8, 16, 32]
-    workers = [1, 2, 4]
 
     results = {
         "point": [],
@@ -48,7 +47,7 @@ if __name__ == "__main__":
 
     for w in workers:
         for df in datasets:
-            X, y = make_predictions(clf, df, 2)
+            X, y = make_predictions(clf, df, 5)
             outcomes = np.unique(y)
             toolbox = genetic_deap.create_toolbox_deap(X)
             for i, (point, outcome) in enumerate(zip(X, y)):
@@ -67,7 +66,7 @@ if __name__ == "__main__":
 
                     times = []
                     ptimes = []
-                    for i in range(2):
+                    for i in range(10):
                         pool = None
                         if w > 1:
                             pool = mp.Pool(w)
