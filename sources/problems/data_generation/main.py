@@ -13,12 +13,12 @@ if __name__ == "__main__":
     X = np.array([data[k].to_numpy() for k in data if k != "outcome"]).T
     y = data["outcome"].to_numpy()
 
-    X_train, X_test, y_train, _ = train_test_split(X, y, test_size=20, random_state=0)
+    X_train, X_test, y_train, _ = train_test_split(X, y, test_size=5, random_state=0)
     mlp = MLPClassifier()
     mlp.fit(X_train, y_train)
     predictions = mlp.predict(X_test)
 
-    neighbors = generator.generate(X_test, predictions, mlp, 1000, 8)
+    neighbors = generator.generate(X_test, predictions, mlp, 100, -1)
 
     with open("results/toy_neighborhood.json", "w") as fp:
         json.dump(neighbors, fp, indent=2)
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     blues = X_test[predictions == 0]
     reds = X_test[predictions == 1]
 
-    point = blues[4]
+    point = blues[0]
 
     plt.figure(figsize=(16, 9), dpi=300)
     plt.title("Test Set")
