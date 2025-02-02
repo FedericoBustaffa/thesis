@@ -11,15 +11,15 @@ def build_neighborhood(
     blackbox,
     target: int,
     workers_num: int,
-) -> dict[str, list]:
+) -> tuple[list, base.Statistics]:
     """
     Generates neighbors close to the given point and classified
     as the label given with the `target` parameter
     """
     # update the point for the generation
     toolbox = genetic.update_toolbox(toolbox, point, target, blackbox)
-    hof, _ = genetic.run(toolbox, population_size, workers_num)
-    return hof.to_list()
+    hof, stats = genetic.run(toolbox, population_size, workers_num)
+    return hof.to_list(), stats.to_dict()
 
 
 def generate(
@@ -43,20 +43,23 @@ def generate(
     results = []
     for point, label in zip(X, y):
         for target in outcomes:
+            hof, stats = build_neighborhood(
+                toolbox,
+                population_size,
+                point,
+                model,
+                target,
+                workers_num,
+            )
+
             results.append(
                 {
                     "point": point.tolist(),
                     "class": int(label),
                     "target": int(target),
                     "model": str(model).removesuffix("()"),
-                    "neighborhood": build_neighborhood(
-                        toolbox,
-                        population_size,
-                        point,
-                        model,
-                        target,
-                        workers_num,
-                    ),
+                    "neighborhood": hof,
+                    "stats": stats,
                 }
             )
 

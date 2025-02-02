@@ -70,8 +70,9 @@ if __name__ == "__main__":
                             toolbox, ps, 0.1, 0.8, 0.2, 20, hof, w
                         )
                         end = time.process_time()
-                        times.append(end - start)
-                        ptimes.append(np.sum(stats.times))
+                        ptime = np.sum(stats.times)
+                        times.append((end - start) + ptime)
+                        ptimes.append(ptime)
 
                     results["point"].append(i)
                     results["features"].append(len(point))
