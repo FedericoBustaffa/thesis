@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
                     times = []
                     ptimes = []
-                    for i in range(10):
+                    for _ in range(10):
                         pool = None
                         if w > 1:
                             pool = mp.Pool(w)
