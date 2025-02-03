@@ -2,38 +2,43 @@ import json
 
 import generator
 
+import os
+
 # import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 
+from ppga import log
+
 if __name__ == "__main__":
-    data = pd.read_csv("datasets/classification_10010_2_2_1_0.csv")
+    filepaths = os.listdir("datasets/")
+    datasets = [pd.read_csv(f"datasets/{fp}") for fp in filepaths]
 
-    X = np.array([data[k].to_numpy() for k in data if k != "outcome"]).T
-    y = data["outcome"].to_numpy()
+    logger = log.getUserLogger()
+    logger.setLevel("INFO")
 
-    X_train, X_test, y_train, _ = train_test_split(X, y, test_size=5, random_state=0)
-    mlp = MLPClassifier()
-    mlp.fit(X_train, y_train)
-    predictions = mlp.predict(X_test)
+    results = []
 
-    for ps in [100, 1000, 10000]:
-        neighbors = generator.generate(X_test, predictions, mlp, 100, -1)
+    for i, data in enumerate(datasets):
+        X = np.array([data[k].to_numpy() for k in data if k != "outcome"]).T
+        y = data["outcome"].to_numpy()
 
-        with open(f"results/neighborhood/res_{ps}.json", "w") as fp:
-            json.dump(neighbors, fp, indent=2)
+        X_train, X_test, y_train, _ = train_test_split(
+            X, y, test_size=5, random_state=0
+        )
+        mlp = MLPClassifier()
+        mlp.fit(X_train, y_train)
+        predictions = mlp.predict(X_test)
 
-    blues = X_test[predictions == 0]
-    reds = X_test[predictions == 1]
+        for ps in [1000, 2000, 4000]:
+            logger.info(f"dataset {i+1}/{len(datasets)}")
+            logger.info(f"features: {len(X[0])}")
+            logger.info(f"population size: {ps}")
 
-    point = blues[0]
+            neighbors = generator.generate(X_test, predictions, mlp, ps, 4)
+            results.append(neighbors)
 
-    # plt.figure(figsize=(16, 9), dpi=300)
-    # plt.title("Test Set")
-
-    # plt.scatter(blues.T[0], blues.T[1], c="b", ec="w", s=50)
-    # plt.scatter(point.T[0], point.T[1], c="b", ec="w", marker="X", s=50)
-    # plt.scatter(reds.T[0], reds.T[1], c="r", ec="w", s=50)
-    # plt.show()
+    with open(f"results/neighborhood/res_MLPClassifier.json", "w") as fp:
+        json.dump(results, fp, indent=2)
