@@ -1,8 +1,8 @@
+import numpy as np
 import pandas as pd
-from common import Town, evaluate
-from utils import plotting
+from common import evaluate
 
-from ppga import algorithms, base, log, tools
+from ppga import algorithms, base, log, tools, utility
 
 if __name__ == "__main__":
     log.setLevel("INFO")
@@ -24,7 +24,7 @@ if __name__ == "__main__":
             data = pd.read_csv(f"problems/tsp/datasets/towns_{tn}.csv")
             x_coords = data["x"]
             y_coords = data["y"]
-            towns = [Town(x, y) for x, y in zip(x_coords, y_coords)]
+            towns = np.array([[x, y] for x, y in zip(x_coords, y_coords)])
 
             toolbox = base.ToolBox()
             toolbox.set_weights((-1.0,))
@@ -44,7 +44,6 @@ if __name__ == "__main__":
                 mutpb=0.3,
                 max_generations=G,
                 hall_of_fame=hall_of_fame,
-                workers_num=-1,
             )
             df["towns"].append(tn)
             df["population_size"].append(ps)
@@ -55,7 +54,7 @@ if __name__ == "__main__":
     # df.to_csv("problems/tsp/results/ppga_tsp.csv", index=False, header=True)
     print(df)
 
-    plotting.fitness_trend(stats)
-    plotting.biodiversity_trend(stats)
-    plotting.draw_graph(data, hall_of_fame[0].chromosome)
-    plotting.evals(stats.evals)
+    # utility.plot.draw_graph(data, hall_of_fame[0].chromosome)
+    utility.plot.fitness_trend(stats)
+    utility.plot.biodiversity_trend(stats)
+    utility.plot.evals(stats.evals)

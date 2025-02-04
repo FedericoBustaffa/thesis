@@ -2,9 +2,7 @@ import logging
 import random
 import sys
 
-from utils import plotting
-
-from ppga import algorithms, base, log, tools
+from ppga import algorithms, base, log, tools, utility
 
 
 class Item:
@@ -87,7 +85,7 @@ def main(argv: list[str]):
     best, stats = algorithms.simple(
         toolbox=toolbox,
         population_size=N,
-        keep=0.3,
+        keep=0.1,
         cxpb=0.8,
         mutpb=0.2,
         max_generations=G,
@@ -117,11 +115,11 @@ def main(argv: list[str]):
 
     # plotting
     if logger.level <= logging.INFO:
-        plotting.fitness_trend(stats)
-        plotting.biodiversity_trend(stats)
+        utility.plot.fitness_trend(stats)
+        utility.plot.biodiversity_trend(stats)
 
-        plotting.fitness_trend(pstats)
-        plotting.biodiversity_trend(pstats)
+        utility.plot.fitness_trend(pstats)
+        utility.plot.biodiversity_trend(pstats)
 
 
 if __name__ == "__main__":
