@@ -23,20 +23,16 @@ def draw_graph(towns: pd.DataFrame, best):
 
 
 def fitness_trend(stats: Statistics):
-    best = stats.best
-    mean = stats.mean
-    worst = stats.worst
-
-    generations = [g for g in range(len(best))]
+    generations = [g for g in range(len(stats.max))]
 
     plt.figure(figsize=figsize)
     plt.title("Fitness trend")
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
 
-    plt.plot(generations, best, label="Best fitness", c="g")
-    plt.plot(generations, mean, label="Mean fitness", c="b")
-    plt.plot(generations, worst, label="Worst fitness", c="r")
+    plt.plot(generations, stats.max, label="Best fitness", c="g")
+    plt.plot(generations, stats.mean, label="Mean fitness", c="b")
+    plt.plot(generations, stats.min, label="Worst fitness", c="r")
 
     plt.grid()
     plt.legend()
@@ -44,14 +40,13 @@ def fitness_trend(stats: Statistics):
 
 
 def biodiversity_trend(stats: Statistics):
-    diversity = stats.diversity
-    generations = [g for g in range(len(diversity))]
+    generations = [g for g in range(len(stats.diversity))]
 
     plt.figure(figsize=figsize)
     plt.title("Biodiversity trend")
     plt.xlabel("Generation")
     plt.ylabel("Biodiversity percentage")
-    plt.plot(generations, diversity, label="Biodiversity", c="g")
+    plt.plot(generations, stats.diversity, label="Biodiversity", c="g")
 
     plt.grid()
     plt.legend()
@@ -75,7 +70,7 @@ def evals(evals: list[int]):
     plt.xlabel("Generation")
     plt.ylabel("Evals")
 
-    plt.plot([g for g in range(len(evals))], evals, label="evals")
+    plt.scatter([g for g in range(len(evals))], evals, label="evals")
 
     plt.legend()
     plt.grid()

@@ -1,5 +1,3 @@
-import logging
-
 import pandas as pd
 from common import Town, evaluate
 from utils import plotting
@@ -15,7 +13,9 @@ if __name__ == "__main__":
     G = 500
 
     towns_num = [10, 20, 50, 100]
+    towns_num = [20]
     population_sizes = [100, 200, 400, 800]
+    population_sizes = [500]
     df = {"towns": [], "population_size": [], "distance": []}
 
     # sequential execution
@@ -44,6 +44,7 @@ if __name__ == "__main__":
                 mutpb=0.3,
                 max_generations=G,
                 hall_of_fame=hall_of_fame,
+                workers_num=-1,
             )
             df["towns"].append(tn)
             df["population_size"].append(ps)
@@ -51,20 +52,10 @@ if __name__ == "__main__":
             logger.info(f"sequential best score: {best[0].fitness}")
 
     df = pd.DataFrame(df)
-    df.to_csv("problems/tsp/results/ppga_tsp.csv", index=False, header=True)
+    # df.to_csv("problems/tsp/results/ppga_tsp.csv", index=False, header=True)
     print(df)
 
-    # statistics data plot
-    if logger.level <= logging.DEBUG:
-        # plotting.draw_graph(data, solution.chromosome)
-        # plotting.draw_graph(data, solution2.chromosome)
-        # print(solution.chromosome)
-        # print(solution2.chromosome)
-        plotting.fitness_trend(stats)
-        plotting.biodiversity_trend(stats)
-
-        plotting.draw_graph(data, hall_of_fame[0].chromosome)
-        # plotting.fitness_trend(pstats)
-        # plotting.biodiversity_trend(pstats)
-
-        plotting.evals(stats.evals)
+    plotting.fitness_trend(stats)
+    plotting.biodiversity_trend(stats)
+    plotting.draw_graph(data, hall_of_fame[0].chromosome)
+    plotting.evals(stats.evals)
