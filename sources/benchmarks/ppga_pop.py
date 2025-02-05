@@ -40,7 +40,7 @@ if __name__ == "__main__":
         "ptime_std": [],
     }
 
-    X, y = make_predictions(clf, df, 10)
+    X, y = make_predictions(clf, df, 5)
     outcomes = np.unique(y)
     toolbox = genetic.create_toolbox(X)
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
                     times = []
                     ptimes = []  # only parallel time
-                    for _ in range(10):
+                    for _ in range(5):
                         hof = base.HallOfFame(ps)
                         start = time.process_time()
                         pop, stats = algorithms.simple(
