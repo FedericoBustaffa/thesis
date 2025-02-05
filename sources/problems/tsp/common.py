@@ -1,23 +1,30 @@
-import math
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from numpy.linalg import norm
 
 
-class Town:
-    def __init__(self, x: float, y: float) -> None:
-        self.x = x
-        self.y = y
-        self.visited = False
-
-    def __repr__(self) -> str:
-        return f"{self.x}, {self.y}"
-
-
-def distance(t1: Town, t2: Town) -> float:
-    return math.sqrt(math.pow(t1.x - t2.x, 2) + math.pow(t1.y - t2.y, 2))
-
-
-def evaluate(chromosome, towns: list[Town]) -> tuple[float]:
-    total_distance = 0.0
+def evaluate(chromosome, towns: np.ndarray) -> tuple[float]:
+    distance = 0.0
     for i in range(len(chromosome) - 1):
-        total_distance += distance(towns[chromosome[i]], towns[chromosome[i + 1]])
+        t1 = towns[chromosome[i]]
+        t2 = towns[chromosome[i + 1]]
+        distance += norm(t1 - t2, ord=2)
 
-    return (total_distance,)
+    return (distance,)
+
+
+def draw_graph(towns: pd.DataFrame, best):
+    x = [towns["x"][i] for i in best]
+    y = [towns["y"][i] for i in best]
+
+    plt.figure(figsize=(16, 9), dpi=200)
+    plt.title("Best path found")
+    plt.xlabel("X coordinates")
+    plt.ylabel("Y coordinates")
+
+    plt.scatter(x, y, label="Towns")
+    plt.plot(x, y, c="k", label="Path")
+
+    plt.legend()
+    plt.show()

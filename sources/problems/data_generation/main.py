@@ -1,8 +1,7 @@
 import json
+import os
 
 import generator
-
-import os
 
 # import matplotlib.pyplot as plt
 import numpy as np
@@ -33,12 +32,12 @@ if __name__ == "__main__":
         predictions = mlp.predict(X_test)
 
         for ps in [1000, 2000, 4000]:
-            logger.info(f"dataset {i+1}/{len(datasets)}")
+            logger.info(f"dataset {i + 1}/{len(datasets)}")
             logger.info(f"features: {len(X[0])}")
             logger.info(f"population size: {ps}")
 
             neighbors = generator.generate(X_test, predictions, mlp, ps, 4)
             results.append(neighbors)
 
-    with open(f"results/neighborhood/res_MLPClassifier.json", "w") as fp:
+    with open("results/neighborhood/res_MLPClassifier.json", "w") as fp:
         json.dump(results, fp, indent=2)

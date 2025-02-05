@@ -1,13 +1,47 @@
 import random
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from common import Town, evaluate
-
-# from scoop import futures
-from utils import plotting
+from common import draw_graph, evaluate
 
 from deap import algorithms, base, creator, tools
+from ppga import utility
+
+
+def fitness_trend(stats):
+    generations = [g for g in range(len(stats["max"]))]
+
+    plt.figure(figsize=(16, 10), dpi=200)
+    plt.title("Fitness trend")
+    plt.xlabel("Generation")
+    plt.ylabel("Fitness")
+
+    plt.plot(generations, stats["max"], label="Best fitness", c="g")
+    plt.plot(generations, stats["mean"], label="Mean fitness", c="b")
+    plt.plot(generations, stats["min"], label="Worst fitness", c="r")
+
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
+def cx_one_point_ordered(father, mother) -> tuple:
+    cx_point = random.randint(1, len(father) - 1)
+
+    offspring1 = father[:cx_point]
+    offspring2 = father[cx_point:]
+
+    for gene in mother:
+        if gene not in offspring1:
+            offspring1.append(gene)
+        else:
+            offspring2.append(gene)
+
+    father[:] = offspring1[:]
+    mother[:] = offspring2[:]
+
+    return father, mother
 
 
 def mut_rotation(chromosome: np.ndarray):
@@ -29,7 +63,9 @@ if __name__ == "__main__":
     creator.create("Individual", list, fitness=creator.FitnessMin)
 
     towns_num = [10, 20, 50, 100]
+    towns_num = [20]
     population_sizes = [100, 200, 400, 800]
+    population_sizes = [500]
     df = {"towns": [], "population_size": [], "distance": []}
 
     for tn in towns_num:
@@ -37,7 +73,7 @@ if __name__ == "__main__":
             data = pd.read_csv(f"problems/tsp/datasets/towns_{tn}.csv")
             x_coords = data["x"]
             y_coords = data["y"]
-            towns = [Town(x, y) for x, y in zip(x_coords, y_coords)]
+            towns = np.array([[x, y] for x, y in zip(x_coords, y_coords)])
 
             toolbox = base.Toolbox()
             toolbox.register("indices", random.sample, range(tn), tn)
@@ -46,29 +82,44 @@ if __name__ == "__main__":
             )
 
             toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-            toolbox.register("mate", tools.cxOrdered)
+            toolbox.register("mate", cx_one_point_ordered)
             toolbox.register("mutate", mut_rotation)
             toolbox.register("select", tools.selTournament, tournsize=2)
             toolbox.register("evaluate", evaluate, towns=towns)
 
+            stats = tools.Statistics(key=lambda ind: ind.fitness.wvalues)
+            stats.register("min", np.min)
+            stats.register("mean", np.mean)
+            stats.register("max", np.max)
+
             hall_of_fame = tools.HallOfFame(5)
 
-            algorithms.eaSimple(
+            pop, logbook, _ = algorithms.eaSimple(
                 toolbox.population(n=ps),
                 toolbox=toolbox,
                 cxpb=0.7,
                 mutpb=0.3,
                 ngen=G,
+                stats=stats,
                 halloffame=hall_of_fame,
             )
+
+            stats = {
+                "nevals": logbook.select("nevals"),
+                "min": logbook.select("min"),
+                "mean": logbook.select("mean"),
+                "max": logbook.select("max"),
+            }
 
             df["towns"].append(tn)
             df["population_size"].append(ps)
             df["distance"].append(evaluate(hall_of_fame[0], towns)[0])
 
-    df = pd.DataFrame(df)
-    df.to_csv("problems/tsp/results/deap_tsp.csv", index=False, header=True)
-    print(df)
+            # plotting the best solution ever recorded
+            draw_graph(data, hall_of_fame[0])
+            fitness_trend(stats)
+            utility.plot.evals(stats["nevals"])
 
-    # plotting the best solution ever recorded
-    # plotting.draw_graph(data, hall_of_fame[0])
+    df = pd.DataFrame(df)
+    # df.to_csv("problems/tsp/results/deap_tsp.csv", index=False, header=True)
+    print(df)
