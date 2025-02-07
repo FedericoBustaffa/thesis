@@ -33,17 +33,26 @@ if __name__ == "__main__":
     reds = same["point"][mask]
     blues = same["point"][~mask]
 
-    plt.figure(figsize=(16, 9), dpi=300)
-    plt.scatter(reds.T[0], reds.T[1], c="r", ec="w")
-    plt.scatter(blues.T[0], blues.T[1], c="b", ec="w")
+    fig, axes = plt.subplots(1, 2, figsize=(8, 3), sharey=True, dpi=300)
+    for i, ax in enumerate(axes):
+        ax.set_box_aspect(3 / 4)
+        ax.scatter(reds.T[0], reds.T[1], c="r", ec="w")
+        ax.scatter(blues.T[0], blues.T[1], c="b", ec="w")
 
-    ref = 0
-    plt.scatter(blues.T[0][ref], blues.T[1][ref], c="g", ec="w", marker="X")
+        if i == 0:
+            same_neigbors = np.array(
+                [nh["chromosome"] for nh in same["neighborhood"][0]]
+            )
+            ax.scatter(same_neigbors.T[0], same_neigbors.T[1], c="y", ec="w")
+        else:
+            diff_neighbors = np.array(
+                [nh["chromosome"] for nh in diff["neighborhood"][0]]
+            )
+            ax.scatter(diff_neighbors.T[0], diff_neighbors.T[1], c="y", ec="w")
 
-    # same_neigbors = np.array([nh["chromosome"] for nh in same["neighborhood"][0]])
-    # plt.scatter(same_neigbors.T[0], same_neigbors.T[1], c="y", ec="w")
+        ref = 0
+        ax.scatter(blues.T[0][ref], blues.T[1][ref], c="g", ec="w", marker="X")
 
-    diff_neighbors = np.array([nh["chromosome"] for nh in diff["neighborhood"][0]])
-    plt.scatter(diff_neighbors.T[0], diff_neighbors.T[1], c="y", ec="w")
-
+    plt.tight_layout()
+    plt.savefig("/home/federico/tesi/immagini/synth_points.svg")
     plt.show()
