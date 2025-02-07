@@ -81,13 +81,13 @@ def run(
 ) -> tuple[base.HallOfFame, base.Statistics]:
     # run the genetic algorithm on one point with a specific target class
     hof = base.HallOfFame(population_size)
-    population, stats = algorithms.simple(
+    _, stats = algorithms.simple(
         toolbox=toolbox,
         population_size=population_size,
         keep=0.1,
         cxpb=0.8,
         mutpb=0.2,
-        max_generations=100,
+        max_generations=50,
         hall_of_fame=hof,
         workers_num=workers_num,
     )
