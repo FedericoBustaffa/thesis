@@ -51,7 +51,7 @@ if __name__ == "__main__":
         "accuracy": [],
     }
 
-    population_sizes = [1000, 4000]
+    population_sizes = [1000, 2000, 4000, 8000, 16000]
     for ps in population_sizes:
         for i, (fp, df) in enumerate(zip(filepaths, datasets)):
             logger.info(f"dataset {i + 1}/{len(datasets)}")
