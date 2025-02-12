@@ -1,4 +1,5 @@
 import deap_regression
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -11,6 +12,8 @@ if __name__ == "__main__":
         "deap_MSE": [],
         "ppga_MSE": [],
     }
+
+    matplotlib.rcParams.update({"font.size": 16})
 
     n_samples = [50, 100, 200, 400, 800]
 
@@ -40,17 +43,21 @@ if __name__ == "__main__":
         results["deap_MSE"].append(deap_mse)
         results["ppga_MSE"].append(ppga_mse)
 
-        plt.figure(figsize=(16, 9), dpi=300)
-        plt.title("Regressione lineare genetica")
+        plt.figure(figsize=(8, 4), dpi=300)
+        # plt.title("Regressione lineare genetica")
         plt.scatter(x, y, ec="w")
-        plt.plot(x, numpy_y, c="r", label="Numpy regression")
-        plt.plot(x, deap_y, c="y", label="DEAP regression")
-        plt.plot(x, ppga_y, c="g", label="PPGA regression")
+        plt.plot(x, numpy_y, c="g", label="Numpy")
+        plt.plot(x, deap_y, c="r", label="DEAP")
+        plt.plot(x, ppga_y, c="b", label="PPGA")
 
         plt.grid()
         plt.legend()
+        plt.tight_layout()
+        # plt.savefig("/home/federico/tesi/immagini/regression.svg")
         plt.show()
 
     df = pd.DataFrame(results)
     print(df)
-    df.to_csv("results/genetic_regression.csv", index=False, header=True)
+    df.to_csv(
+        "problems/regression/results/genetic_regression.csv", index=False, header=True
+    )

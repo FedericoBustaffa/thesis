@@ -1,7 +1,10 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from numpy.linalg import norm
+
+matplotlib.rcParams.update({"font.size": 16})
 
 
 def evaluate(chromosome, towns: np.ndarray) -> tuple[float]:
@@ -18,13 +21,17 @@ def draw_graph(towns: pd.DataFrame, best):
     x = [towns["x"][i] for i in best]
     y = [towns["y"][i] for i in best]
 
-    plt.figure(figsize=(16, 9), dpi=200)
-    plt.title("Best path found")
-    plt.xlabel("X coordinates")
-    plt.ylabel("Y coordinates")
+    plt.figure(figsize=(16, 9), dpi=300)
+    # plt.title("Best path found")
+    # plt.xlabel("X coordinates")
+    # plt.ylabel("Y coordinates")
 
     plt.scatter(x, y, label="Towns")
     plt.plot(x, y, c="k", label="Path")
 
-    plt.legend()
+    plt.xticks([])
+    plt.yticks([])
+
+    plt.legend(loc="upper left")
+    plt.tight_layout()
     plt.show()

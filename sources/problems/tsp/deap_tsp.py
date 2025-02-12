@@ -1,3 +1,4 @@
+import multiprocessing as mp
 import random
 
 import matplotlib.pyplot as plt
@@ -57,18 +58,16 @@ def mut_rotation(chromosome: np.ndarray):
 
 if __name__ == "__main__":
     # Max generations
-    G = 500
+    G = 200
 
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMin)
 
-    towns_num = [10, 20, 50, 100]
-    towns_num = [20]
-    population_sizes = [100, 200, 400, 800]
-    population_sizes = [500]
-    df = {"towns": [], "population_size": [], "distance": []}
+    ntowns = [25, 50, 100, 200, 400]
+    population_sizes = [2000]
+    df = {"towns": [], "distance": []}
 
-    for tn in towns_num:
+    for tn in ntowns:
         for ps in population_sizes:
             data = pd.read_csv(f"problems/tsp/datasets/towns_{tn}.csv")
             x_coords = data["x"]
@@ -81,10 +80,13 @@ if __name__ == "__main__":
                 "individual", tools.initIterate, creator.Individual, toolbox.indices
             )
 
+            pool = mp.Pool()
+            toolbox.register("map", pool.map)
+
             toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+            toolbox.register("select", tools.selTournament, tournsize=2)
             toolbox.register("mate", cx_one_point_ordered)
             toolbox.register("mutate", mut_rotation)
-            toolbox.register("select", tools.selTournament, tournsize=2)
             toolbox.register("evaluate", evaluate, towns=towns)
 
             stats = tools.Statistics(key=lambda ind: ind.fitness.wvalues)
@@ -92,7 +94,7 @@ if __name__ == "__main__":
             stats.register("mean", np.mean)
             stats.register("max", np.max)
 
-            hall_of_fame = tools.HallOfFame(5)
+            hall_of_fame = tools.HallOfFame(1)
 
             pop, logbook, _ = algorithms.eaSimple(
                 toolbox.population(n=ps),
@@ -112,14 +114,16 @@ if __name__ == "__main__":
             }
 
             df["towns"].append(tn)
-            df["population_size"].append(ps)
             df["distance"].append(evaluate(hall_of_fame[0], towns)[0])
 
+            pool.close()
+            pool.join()
+
             # plotting the best solution ever recorded
-            draw_graph(data, hall_of_fame[0])
-            fitness_trend(stats)
-            utility.plot.evals(stats["nevals"])
+            # draw_graph(data, hall_of_fame[0])
+            # fitness_trend(stats)
+            # utility.plot.evals(stats["nevals"])
 
     df = pd.DataFrame(df)
-    # df.to_csv("problems/tsp/results/deap_tsp.csv", index=False, header=True)
+    df.to_csv("problems/tsp/results/deap_tsp.csv", index=False, header=True)
     print(df)
