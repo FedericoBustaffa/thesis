@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
                     times = []
                     ptimes = []
-                    for _ in range(5):
+                    for _ in range(2):
                         pool = None
                         if w > 1:
                             pool = mp.Pool(w)
@@ -77,7 +77,7 @@ if __name__ == "__main__":
                         hof = tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
                         start = time.perf_counter()
                         _, _, ptime = algorithms.eaSimple(
-                            pop, toolbox, 0.8, 0.2, 20, None, hof
+                            pop, toolbox, 0.7, 0.3, 10, None, hof
                         )
                         end = time.perf_counter()
                         times.append(end - start)

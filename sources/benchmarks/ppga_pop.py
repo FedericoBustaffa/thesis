@@ -60,11 +60,11 @@ if __name__ == "__main__":
 
                     times = []
                     ptimes = []  # only parallel time
-                    for _ in range(5):
+                    for _ in range(2):
                         hof = base.HallOfFame(ps)
                         start = time.process_time()
                         pop, stats = algorithms.simple(
-                            toolbox, ps, 0.1, 0.8, 0.2, 20, hof, w
+                            toolbox, ps, 0.1, 0.7, 0.3, 10, hof, w
                         )
                         end = time.process_time()
                         ptime = np.sum(stats.times)
