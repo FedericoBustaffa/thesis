@@ -1,24 +1,14 @@
 #!/bin/bash
 
 
-# DEAP TEST
-# population
-python benchmarks/deap_pop.py MLPClassifier --suffix=final --log=info
-python benchmarks/deap_pop.py SVC --suffix=final --log=info
-python benchmarks/deap_pop.py RandomForestClassifier --suffix=final --log=info
+# DEAP population
+python benchmarks/deap_pop.py $1 --suffix=final2 --log=info
 
-# feature
-python benchmarks/deap_ft.py MLPClassifier --suffix=final --log=info
-python benchmarks/deap_ft.py SVC --suffix=final --log=info
-python benchmarks/deap_ft.py RandomForestClassifier --suffix=final --log=info
+# DEAP feature
+python benchmarks/deap_ft.py $1 --suffix=final2 --log=info
 
-# PPGA TEST
-# population
-python benchmarks/ppga_pop.py MLPClassifier --suffix=final --log=info
-python benchmarks/ppga_pop.py SVC --suffix=final --log=info
-python benchmarks/ppga_pop.py RandomForestClassifier --suffix=final --log=info
+# PPGA population
+python benchmarks/ppga_pop.py $1 --suffix=final2 --log=info
 
-# feature
-python benchmarks/ppga_ft.py MLPClassifier --suffix=final --log=info
-python benchmarks/ppga_ft.py SVC --suffix=final --log=info
-python benchmarks/ppga_ft.py RandomForestClassifier --suffix=final --log=info
+# PPGA feature
+python benchmarks/ppga_ft.py $1 --suffix=final2 --log=info
