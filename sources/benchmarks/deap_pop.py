@@ -65,27 +65,15 @@ if __name__ == "__main__":
                     times = []
                     ptimes = []
                     for _ in range(2):
-                        pool = None
-                        if w > 1:
-                            pool = mp.Pool(w)
-                            toolbox.register("map", pool.map)
-                            # toolbox.register("map", pool.map, chunksize=ps // w)
-                        else:
-                            toolbox.register("map", map)
-
                         pop = toolbox.population(n=ps)
                         hof = tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
-                        start = time.perf_counter()
+                        start = time.process_time()
                         _, _, ptime = algorithms.eaSimple(
-                            pop, toolbox, 0.7, 0.3, 10, None, hof
+                            pop, toolbox, 0.7, 0.3, 10, None, hof, nworkers=w
                         )
-                        end = time.perf_counter()
-                        times.append(end - start)
+                        end = time.process_time()
+                        times.append((end - start) + ptime)
                         ptimes.append(ptime)
-
-                        if pool is not None:
-                            pool.close()
-                            pool.join()
 
                     results["point"].append(i)
                     results["features"].append(len(point))
