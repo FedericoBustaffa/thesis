@@ -1,4 +1,5 @@
 import time
+import multiprocessing as mp
 
 import numpy as np
 import pandas as pd
@@ -66,13 +67,24 @@ if __name__ == "__main__":
                     for _ in range(2):
                         pop = toolbox.population(n=ps)
                         hof = tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
+
+                        pool = None if w <= 1 else mp.Pool(w)
+                        if w <= 1:
+                            toolbox.register("map", map)
+                        else:
+                            toolbox.register("map", pool.map)
+
                         start = time.perf_counter()
                         _, _, ptime = algorithms.eaSimple(
-                            pop, toolbox, 0.7, 0.3, 10, None, hof, nworkers=w
+                            pop, toolbox, 0.7, 0.3, 10, None, hof
                         )
                         end = time.perf_counter()
-                        times.append((end - start) + ptime)
+                        times.append(end - start)
                         ptimes.append(ptime)
+
+                        if w > 1:
+                            pool.close()
+                            pool.join()
 
                     results["point"].append(i)
                     results["features"].append(len(point))
