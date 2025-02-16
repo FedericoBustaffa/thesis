@@ -60,7 +60,7 @@ if __name__ == "__main__":
                     )
 
                     pop = toolbox.population(n=ps)
-                    hof = tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
+                    hof = tools.HallOfFame(ps)
 
                     start = time.process_time()
                     _, _, ptime = algorithms.eaSimple(
