@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from common import evaluate
+from common import draw_graph, evaluate
 
 from ppga import algorithms, base, log, tools, utility
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     df.to_csv("problems/tsp/results/ppga_tsp.csv", index=False, header=True)
     print(df)
 
-    # utility.plot.draw_graph(data, hall_of_fame[0].chromosome)
-    # utility.plot.fitness_trend(stats)
-    # utility.plot.biodiversity_trend(stats)
-    # utility.plot.evals(stats.evals)
+    draw_graph(data, hall_of_fame[0].chromosome)
+    utility.plot.fitness_trend(stats)
+    utility.plot.biodiversity_trend(stats)
+    utility.plot.evals(stats.evals)
