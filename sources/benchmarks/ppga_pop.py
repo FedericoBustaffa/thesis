@@ -18,7 +18,7 @@ if __name__ == "__main__":
     logger = log.getUserLogger()
     logger.setLevel(args.log.upper())
 
-    df = pd.read_csv("datasets/classification_10010_32_2_1_0.csv")
+    df = pd.read_csv("datasets/classification_10010_64_2_1_0.csv")
     classifiers = [RandomForestClassifier(), SVC(), MLPClassifier()]
     clf = classifiers[
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
@@ -35,12 +35,10 @@ if __name__ == "__main__":
         "population_size": [],
         "workers": [],
         "time": [],
-        "time_std": [],
         "ptime": [],
-        "ptime_std": [],
     }
 
-    X, y = make_predictions(clf, df, 5)
+    X, y = make_predictions(clf, df, 2)
     outcomes = np.unique(y)
     toolbox = genetic.create_toolbox(X)
 
@@ -58,18 +56,13 @@ if __name__ == "__main__":
 
                     toolbox = genetic.update_toolbox(toolbox, point, int(target), clf)
 
-                    times = []
-                    ptimes = []  # only parallel time
-                    for _ in range(2):
-                        hof = base.HallOfFame(ps)
-                        start = time.process_time()
-                        pop, stats = algorithms.simple(
-                            toolbox, ps, 0.1, 0.7, 0.3, 10, hof, w
-                        )
-                        end = time.process_time()
-                        ptime = np.sum(stats.times)
-                        times.append((end - start) + ptime)
-                        ptimes.append(ptime)
+                    hof = base.HallOfFame(ps)
+                    start = time.process_time()
+                    pop, stats = algorithms.simple(
+                        toolbox, ps, 0.1, 0.7, 0.3, 15, hof, w
+                    )
+                    end = time.process_time()
+                    ptime = np.sum(stats.times)
 
                     results["point"].append(i)
                     results["features"].append(len(point))
@@ -80,18 +73,13 @@ if __name__ == "__main__":
                     results["population_size"].append(ps)
                     results["workers"].append(w)
 
-                    # total work time
-                    results["time"].append(np.mean(times))
-                    results["time_std"].append(np.std(times))
+                    results["time"].append((end - start) + ptime)
+                    results["ptime"].append(ptime)
 
-                    # only parallel time
-                    results["ptime"].append(np.mean(ptimes))
-                    results["ptime_std"].append(np.std(ptimes))
-
-    results_df = pd.DataFrame(results)
-    results_df.to_csv(
-        f"results/performance/ppga_{args.model}_pop_{args.suffix}.csv",
-        index=False,
-        header=True,
-    )
-    print(results_df)
+            df = pd.DataFrame(results)
+            df.to_csv(
+                f"results/performance/ppga_{args.model}_pop_{args.suffix}.csv",
+                index=False,
+                header=True,
+            )
+            print(df)
