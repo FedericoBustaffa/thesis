@@ -2,8 +2,8 @@
 
 
 # DEAP population
-python benchmarks/deap_pop.py RandomForestClassifier --suffix=final2 --log=info
 python benchmarks/deap_pop.py MLPClassifier --suffix=final2 --log=info
+python benchmarks/deap_pop.py RandomForestClassifier --suffix=final2 --log=info
 python benchmarks/deap_pop.py SVC --suffix=final2 --log=info
 
 # DEAP feature
