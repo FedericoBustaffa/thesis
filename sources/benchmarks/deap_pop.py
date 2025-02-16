@@ -1,5 +1,5 @@
-import time
 import multiprocessing as mp
+import time
 
 import numpy as np
 import pandas as pd
@@ -26,7 +26,9 @@ if __name__ == "__main__":
         ["RandomForestClassifier", "SVC", "MLPClassifier"].index(args.model)
     ]
     population_sizes = [1000, 2000, 4000, 8000, 16000]
+    # population_sizes = [2000]
     workers = [1, 2, 4, 8, 16, 32]
+    # workers = [1, 8]
 
     results = {
         "point": [],
@@ -68,11 +70,12 @@ if __name__ == "__main__":
                         pop = toolbox.population(n=ps)
                         hof = tools.HallOfFame(int(0.1 * ps), similar=np.array_equal)
 
-                        pool = None if w <= 1 else mp.Pool(w)
-                        if w <= 1:
-                            toolbox.register("map", map)
-                        else:
+                        pool = None
+                        if w > 1:
+                            pool = mp.Pool(w)
                             toolbox.register("map", pool.map)
+                        else:
+                            toolbox.register("map", map)
 
                         start = time.perf_counter()
                         _, _, ptime = algorithms.eaSimple(
