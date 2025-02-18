@@ -57,11 +57,11 @@ if __name__ == "__main__":
                     toolbox = genetic.update_toolbox(toolbox, point, int(target), clf)
 
                     hof = base.HallOfFame(ps)
-                    start = time.process_time()
+                    start = time.perf_counter()
                     pop, stats = algorithms.simple(
                         toolbox, ps, 0.1, 0.7, 0.3, 15, hof, w
                     )
-                    end = time.process_time()
+                    end = time.perf_counter()
                     ptime = np.sum(stats.times)
 
                     results["point"].append(i)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
                     results["population_size"].append(ps)
                     results["workers"].append(w)
 
-                    results["time"].append((end - start) + ptime)
+                    results["time"].append(end - start)
                     results["ptime"].append(ptime)
 
             df = pd.DataFrame(results)

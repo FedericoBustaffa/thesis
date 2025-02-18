@@ -62,11 +62,11 @@ if __name__ == "__main__":
                     pop = toolbox.population(n=ps)
                     hof = tools.HallOfFame(ps)
 
-                    start = time.process_time()
+                    start = time.perf_counter()
                     _, _, ptime = algorithms.eaSimple(
                         pop, toolbox, 0.7, 0.3, 15, None, hof, w
                     )
-                    end = time.process_time()
+                    end = time.perf_counter()
 
                     results["point"].append(i)
                     results["features"].append(len(point))
@@ -77,7 +77,7 @@ if __name__ == "__main__":
                     results["population_size"].append(ps)
                     results["workers"].append(w)
 
-                    results["time"].append((end - start) + ptime)
+                    results["time"].append(end - start)
                     results["ptime"].append(ptime)
 
             df = pd.DataFrame(results)
