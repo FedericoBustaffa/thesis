@@ -1,3 +1,4 @@
+import multiprocessing as mp
 import time
 
 import numpy as np
@@ -59,14 +60,23 @@ if __name__ == "__main__":
                         toolbox, point, int(target), clf
                     )
 
+                    pool = mp.Pool(processes=w)
+                    if w <= 1:
+                        toolbox.register("map", map)
+                    else:
+                        toolbox.register("map", pool.map)
+
                     pop = toolbox.population(n=ps)
                     hof = tools.HallOfFame(ps)
 
                     start = time.perf_counter()
                     _, _, ptime = algorithms.eaSimple(
-                        pop, toolbox, 0.7, 0.3, 15, None, hof, w
+                        pop, toolbox, 0.7, 0.3, 15, None, hof
                     )
                     end = time.perf_counter()
+
+                    pool.close()
+                    pool.join()
 
                     results["point"].append(i)
                     results["features"].append(len(point))
