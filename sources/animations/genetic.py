@@ -3,7 +3,6 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import linalg
-
 from ppga import base, parallel
 from ppga.algorithms import batch
 
@@ -54,6 +53,8 @@ def plot_hof(
     y1 = X.T[1][y == 1]
 
     plt.clf()
+    plt.xlim(X.T[0].min() - 1, X.T[0].max() + 1)
+    plt.ylim(X.T[1].min() - 1, X.T[1].max() + 1)
     plt.scatter(x0, y0, c="b", ec="w")
     plt.scatter(x1, y1, c="r", ec="w")
     if point is not None:
@@ -62,7 +63,7 @@ def plot_hof(
         )
 
     plt.scatter(hof.T[0], hof.T[1], c="y", ec="w")
-    plt.pause(0.00001)
+    plt.pause(0.0000001)
 
 
 def run(
@@ -77,11 +78,11 @@ def run(
     hof = base.HallOfFame(population_size)
 
     population = toolbox.generate(population_size)
-    plt.figure(figsize=(16, 9))
+    plt.figure(figsize=(12, 8), dpi=200)
     plt.title("Dataset")
     plt.xlabel("feature 1")
     plt.ylabel("feature 2")
-    pool = parallel.Pool()
+    pool = parallel.Pool(4)
     for g in range(max_generations):
         print(g)
         selected = toolbox.select(population, population_size)

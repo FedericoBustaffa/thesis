@@ -1,11 +1,11 @@
-import genetic
 import matplotlib.pyplot as plt
 import numpy as np
+from ppga import base, tools
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 
-from ppga import base, tools
+import genetic
 
 
 def plot_dataset(
@@ -19,7 +19,7 @@ def plot_dataset(
     y0 = X.T[1][y == 0]
     y1 = X.T[1][y == 1]
 
-    plt.figure(figsize=(16, 9))
+    plt.figure(figsize=(12, 8), dpi=200)
     plt.title("Dataset")
     plt.xlabel("feature 1")
     plt.ylabel("feature 2")
@@ -35,23 +35,22 @@ def plot_dataset(
 def main():
     # create dataset
     X, y = make_classification(
-        n_samples=100,
+        n_samples=1000,
         n_features=2,
         n_informative=2,
         n_redundant=0,
         n_repeated=0,
         n_classes=2,
         n_clusters_per_class=1,
-        shuffle=True,
         random_state=0,
     )
 
     X = np.asarray(X)
     y = np.asarray(y)
-    plot_dataset(X, y)
+    # plot_dataset(X, y)
 
     # split
-    X_train, X_test, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=0)
+    X_train, X_test, y_train, _ = train_test_split(X, y, test_size=50, random_state=0)
     X_train = np.asarray(X_train)
     y_train = np.asarray(y_train)
     X_test = np.asarray(X_test)
@@ -62,7 +61,7 @@ def main():
     outcomes = np.asarray(classifier.predict(X_test))
     point = X_test[6]
     target = (outcomes[6] + 1) % 2
-    plot_dataset(X_test, outcomes, point, outcomes[6])
+    # plot_dataset(X_test, outcomes, point, outcomes[6])
 
     # run the genetic algorithm on one point
     toolbox = base.ToolBox()
@@ -85,7 +84,7 @@ def main():
         alpha=0.0,
     )
     toolbox.set_replacement(tools.elitist, keep=0.1)
-    genetic.run(X_test, outcomes, point, outcomes[6], toolbox, 500, 100)
+    genetic.run(X_test, outcomes, point, outcomes[6], toolbox, 100, 50)
 
 
 if __name__ == "__main__":
